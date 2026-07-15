@@ -6,6 +6,8 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/react-native-device-risk-signals"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-device-risk-signals?color=C95736" /></a>
+  <a href="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
   <img alt="React Native TurboModule" src="https://img.shields.io/badge/React%20Native-TurboModule-20232A?logo=react&logoColor=61DAFB" />
   <img alt="Android and iOS" src="https://img.shields.io/badge/platforms-Android%20%7C%20iOS-006D77" />
   <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-C95736" />
