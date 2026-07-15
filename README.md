@@ -43,6 +43,15 @@ the current device and exposes the complete result as selectable JSON.
 
 ## Installation
 
+The first npm release is being prepared. Until `v0.1.0` is available in the npm registry, install
+the current repository directly from GitHub:
+
+```sh
+npm install github:AfanasievN/react-native-device-risk-signals#main
+```
+
+After the npm release, install the versioned package normally:
+
 ```sh
 npm install react-native-device-risk-signals
 ```
@@ -396,12 +405,15 @@ See [example/README.md](example/README.md) for environment requirements and trou
 
 ```sh
 npm install
-npm test
-npm run typecheck
+npm run verify
 ```
 
 When adding a probe, implement both native platforms or an explicit platform fallback, register the
 probe in `src/probes/index.ts`, document its privacy impact, and add focused tests.
+
+`npm run build` compiles the JavaScript entrypoint and TypeScript declarations into `lib/`.
+`npm pack --dry-run` shows exactly which files would be published. Maintainers should follow
+[RELEASING.md](RELEASING.md) for versioning, npm Trusted Publishing, and GitHub Release steps.
 
 ## Project status
 

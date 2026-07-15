@@ -1,29 +1,44 @@
 {
   "name": "react-native-device-risk-signals",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Privacy-conscious device risk signal collection for React Native",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
-  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "react-native": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "react-native": "./src/index.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "author": "React Native Device Risk Signals contributors",
   "license": "MIT",
-  "homepage": "https://github.com/OWNER/react-native-device-risk-signals",
+  "homepage": "https://github.com/AfanasievN/react-native-device-risk-signals#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/react-native-device-risk-signals.git"
+    "url": "git+https://github.com/AfanasievN/react-native-device-risk-signals.git"
   },
   "bugs": {
-    "url": "https://github.com/OWNER/react-native-device-risk-signals/issues"
+    "url": "https://github.com/AfanasievN/react-native-device-risk-signals/issues"
   },
   "scripts": {
+    "prebuild": "node scripts/clean.mjs",
+    "build": "tsc -p tsconfig.build.json",
     "test": "jest --runInBand --watchman=false",
     "typecheck": "tsc --noEmit",
+    "verify:package": "node scripts/verify-package.mjs",
+    "verify": "npm test && npm run typecheck && npm run build && npm run verify:package",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run verify",
     "example:start": "npm --prefix example run start",
     "example:android": "npm --prefix example run android",
     "example:ios": "npm --prefix example run ios",
     "example:test": "npm --prefix example run test"
   },
   "files": [
+    "lib",
     "android/build.gradle",
     "android/src",
     "ios",
@@ -33,6 +48,10 @@
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "keywords": [
     "react-native",
     "device-risk",

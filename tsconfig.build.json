@@ -2,7 +2,12 @@
   "extends": "./tsconfig",
   "compilerOptions": {
     "composite": false,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "declaration": true,
+    "noEmit": false
   },
   "include": ["./src/**/*", "./src/**/*.json"],
   "exclude": ["./src/**/*.spec.ts", "./src/**/*.spec.tsx"]

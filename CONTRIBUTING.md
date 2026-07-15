@@ -18,8 +18,8 @@ Install the root dependencies and run the library checks:
 
 ```sh
 npm install
-npm test
-npm run typecheck
+npm run verify
+npm pack --dry-run
 ```
 
 The example is an independent application. Install and verify it separately:
