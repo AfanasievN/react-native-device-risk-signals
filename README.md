@@ -8,6 +8,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/react-native-device-risk-signals"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-device-risk-signals?color=C95736" /></a>
   <a href="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
+  <a href="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/codeql.yml"><img alt="CodeQL status" src="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/codeql.yml/badge.svg?branch=main" /></a>
   <img alt="React Native TurboModule" src="https://img.shields.io/badge/React%20Native-TurboModule-20232A?logo=react&logoColor=61DAFB" />
   <img alt="Android and iOS" src="https://img.shields.io/badge/platforms-Android%20%7C%20iOS-006D77" />
   <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-C95736" />
@@ -429,11 +430,16 @@ on React Native mobile applications, including product architecture, native inte
 performance, security, and release engineering. If your team is building a mobile product and needs
 experienced React Native help, get in touch through my GitHub profile.
 
-## Contributing and security
+## Security
+
+This project uses CI, CodeQL analysis for JavaScript and TypeScript, dependency review, Dependabot
+security updates, and npm provenance through Trusted Publishing. These checks reduce risk but cannot
+guarantee that the software is vulnerability-free. Report suspected vulnerabilities privately as
+described in [SECURITY.md](SECURITY.md).
+
+## Contributing
 
 Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
-Report vulnerabilities through a private GitHub security advisory as described in
-[SECURITY.md](SECURITY.md).
 
 ## License
 
