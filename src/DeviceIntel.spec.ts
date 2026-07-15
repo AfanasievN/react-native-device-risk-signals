@@ -21,6 +21,19 @@ jest.mock("./probes", () => ({
 
 let mockAllProbes: Probe[] = [fakeProbe];
 
+let mockSessionCounter = 0;
+const mockGetRandomSessionId = jest.fn(
+  () => `00000000-0000-4000-8000-${(++mockSessionCounter).toString().padStart(12, "0")}`,
+);
+jest.mock("./NativeDeviceIntel", () => ({
+  __esModule: true,
+  default: {
+    get getRandomSessionId() {
+      return mockGetRandomSessionId;
+    },
+  },
+}));
+
 const mockSend = jest.fn().mockResolvedValue({ok: true, status: 200});
 jest.mock("./transport/transport", () => ({
   Transport: jest.fn().mockImplementation(() => ({send: mockSend})),
@@ -75,6 +88,8 @@ describe("DeviceIntel.collect", () => {
 describe("DeviceIntel session id", () => {
   beforeEach(() => {
     mockAllProbes = [fakeProbe];
+    mockSessionCounter = 0;
+    mockGetRandomSessionId.mockClear();
   });
 
   it("stamps the app-supplied session id from the constructor onto the event", async () => {
@@ -97,6 +112,25 @@ describe("DeviceIntel session id", () => {
   it("falls back to an SDK-generated ephemeral id (di_ prefix) when the app supplies none", async () => {
     const deviceIntel = new DeviceIntel();
     expect((await deviceIntel.collect()).session_id).toMatch(/^di_/);
+  });
+
+  it("uses native secure randomness instead of Math.random for generated session ids", async () => {
+    const insecureRandom = jest.spyOn(Math, "random").mockImplementation(() => {
+      throw new Error("Math.random must not generate security-sensitive session ids");
+    });
+
+    try {
+      const deviceIntel = new DeviceIntel();
+      const first = await deviceIntel.collect();
+      deviceIntel.resetSession();
+      const second = await deviceIntel.collect();
+
+      expect(first.session_id).toBe("di_00000000-0000-4000-8000-000000000001");
+      expect(second.session_id).toBe("di_00000000-0000-4000-8000-000000000002");
+      expect(mockGetRandomSessionId).toHaveBeenCalledTimes(2);
+    } finally {
+      insecureRandom.mockRestore();
+    }
   });
 });
 

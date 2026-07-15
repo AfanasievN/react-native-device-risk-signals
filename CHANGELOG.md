@@ -4,6 +4,9 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+- Replaced JavaScript `Math.random()` session identifiers with native CSPRNG-backed UUIDs on
+  Android and iOS.
+
 ## [0.1.1] - 2026-07-15
 
 - Added npm version and CI status badges to the README.

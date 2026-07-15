@@ -28,6 +28,11 @@
 
 RCT_EXPORT_MODULE(DeviceIntel)
 
+- (NSString *)getRandomSessionId
+{
+  return [NSUUID UUID].UUIDString.lowercaseString;
+}
+
 - (instancetype)init
 {
   self = [super init];

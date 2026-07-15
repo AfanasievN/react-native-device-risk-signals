@@ -11,6 +11,7 @@ import {allProbes} from "./probes";
 import {collectAll} from "./probes/registry";
 import type {ProbeResult} from "./probes/types";
 import {Transport, type TransportConfig} from "./transport/transport";
+import NativeDeviceIntel from "./NativeDeviceIntel";
 
 /**
  * Everything you can set AT INIT, in one place — no Firebase, no network, all plain objects/functions:
@@ -73,11 +74,10 @@ const SCHEMA_VERSION = 1;
 
 function randomSessionId(): string {
   // Fallback used only when the host app does not supply its own session id (see setSessionId /
-  // DeviceIntelOptions.sessionId). Not cryptographically strong, and deliberately not a
-  // device-persistent identifier — a reinstall-surviving id is explicitly out of scope. The `di_`
-  // prefix marks an SDK-generated id vs an
-  // app-supplied one so downstream can tell them apart.
-  return `di_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  // DeviceIntelOptions.sessionId). Native code uses the operating system CSPRNG to produce an
+  // ephemeral UUID; it is deliberately not a device-persistent identifier. The `di_` prefix marks
+  // an SDK-generated id vs an app-supplied one so downstream can tell them apart.
+  return `di_${NativeDeviceIntel.getRandomSessionId()}`;
 }
 
 export type RawSignalEvent = {

@@ -6,6 +6,7 @@ package com.reactnativedeviceintel
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import java.util.UUID
 import java.util.concurrent.Executors
 
 /**
@@ -15,6 +16,8 @@ import java.util.concurrent.Executors
  */
 class DeviceIntelModule(reactContext: ReactApplicationContext) :
   NativeDeviceIntelSpec(reactContext) {
+
+  override fun getRandomSessionId(): String = UUID.randomUUID().toString()
 
   private val deviceInfo = DeviceInfoProvider(reactContext)
   private val application = ApplicationInfoProvider(reactContext)
