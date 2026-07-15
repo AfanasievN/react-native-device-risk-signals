@@ -1,9 +1,18 @@
-<h1 align="center">React Native Device Risk Signals</h1>
-
 <p align="center">
-  Inspect raw device, integrity, network, locale, and runtime signals on Android and iOS.<br />
-  Keep scoring and policy decisions on infrastructure you control.
+  <strong>Available for React Native consulting and mobile product development.</strong><br />
+  I can help with architecture, native SDK integrations, performance, security, CI/CD, and release
+  engineering. <a href="https://github.com/AfanasievN">Discuss a project or collaboration through my GitHub profile.</a>
 </p>
+
+# React Native Device Risk Signals
+
+Open-source React Native TurboModule for collecting raw device intelligence and fraud-prevention
+signals on Android and iOS: root and jailbreak indicators, emulator detection, debugger and Frida
+traces, VPN and proxy state, hardware, locale, application, and runtime data.
+
+The SDK returns typed raw observations with an independent outcome for every probe. It does not
+calculate a risk score, block users, create a persistent device identifier, or upload data unless
+you explicitly configure a transport. Scoring and policy stay on infrastructure you control.
 
 <p align="center">
   <a href="https://www.npmjs.com/package/react-native-device-risk-signals"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-device-risk-signals?color=C95736" /></a>
@@ -14,9 +23,34 @@
   <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-C95736" />
 </p>
 
-`react-native-device-risk-signals` is a privacy-conscious React Native TurboModule for collecting
-device observations. It returns a typed event with an independent outcome for every probe. It does
-not assign a risk score, make a trust decision, or upload anything unless you configure a transport.
+[Quick start](#quick-start) · [What it detects](#what-it-detects) ·
+[AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
+[Privacy](#privacy-and-responsible-use) · [FAQ](#frequently-asked-questions)
+
+## Quick start
+
+Install the package:
+
+```sh
+npm install react-native-device-risk-signals
+```
+
+Collect a conservative set of signals locally:
+
+```ts
+import {consentFor, DeviceIntel} from "react-native-device-risk-signals";
+
+const deviceIntel = new DeviceIntel({
+  sessionId: "checkout-session-42",
+  consent: consentFor(["device_identity", "os_integrity", "network", "runtime"]),
+});
+
+const event = await deviceIntel.collect();
+console.log(JSON.stringify(event, null, 2));
+```
+
+`collect()` does not upload the event. Continue to [installation details](#installation), use one of
+the [AI setup prompts](#ai-assisted-installation-and-integration), or inspect the included demo.
 
 ## See it in action
 
@@ -44,6 +78,57 @@ the current device and exposes the complete result as selectable JSON.
   by the host application.
 - **Android and iOS.** The package uses React Native codegen and autolinking for the New Architecture.
 
+## What it detects
+
+The SDK collects raw observations rather than a single `isRisky` verdict. Availability varies by
+platform, OS version, hardware, host-app permissions, and the probes you enable.
+
+| Category | Example signals |
+| --- | --- |
+| Root and jailbreak | Root-management apps, `su`, suspicious files, writable system paths, jailbreak URL schemes |
+| Emulator and tampering | Emulator heuristics, debugger state, developer mode, Frida ports, injected libraries, hooking frameworks |
+| Device and application | Model, OS build, app version, bundle id, installer source, permissions, split APK state |
+| Hardware | Screen, CPU, memory, battery, storage, installed-font digest |
+| Network | Connection type, VPN state, proxy configuration, interfaces, local IP addresses |
+| Runtime | Hermes, Fabric, TurboModules, bridgeless mode, debug build, React Native version |
+| Locale and context | Language, country, timezone, calendar, measurement system, location authorization |
+| Optional benchmarks | GPU and audio observations; disabled by default until explicitly enabled |
+
+See [Available signal groups](#available-signal-groups) for probe ids and platform notes.
+
+## Common use cases
+
+- Enrich a backend fraud-prevention or device-risk model with raw mobile observations.
+- Add context to login, checkout, account recovery, payment, promotion, or high-risk actions.
+- Detect emulator, root/jailbreak, debugger, hooking, VPN, proxy, or repackaging indicators.
+- Investigate security telemetry without embedding a client-side risk verdict attackers can patch.
+- Run privacy-controlled device research, QA, and compatibility diagnostics.
+
+No individual observation should automatically block a user. Combine signals with authenticated
+account, transaction, behavioral, and server-side evidence, and provide an appeal or recovery path
+for consequential decisions.
+
+## What this SDK does not do
+
+- It does not calculate a risk score or return a trusted/untrusted verdict.
+- It does not replace Google Play Integrity, Apple App Attest, DeviceCheck, or server verification.
+- It does not create a persistent cross-reinstall device identifier.
+- It does not upload data, fetch remote configuration, or contact a vendor service by default.
+- It does not guarantee detection of every rooted, jailbroken, emulated, or instrumented device.
+- It is not a substitute for threat modeling, secure backend policy, privacy review, or legal review.
+
+## Compatibility
+
+| Surface | Support |
+| --- | --- |
+| React Native | `0.71` and newer |
+| Architecture | TurboModules and codegen; designed and tested for the New Architecture |
+| Android | API 24 and newer |
+| iOS | Uses the minimum iOS version supported by the host React Native release; CocoaPods integration |
+| Expo | Not available in Expo Go; requires a native prebuild or custom development build |
+| TypeScript | Typed public API and generated declaration files |
+| Data transport | Local collection by default; optional HTTPS transport to your own backend |
+
 ## Installation
 
 Install the latest public version from npm:
@@ -65,6 +150,61 @@ npx pod-install
 ```
 
 The package supports React Native 0.71 and newer. Android defaults to API 24 or newer.
+
+## AI-assisted installation and integration
+
+The prompts below are designed for an AI coding assistant that can inspect and edit your current
+project. Copy one prompt at a time into the chat attached to your React Native repository. Review the
+proposed changes before accepting them, especially native configuration and collected fields.
+
+### Prompt 1: install the library
+
+```text
+Install react-native-device-risk-signals in this React Native project.
+
+Before changing files, inspect the repository and determine:
+- the package manager and lockfile;
+- the React Native version and whether the New Architecture is enabled;
+- whether this is a bare React Native app or an Expo project;
+- which platforms are present;
+- the Android minSdk and the existing iOS CocoaPods/Bundler workflow.
+
+Confirm that the project is compatible with React Native >= 0.71, Android API >= 24, and a native
+TurboModule build. Expo Go is not supported; for Expo, use the project's existing prebuild or custom
+development-client workflow. Install the package with the repository's package manager, preserve
+the existing lockfile strategy, and run CocoaPods using Bundler when the project already uses a
+Gemfile. Do not add permissions, remote services, or unrelated dependency upgrades. Run the
+project's existing typecheck/tests plus the relevant native dependency checks. Finish with a concise
+summary of changed files, commands run, compatibility findings, and any manual step still required.
+```
+
+### Prompt 2: integrate signal collection into the project architecture
+
+```text
+Integrate react-native-device-risk-signals into this existing React Native application.
+
+First inspect the architecture instead of assuming a template. Identify app bootstrap and lifecycle,
+authentication/session ownership, navigation, dependency injection or service modules, state
+management, analytics/telemetry conventions, backend API clients, consent/privacy controls, and the
+current test strategy. Then choose the smallest integration point that matches those conventions.
+
+Requirements:
+- create one reusable DeviceIntel instance or service instead of constructing it throughout the UI;
+- use the application's existing session id when available and never derive a persistent device id;
+- begin with an explicit, conservative consentFor(...) probe list and explain every enabled group;
+- call collect() locally first; configure collectAndSend() only if a suitable first-party backend
+  endpoint and payload contract already exist;
+- handle success, skipped, timeout, and error outcomes without treating missing data as low risk;
+- keep risk scoring and blocking decisions on the backend and do not block a user from one signal;
+- account for Android/iOS differences, Expo prebuild requirements, and New Architecture codegen;
+- minimize transmitted fields with configuration/sendFields when transport is enabled;
+- add focused tests using the project's existing tools and update relevant privacy documentation;
+- do not introduce vendor services, secrets, new permissions, or unrelated refactors.
+
+Show the proposed architecture and data flow before editing. After implementation, run the relevant
+tests and native checks, then summarize files changed, enabled probes, collected/transmitted fields,
+failure behavior, privacy implications, and remaining backend or product decisions.
+```
 
 ## Collect signals locally
 
@@ -377,6 +517,66 @@ Review every enabled probe, platform permission, privacy disclosure, and retenti
 production rollout. Higher-risk probes such as GPU benchmarking, audio latency measurement, and the
 iOS fork test intentionally ship disabled.
 
+## Frequently asked questions
+
+### What does React Native Device Risk Signals do?
+
+It collects raw, on-device observations that can support fraud prevention, account protection, and
+security decisions. It returns evidence and probe outcomes rather than a single risk score or a
+`safe` / `unsafe` verdict.
+
+### Can it detect rooted Android devices and jailbroken iPhones?
+
+It checks multiple root and jailbreak indicators on Android and iOS. No client-side check can
+guarantee detection on every device, so treat these signals as part of a layered server-side risk
+policy rather than as definitive proof.
+
+### Can it detect emulators, debuggers, Frida, VPNs, and proxies?
+
+Yes, the SDK exposes relevant raw indicators where the operating system and current runtime make
+them available. Individual probes may report `success`, `skipped`, `timeout`, or `error`; always
+branch on the outcome instead of assuming that every field is present.
+
+### Does it create a device fingerprint or persistent identifier?
+
+No. The SDK does not create a persistent cross-install identifier or combine observations into a
+vendor-controlled fingerprint. Some observations can still be high entropy, so the host application
+must minimize, disclose, retain, and protect any data it chooses to use.
+
+### Does the SDK upload data?
+
+`collect()` runs locally and does not upload its result. Network transmission occurs only when the
+host application explicitly configures a first-party endpoint and calls `collectAndSend()`.
+
+### Does it replace Google Play Integrity, Apple App Attest, or DeviceCheck?
+
+No. Platform attestation provides different, often cryptographically stronger guarantees. This
+library complements attestation with inspectable device and runtime context; use both when your
+threat model requires them.
+
+### Does it work with Expo?
+
+It does not run inside Expo Go because it includes native Android and iOS code. Use an Expo native
+prebuild or a custom development build, then validate the generated native projects and supported
+React Native version.
+
+### What permissions does it require?
+
+The Android library manifest declares no permissions. Signal availability can still depend on the
+host application's existing permissions, platform restrictions, and OS version. Audit each enabled
+probe against your privacy policy and store requirements.
+
+### What happens when a probe is unsupported or fails?
+
+Probes are isolated and return explicit outcomes such as `skipped`, `timeout`, or `error`. One failed
+probe does not invalidate the entire collection. Your integration should tolerate partial results
+and avoid treating missing data as evidence of fraud.
+
+### Does it support React Native's old architecture?
+
+The package is designed and tested as a TurboModule for React Native's New Architecture. Projects
+that still use the legacy architecture should migrate or validate compatibility before adoption.
+
 ## Run the example
 
 Install the example independently from the library root:
@@ -423,12 +623,11 @@ The project is in early public development. The API and collected fields may evo
 and should be reviewed before adopting the library in a production application. See
 [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-## Maintainer and collaboration
+## Maintainer
 
-The project is maintained by [AfanasievN](https://github.com/AfanasievN). I am open to collaboration
-on React Native mobile applications, including product architecture, native integrations,
-performance, security, and release engineering. If your team is building a mobile product and needs
-experienced React Native help, get in touch through my GitHub profile.
+The project is maintained by [AfanasievN](https://github.com/AfanasievN). For React Native consulting,
+native integrations, architecture, performance, security, or release engineering, see the
+availability note at the top of this README.
 
 ## Security
 
