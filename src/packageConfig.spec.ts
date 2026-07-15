@@ -3,6 +3,7 @@ import path from "node:path";
 
 type PackageJson = {
   version?: string;
+  author?: string;
   main?: string;
   types?: string;
   "react-native"?: string;
@@ -29,6 +30,7 @@ describe("npm package contract", () => {
   });
 
   it("points package metadata at the public GitHub repository", () => {
+    expect(packageJson.author).toBe("AfanasievN (https://github.com/AfanasievN)");
     expect(packageJson.homepage).toBe(
       "https://github.com/AfanasievN/react-native-device-risk-signals#readme",
     );

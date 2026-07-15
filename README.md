@@ -43,17 +43,16 @@ the current device and exposes the complete result as selectable JSON.
 
 ## Installation
 
-The first npm release is being prepared. Until `v0.1.0` is available in the npm registry, install
-the current repository directly from GitHub:
-
-```sh
-npm install github:AfanasievN/react-native-device-risk-signals#main
-```
-
-After the npm release, install the versioned package normally:
+Install the latest public version from npm:
 
 ```sh
 npm install react-native-device-risk-signals
+```
+
+To evaluate unreleased changes from `main`, install the repository directly from GitHub:
+
+```sh
+npm install github:AfanasievN/react-native-device-risk-signals#main
 ```
 
 Install CocoaPods dependencies after adding the package to an iOS app:
@@ -417,9 +416,16 @@ probe in `src/probes/index.ts`, document its privacy impact, and add focused tes
 
 ## Project status
 
-The project is preparing for its first public release. The API and collected fields should be
-reviewed before adopting it in a production application. See [CHANGELOG.md](CHANGELOG.md) for release
-notes.
+The project is in early public development. The API and collected fields may evolve before `1.0.0`
+and should be reviewed before adopting the library in a production application. See
+[CHANGELOG.md](CHANGELOG.md) for release notes.
+
+## Maintainer and collaboration
+
+The project is maintained by [AfanasievN](https://github.com/AfanasievN). I am open to collaboration
+on React Native mobile applications, including product architecture, native integrations,
+performance, security, and release engineering. If your team is building a mobile product and needs
+experienced React Native help, get in touch through my GitHub profile.
 
 ## Contributing and security
 

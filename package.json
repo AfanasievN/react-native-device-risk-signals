@@ -13,7 +13,7 @@
     },
     "./package.json": "./package.json"
   },
-  "author": "React Native Device Risk Signals contributors",
+  "author": "AfanasievN (https://github.com/AfanasievN)",
   "license": "MIT",
   "homepage": "https://github.com/AfanasievN/react-native-device-risk-signals#readme",
   "repository": {
