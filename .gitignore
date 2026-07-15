@@ -1,0 +1,46 @@
+# OSX
+#
+.DS_Store
+
+# AI
+.claude/settings.local.json
+.impeccable/
+
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+.npmrc
+*.pem
+*.p12
+*.mobileprovision
+
+# VSCode
+.vscode/
+jsconfig.json
+
+# JetBrains IDEs
+.idea
+
+# Ruby
+vendor/
+
+# node.js
+#
+node_modules/
+npm-debug.log
+dist/
+lib/
+android/build/
+
+# testing
+/junit.xml
+/coverage/
+
+# typescript
+*.tsbuildinfo
+
+# documentation (generated typedoc output)
+/typedoc/
+
+.zed

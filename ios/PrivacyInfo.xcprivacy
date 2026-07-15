@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- This SDK does NOT track users (no cross-app/advertising identity linkage). -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<!-- Intentionally EMPTY: this module uses ZERO Apple Required-Reason APIs. It deliberately avoids
+	     System-boot-time (kern.boottime / systemUptime / mach_absolute_time), Disk-space, Active-keyboard,
+	     User-defaults, and File-timestamp APIs. If any is ever added, its category + reason code MUST be
+	     declared here (and re-checked against the "no new permission/usage-key" compliance invariant). -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+	<!-- Data-collection disclosure (Apple App Privacy nutrition label / Play Data Safety) is declared at
+	     the HOST APP level: this is a first-party module compiled into the app, not a distributed 3rd-party
+	     binary SDK, so its collected data types are covered by the app's own privacy manifest and label.
+	     The host app MUST disclose the collected data according to its actual use. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+</dict>
+</plist>

@@ -1,0 +1,51 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- This package deliberately declares NO <uses-permission>. NetworkInfoProvider's
+       ConnectivityManager reads use ACCESS_NETWORK_STATE, which is ALREADY present in the merged
+       app manifest. We do not add it ourselves, and if it is absent the capabilities read degrades
+       gracefully (interface/getifaddrs reads still work). This SDK adds zero permissions to the host
+       app. -->
+
+  <!-- Package visibility (Android 11+/API 30): PackageManager.getPackageInfo cannot see these unless
+       they are declared here. We deliberately do NOT request QUERY_ALL_PACKAGES (a Play Console
+       sensitive permission requiring review) — an explicit finite <queries> list is the sanctioned
+       path. This list MUST stay in sync with KnownAppLists.kt; known-app-lists.drift.spec.ts fails
+       CI on drift. -->
+  <queries>
+    <!-- Superuser / root-manager apps (KnownAppLists.rootManagementPackages) -->
+    <package android:name="com.topjohnwu.magisk" />
+    <package android:name="com.noshufou.android.su" />
+    <package android:name="com.noshufou.android.su.elite" />
+    <package android:name="eu.chainfire.supersu" />
+    <package android:name="com.koushikdutta.superuser" />
+    <package android:name="com.thirdparty.superuser" />
+    <package android:name="com.yellowes.su" />
+    <package android:name="com.kingroot.kinguser" />
+    <package android:name="com.kingo.root" />
+    <package android:name="com.smedialink.oneclickroot" />
+    <package android:name="com.zhiqupk.root.global" />
+    <package android:name="com.alephzain.framaroot" />
+    <package android:name="me.phh.superuser" />
+    <!-- Runtime-instrumentation / hooking / SSL-interception frameworks (KnownAppLists.hookFrameworkPackages) -->
+    <package android:name="de.robv.android.xposed.installer" />
+    <package android:name="io.va.exposed" />
+    <package android:name="org.meowcat.edxposed.manager" />
+    <package android:name="org.lsposed.manager" />
+    <package android:name="com.saurik.substrate" />
+    <package android:name="com.guoshi.httpcanary" />
+    <package android:name="app.greyshirts.sslcapture" />
+    <package android:name="com.minhui.networkcapture" />
+    <package android:name="com.emanuelef.remote_capture" />
+    <package android:name="jp.co.taosoftware.android.packetcapture" />
+    <!-- Remote-access / RAT / anonymity apps (KnownAppLists.ratRemoteAccessPackages) -->
+    <package android:name="com.teamviewer.teamviewer.market.mobile" />
+    <package android:name="com.teamviewer.quicksupport.market" />
+    <package android:name="com.anydesk.anydeskandroid" />
+    <package android:name="com.sand.airdroid" />
+    <package android:name="com.microsoft.rdc.androidx" />
+    <package android:name="com.splashtop.remote.pad.v2" />
+    <package android:name="com.carriez.flutter_hbb" />
+    <package android:name="org.torproject.android" />
+    <package android:name="org.torproject.torbrowser" />
+  </queries>
+</manifest>
