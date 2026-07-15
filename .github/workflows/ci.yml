@@ -39,7 +39,10 @@ jobs:
         with:
           node-version: "24.16.0"
           cache: npm
-          cache-dependency-path: example/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            example/package-lock.json
+      - run: npm ci
       - run: npm ci --prefix example
       - run: npm test --prefix example -- --runInBand --watchman=false
       - run: npm run lint --prefix example
