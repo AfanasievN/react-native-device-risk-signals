@@ -6,6 +6,7 @@ All notable public changes will be documented in this file.
 
 - Replaced JavaScript `Math.random()` session identifiers with native CSPRNG-backed UUIDs on
   Android and iOS.
+- Updated the demo's `concurrent-ruby` dependency to `1.3.7` to resolve Dependabot advisories.
 
 ## [0.1.1] - 2026-07-15
 

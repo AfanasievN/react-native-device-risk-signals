@@ -1892,7 +1892,7 @@ PODS:
     - React-utils (= 0.86.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.86.0)
-  - RnDeviceIntel (1.0.0):
+  - RnDeviceIntel (0.1.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2229,7 +2229,7 @@ SPEC CHECKSUMS:
   ReactCodegen: afe0d436ee089d7bea6418429d8312b1d23a6801
   ReactCommon: d5c1bb4427bf51c443de5926aac332c89ddd9363
   ReactNativeDependencies: fa0a54b3f5319ae0e3b9aff32bfee7a424b88e66
-  RnDeviceIntel: f6cbda41fb3952f08e2ed5f9b219f0ca018342df
+  RnDeviceIntel: 52b6300674331158595b3729ce37f2cb2fe0e7e8
   Yoga: fe50ab299e578f397fef753cf309c6703a4db29b
 
 PODFILE CHECKSUM: e4324310c947755d0c0cf7a566670c0122116cd2
