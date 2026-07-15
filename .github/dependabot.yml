@@ -4,35 +4,42 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     groups:
-      npm-minor-and-patch:
-        update-types:
-          - minor
-          - patch
-    open-pull-requests-limit: 5
+      root-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    open-pull-requests-limit: 0
 
   - package-ecosystem: npm
     directory: /example
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     groups:
-      example-minor-and-patch:
-        update-types:
-          - minor
-          - patch
-    open-pull-requests-limit: 5
+      example-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: bundler
+    directory: /example
+    schedule:
+      interval: monthly
+    groups:
+      ruby-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    open-pull-requests-limit: 0
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     groups:
       github-actions:
         patterns:
           - "*"
-    open-pull-requests-limit: 5
-
+    open-pull-requests-limit: 1
