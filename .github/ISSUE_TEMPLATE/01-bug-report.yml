@@ -1,0 +1,104 @@
+name: Bug report
+description: Report a reproducible problem with the library or example app
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve React Native Device Risk Signals. Do not include credentials, tokens, personal data, or stable device identifiers.
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      description: The exact installed version of react-native-device-risk-signals.
+      placeholder: 0.1.1
+    validations:
+      required: true
+
+  - type: input
+    id: react-native-version
+    attributes:
+      label: React Native version
+      placeholder: 0.86.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Affected platform
+      options:
+        - Android
+        - iOS
+        - Android and iOS
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS version, device or emulator/simulator, build type, and relevant toolchain details.
+      placeholder: Android 16, Pixel 9 emulator, debug build, React Native New Architecture enabled
+    validations:
+      required: true
+
+  - type: input
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link to a minimal public repository or a small reproducible example.
+      placeholder: https://github.com/...
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Install the package...
+        2. Call collect()...
+        3. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or sanitized signal output
+      description: Remove secrets, personal data, and stable device identifiers before posting.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mention affected probe IDs, recent upgrades, or anything else that may help.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I removed secrets, personal data, and stable device identifiers from this report.
+          required: true
+        - label: I agree to follow the project's Code of Conduct.
+          required: true

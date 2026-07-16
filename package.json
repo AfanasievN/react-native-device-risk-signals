@@ -1,7 +1,7 @@
 {
   "name": "react-native-device-risk-signals",
   "version": "0.1.1",
-  "description": "Privacy-conscious device risk signal collection for React Native",
+  "description": "React Native device risk signals for root, jailbreak, emulator, tampering, Frida, VPN, and proxy detection",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "react-native": "src/index.ts",
@@ -54,10 +54,25 @@
   },
   "keywords": [
     "react-native",
+    "react-native-security",
+    "mobile-security",
     "device-risk",
+    "device-intelligence",
+    "device-signals",
     "device-integrity",
+    "risk-signals",
     "fraud-prevention",
-    "turbomodule"
+    "root-detection",
+    "jailbreak-detection",
+    "emulator-detection",
+    "frida-detection",
+    "tamper-detection",
+    "vpn-detection",
+    "proxy-detection",
+    "android-security",
+    "ios-security",
+    "turbomodule",
+    "new-architecture"
   ],
   "peerDependencies": {
     "react": ">=18",

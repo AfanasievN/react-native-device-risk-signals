@@ -2,6 +2,8 @@
 
 Thank you for helping improve React Native Device Risk Signals.
 
+By participating, you agree to follow the project [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Before opening a change
 
 - Keep signal collection transparent, minimal, and permission-conscious.

@@ -1,0 +1,75 @@
+name: Feature request
+description: Propose an API, signal, platform, documentation, or developer-experience improvement
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before proposing a new signal, explain the concrete use case and its privacy implications. Risk scoring and authoritative verdicts should remain outside the client library.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What developer or product problem would this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the API, behavior, or documentation change you would like.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform scope
+      options:
+        - Android and iOS
+        - Android
+        - iOS
+        - JavaScript or TypeScript only
+        - Documentation or tooling
+    validations:
+      required: true
+
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and security impact
+      description: Explain required permissions, sensitive data, store-policy implications, and possible misuse. Write "None" if not applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you like to contribute this change?
+      options:
+        - Yes
+        - Maybe, with guidance
+        - No
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This proposal does not add client-side risk scoring or an authoritative fraud verdict.
+          required: true
+        - label: I agree to follow the project's Code of Conduct.
+          required: true

@@ -639,6 +639,7 @@ described in [SECURITY.md](SECURITY.md).
 ## Contributing
 
 Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+Participation in this project is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
