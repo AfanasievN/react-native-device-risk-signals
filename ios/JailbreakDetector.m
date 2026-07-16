@@ -46,6 +46,10 @@ static const char *kInjectionSignatures[] = {
   "substitute", "libhooker", "frida", "cynject", "cycript", "RocketBootstrap"
 };
 
+static NSString *const kSuspiciousEnvironmentVariables[] = {
+  @"DYLD_INSERT_LIBRARIES", @"DYLD_LIBRARY_PATH", @"LD_PRELOAD", @"FRIDA_GADGET_CONFIG"
+};
+
 @implementation JailbreakDetector
 
 - (NSDictionary *)osIntegrity
@@ -62,6 +66,7 @@ static const char *kInjectionSignatures[] = {
   result[@"suBinaryFound"] = @([self anyShellPresent]);
   result[@"suspiciousFilePathsFound"] = @(suspiciousPaths.count > 0);
   result[@"suspiciousFilePaths"] = suspiciousPaths;
+  result[@"suspiciousPathCount"] = @(suspiciousPaths.count);
   result[@"symbolicLinksSuspicious"] = @([self suspiciousSymlinksPresent]);
 
   // Sandbox write test (writing outside the container succeeds only when jailbroken).
@@ -76,8 +81,17 @@ static const char *kInjectionSignatures[] = {
   NSArray<NSString *> *injected = [self injectedImageNames];
   result[@"injectedLibrariesFound"] = @(injected.count > 0);
   result[@"injectedLibraryNames"] = injected;
+  result[@"injectedLibraryCount"] = @(injected.count);
   result[@"hookFrameworkFound"] = @(injected.count > 0);
   result[@"dyldImageCount"] = @((NSInteger)_dyld_image_count());
+  NSMutableArray<NSString *> *environmentNames = [NSMutableArray array];
+  NSDictionary<NSString *, NSString *> *environment = NSProcessInfo.processInfo.environment;
+  for (NSUInteger i = 0; i < sizeof(kSuspiciousEnvironmentVariables) / sizeof(kSuspiciousEnvironmentVariables[0]); i++) {
+    NSString *name = kSuspiciousEnvironmentVariables[i];
+    if (environment[name].length > 0) [environmentNames addObject:name];
+  }
+  result[@"suspiciousEnvironmentVariablesFound"] = @(environmentNames.count > 0);
+  result[@"suspiciousEnvironmentVariableNames"] = environmentNames;
 
   return result;
 }

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Risk Team Playbook | Mobile Device Signals</title>
+  <meta name="description" content="A practical playbook for risk and fraud teams using mobile device observations for feature engineering, calibration, scoring models, investigations, and monitoring.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/risk-teams/">
+  <meta property="og:title" content="Mobile Device Signals for Risk Teams"><meta property="og:description" content="From raw observations to governed, explainable backend features."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/risk-teams/">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="../integration/">Integration</a><a href="../privacy/">Privacy</a><a href="./" aria-current="page">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>On this page</strong><a href="#role">SDK role</a><a href="#pipeline">Feature pipeline</a><a href="#families">Feature families</a><a href="#example">Worked example</a><a href="#calibration">Calibration</a><a href="#guardrails">Guardrails</a></aside>
+    <article class="prose">
+      <header class="page-intro"><p class="eyebrow">Risk and fraud operations</p><h1>Use device context without hiding the reasoning</h1><p class="lede">Turn mobile observations into versioned backend features that can be calibrated, explained, monitored, and challenged.</p></header>
+      <section id="role"><h2>The SDK is an evidence source</h2><p>The SDK does not calculate a risk score, return a trusted verdict, or decide whether an action should proceed. It produces client-side observations that your trusted backend may use alongside account, transaction, behavioral, and platform-attestation evidence.</p><div class="notice warning">Never block or decline a customer based on one signal. A single observation can be stale, unavailable, attacker-controlled, or legitimate in context.</div></section>
+      <section id="pipeline"><h2>A defensible feature pipeline</h2><div class="pipeline" aria-label="Feature engineering pipeline"><div>Raw event</div><div>Quality checks</div><div>Derived features</div><div>Model or policy</div><div>Outcome monitoring</div></div><ol><li><strong>Bind the event.</strong> Associate collection with an authenticated session and a server-known action identifier.</li><li><strong>Validate quality.</strong> Check schema, SDK version, timestamp, probe outcome, platform, and freshness.</li><li><strong>Derive on the backend.</strong> Convert raw values into stable, documented comparisons or categories.</li><li><strong>Calibrate with labels.</strong> Estimate lift, coverage, false-positive impact, and interactions using representative historical outcomes.</li><li><strong>Monitor after release.</strong> Track drift, missingness, latency, outcome disparity, appeals, and rule contribution.</li></ol></section>
+      <section id="families"><h2>Feature families and cautious interpretations</h2><table><thead><tr><th>Family</th><th>Example derived feature</th><th>What it may support</th><th>Common caveat</th></tr></thead><tbody>
+        <tr><td>Application provenance</td><td><code>signing_certificate_expected</code>, <code>installer_known</code>, <code>debuggable_release</code></td><td>Repackaging and unofficial distribution investigation</td><td>Enterprise, QA, and alternative-store delivery can be legitimate</td></tr>
+        <tr><td>OS integrity</td><td><code>integrity_evidence_count</code>, grouped by evidence family</td><td>Instrumentation or modified-environment context</td><td>Client checks are bypassable and device-specific</td></tr>
+        <tr><td>Device security posture</td><td><code>secure_lock_available</code>, <code>trusted_time_disabled</code>, <code>patch_age_bucket</code></td><td>Step-up eligibility and investigation context</td><td>Capability differs by hardware and OS; patch age needs external mapping</td></tr>
+        <tr><td>Transaction safety</td><td><code>capture_active_at_action</code>, <code>remote_access_observed</code></td><td>Point-in-time review or user warning flows</td><td>Accessibility and support sessions are legitimate</td></tr>
+        <tr><td>Consistency</td><td><code>sim_network_country_mismatch</code>, <code>locale_timezone_mismatch</code>, <code>app_runtime_platform_mismatch</code></td><td>Contradictory context that merits corroboration</td><td>Travel, roaming, multilingual users, and stale location are common</td></tr>
+        <tr><td>Collection health</td><td><code>probe_timeout_rate</code>, <code>required_probe_missing</code></td><td>Telemetry quality and tampering investigation</td><td>Older devices and OS changes can affect probe reliability</td></tr>
+      </tbody></table><p>Velocity, account graph, IP reputation, transaction amount, behavioral sequence, and prior outcomes belong to the backend. They are not device SDK responsibilities.</p></section>
+      <section id="example"><h2>Worked example: account recovery</h2><p>Assume the customer is recovering an account from a mobile device. A backend feature view might contain:</p><div class="code-block"><button class="copy-button" type="button" data-copy="risk-example">Copy</button><pre id="risk-example"><code>{
+  "action": "account_recovery",
+  "telemetry_quality": {
+    "sdk_major": 0,
+    "event_age_bucket": "under_30s",
+    "required_probes_complete": true
+  },
+  "application_provenance": {
+    "bundle_expected": true,
+    "signing_certificate_expected": true,
+    "debuggable_release": false
+  },
+  "integrity": {
+    "emulator_observed": false,
+    "debugger_observed": false,
+    "strong_integrity_evidence_count": 0
+  },
+  "consistency": {
+    "sim_network_country_mismatch": false,
+    "locale_timezone_mismatch": null
+  },
+  "transaction_context": {
+    "screen_capture_observed": false,
+    "remote_access_observed": null
+  }
+}</code></pre></div><p><code>null</code> preserves unavailable or inapplicable evidence. It must not be silently converted to <code>false</code>. The feature view may contribute to a model or policy, but the decision should also consider authenticated account history, recovery method strength, transaction context, and a customer recovery path.</p><h3>Consistency helper</h3><p>The package includes <code>deriveConsistencySignals()</code> for deterministic comparisons among already-collected values. It omits comparisons when either side is unavailable and never adds weights or a verdict.</p></section>
+      <section id="calibration"><h2>Calibration before enforcement</h2><div class="decision-list"><div class="decision-item"><h3>Shadow mode</h3><p>Collect features without affecting customer outcomes. Establish coverage and operational stability across supported platforms.</p></div><div class="decision-item"><h3>Labeled analysis</h3><p>Measure conditional lift against confirmed outcomes. Segment by app version, OS, hardware class, geography, and accessibility context.</p></div><div class="decision-item"><h3>Threshold review</h3><p>Choose action thresholds from observed tradeoffs, not intuition. Separate allow, step-up, manual review, and decline objectives.</p></div><div class="decision-item"><h3>Ongoing monitoring</h3><p>Watch population stability, missingness, feature contribution, false positives, complaints, and recovery success after deployment.</p></div></div></section>
+      <section id="guardrails"><h2>Operational guardrails</h2><ul><li>Keep raw and derived schemas versioned and auditable.</li><li>Do not train on a proxy label created by the same rule you are evaluating.</li><li>Prevent future-outcome leakage when building historical datasets.</li><li>Use time-based validation for changing fraud patterns.</li><li>Review accessibility, travel, developer, refurbished-device, and low-cost-device cohorts.</li><li>Require corroboration for high-impact actions and preserve reason codes.</li><li>Maintain a safe recovery or human-review path.</li><li>Recalibrate after SDK, OS, app-signing, or probe implementation changes.</li></ul><div class="notice">The useful unit is not “risky device.” It is a well-defined observation, collected for a specific action, interpreted with evidence from the rest of the system.</div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Explainable observations for governed risk systems.</div><div class="footer-links"><a href="../signals/">Signal catalog</a><a href="../privacy/">Privacy</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals/discussions">Discuss</a></div></div></footer>
+</body>
+</html>

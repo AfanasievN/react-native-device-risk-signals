@@ -20,6 +20,8 @@ jest.mock("../NativeDeviceIntel", () => ({
     getGpuBenchmark: jest.fn(),
     getAudioLatency: jest.fn(),
     getApplicationSignals: jest.fn(),
+    getDeviceSecurityPosture: jest.fn(),
+    getTransactionSafetySignals: jest.fn(),
   },
 }));
 
@@ -43,6 +45,8 @@ describe("allProbes registry", () => {
         "gpu_benchmark",
         "audio_latency",
         "application",
+        "device_security_posture",
+        "transaction_safety",
         "runtime",
       ]),
     );

@@ -31,6 +31,7 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   private val mediaBluetoothApps = MediaBluetoothAppsInfoProvider(reactContext)
   private val gpuBenchmark = GpuBenchmarkProvider()
   private val audioLatency = AudioLatencyProvider(reactContext)
+  private val securityPosture = SecurityPostureProvider(reactContext)
 
   override fun getDeviceIdentity(promise: Promise) {
     resolveOrReject(promise, "getDeviceIdentity") { deviceInfo.getDeviceIdentity() }
@@ -90,6 +91,14 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
 
   override fun getAudioLatency(promise: Promise) {
     resolveOrReject(promise, "getAudioLatency") { audioLatency.getAudioLatency() }
+  }
+
+  override fun getDeviceSecurityPosture(promise: Promise) {
+    resolveOrReject(promise, "getDeviceSecurityPosture") { securityPosture.getDeviceSecurityPosture() }
+  }
+
+  override fun getTransactionSafetySignals(promise: Promise) {
+    resolveOrReject(promise, "getTransactionSafetySignals") { securityPosture.getTransactionSafetySignals() }
   }
 
   // Each probe runs on its own background thread so the probes the JS framework fires in parallel

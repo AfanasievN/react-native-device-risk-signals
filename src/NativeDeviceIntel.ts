@@ -97,6 +97,19 @@ export type ApplicationSignals = {
   // of Amplitude's start_version. iOS omits (no public install-time API).
   firstInstallTimeMs?: number; // epoch ms of first install.
   lastUpdateTimeMs?: number; // epoch ms of the last update (== firstInstallTimeMs if never updated).
+  targetSdkVersion?: number;
+  minSdkVersion?: number;
+  minimumOsVersion?: string;
+  isDebuggable?: boolean;
+  isInstantApp?: boolean;
+  signingCertificateSha256?: string[];
+  signingCertificateHistorySha256?: string[];
+  hasMultipleSigners?: boolean;
+  receiptPresent?: boolean;
+  receiptEnvironment?: string;
+  bundleExecutable?: string;
+  isAppExtension?: boolean;
+  isSimulatorBuild?: boolean;
 };
 
 /**
@@ -200,6 +213,48 @@ export type OsIntegritySignals = {
 
   // iOS misc raw.
   dyldImageCount?: number; // Total loaded dyld images (raw; abnormal counts correlate with tweaks).
+  tracerPid?: number;
+  tracedByOtherProcess?: boolean;
+  testKeysBuild?: boolean;
+  suspiciousMountsFound?: boolean;
+  zygiskIndicatorsFound?: boolean;
+  suspiciousExecutableMappingsFound?: boolean;
+  suspiciousEnvironmentVariablesFound?: boolean;
+  suspiciousEnvironmentVariableNames?: string[];
+  suspiciousPathCount?: number;
+  injectedLibraryCount?: number;
+};
+
+/** Coarse security posture. No authentication prompt is displayed and no biometric material is read. */
+export type DeviceSecurityPostureSignals = {
+  hasSecureLockScreen?: boolean;
+  isDeviceLocked?: boolean;
+  isUserUnlocked?: boolean;
+  protectedDataAvailable?: boolean;
+  biometryAvailable?: boolean;
+  biometryType?: string;
+  fingerprintHardwarePresent?: boolean;
+  faceHardwarePresent?: boolean;
+  strongBoxAvailable?: boolean;
+  automaticTimeEnabled?: boolean;
+  automaticTimeZoneEnabled?: boolean;
+  deviceProvisioned?: boolean;
+  securityPatch?: string;
+};
+
+/** Point-in-time observations relevant to remote-control and high-value transaction protection. */
+export type TransactionSafetySignals = {
+  isDeviceLocked?: boolean;
+  isInteractive?: boolean;
+  isScreenCaptured?: boolean;
+  isScreenMirrored?: boolean;
+  accessibilityRunning?: boolean;
+  accessibilityFeatureCount?: number;
+  enabledAccessibilityServiceCount?: number;
+  remoteAccessAppsFound?: string[];
+  remoteAccessAppCount?: number;
+  audioMode?: string;
+  isCallActive?: boolean;
 };
 
 /**
@@ -411,6 +466,8 @@ export interface Spec extends TurboModule {
   getAudioLatency: () => Promise<AudioLatencySignals>;
   // application (host app identity — version/build/bundleId)
   getApplicationSignals: () => Promise<ApplicationSignals>;
+  getDeviceSecurityPosture: () => Promise<DeviceSecurityPostureSignals>;
+  getTransactionSafetySignals: () => Promise<TransactionSafetySignals>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>("DeviceIntel");

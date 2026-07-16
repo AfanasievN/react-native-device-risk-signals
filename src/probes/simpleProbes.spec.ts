@@ -8,6 +8,7 @@ import {hardwareProbes} from "./hardwareProbe";
 import {localeProbes} from "./localeProbe";
 import {mediaBluetoothAppsProbes} from "./mediaBluetoothAppsProbe";
 import {networkProbes} from "./networkProbe";
+import {securityPostureProbes} from "./securityPostureProbe";
 import {telephonyProbes} from "./telephonyProbe";
 import type {Probe} from "./types";
 
@@ -30,6 +31,8 @@ jest.mock("../NativeDeviceIntel", () => ({
     getLocaleSignals: jest.fn(() => Promise.resolve({language: "id"})),
     getGeolocationSignals: jest.fn(() => Promise.resolve({hasCoarsePermission: true})),
     getMediaBluetoothAppsSignals: jest.fn(() => Promise.resolve({isMusicActive: false})),
+    getDeviceSecurityPosture: jest.fn(() => Promise.resolve({hasSecureLockScreen: true})),
+    getTransactionSafetySignals: jest.fn(() => Promise.resolve({isScreenCaptured: false})),
   },
 }));
 
@@ -109,5 +112,18 @@ describe("device_identity / network / telephony / locale probes", () => {
     expect(probe.enabled()).toBe(true);
     expect(await probe.collect()).toEqual({isMusicActive: false});
     expect(NativeDeviceIntel.getMediaBluetoothAppsSignals).toHaveBeenCalled();
+  });
+
+  it("enables coarse security posture but keeps transaction safety calibration-gated", async () => {
+    const posture = assertDefined(securityPostureProbes.find((probe) => probe.id === "device_security_posture"));
+    const transaction = assertDefined(securityPostureProbes.find((probe) => probe.id === "transaction_safety"));
+
+    expect(posture.enabled()).toBe(true);
+    expect(await posture.collect()).toEqual({hasSecureLockScreen: true});
+    expect(NativeDeviceIntel.getDeviceSecurityPosture).toHaveBeenCalled();
+
+    expect(transaction.enabled()).toBe(false);
+    expect(await transaction.collect()).toEqual({isScreenCaptured: false});
+    expect(NativeDeviceIntel.getTransactionSafetySignals).toHaveBeenCalled();
   });
 });

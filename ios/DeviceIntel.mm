@@ -9,6 +9,7 @@
 #import "LocaleInfoProvider.h"
 #import "MediaBluetoothAppsProvider.h"
 #import "NetworkInfoProvider.h"
+#import "SecurityPostureProvider.h"
 #import "TelephonyInfoProvider.h"
 #import <React/RCTBridgeModule.h>
 
@@ -24,6 +25,7 @@
   AudioLatencyProvider *_audioLatency;
   HardwareInfoProvider *_hardware;
   ApplicationInfoProvider *_application;
+  SecurityPostureProvider *_securityPosture;
 }
 
 RCT_EXPORT_MODULE(DeviceIntel)
@@ -48,6 +50,7 @@ RCT_EXPORT_MODULE(DeviceIntel)
     _audioLatency = [AudioLatencyProvider new];
     _hardware = [HardwareInfoProvider new];
     _application = [ApplicationInfoProvider new];
+    _securityPosture = [SecurityPostureProvider new];
   }
   return self;
 }
@@ -128,6 +131,16 @@ RCT_EXPORT_MODULE(DeviceIntel)
 - (void)getAudioLatency:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
   resolve([_audioLatency audioLatency]);
+}
+
+- (void)getDeviceSecurityPosture:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  resolve([_securityPosture deviceSecurityPosture]);
+}
+
+- (void)getTransactionSafetySignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  resolve([_securityPosture transactionSafetySignals]);
 }
 
 @end

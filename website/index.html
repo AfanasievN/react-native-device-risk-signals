@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>React Native Device Risk Signals Documentation</title>
+  <meta name="description" content="Documentation for a privacy-aware React Native SDK that collects raw device integrity, application, network, runtime, and transaction safety signals on Android and iOS.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/">
+  <meta property="og:title" content="React Native Device Risk Signals">
+  <meta property="og:description" content="Raw mobile device observations for security and fraud prevention, with no built-in transport or risk verdict.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/">
+  <meta property="og:image" content="https://raw.githubusercontent.com/AfanasievN/react-native-device-risk-signals/main/docs/images/signal-bench-results.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script defer src="./assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="./"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a>
+      <button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button>
+      <nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation">
+        <a href="./signals/">Signals</a><a href="./integration/">Integration</a><a href="./privacy/">Privacy</a><a href="./risk-teams/">Risk teams</a><a href="./faq/">FAQ</a>
+        <a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="content">
+    <section class="container hero">
+      <div>
+        <p class="eyebrow">React Native security telemetry</p>
+        <h1>Device context. Your decision.</h1>
+        <p class="lede">Typed Android and iOS observations for fraud prevention, collected locally without a vendor backend.</p>
+        <div class="hero-actions">
+          <a class="button" href="./integration/">Start integrating</a>
+          <a class="button secondary" href="./signals/">Explore signals</a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-label="Signal Bench example application">
+        <img class="device-shot" src="https://raw.githubusercontent.com/AfanasievN/react-native-device-risk-signals/main/docs/images/signal-bench-results.png" alt="Signal Bench example app showing a raw device signals JSON response" width="640" height="1385">
+        <div class="terminal-note"><strong>local_only: true</strong><br>transport: host_application<br>verdict: not_included<br>probe_outcomes: independent</div>
+      </div>
+    </section>
+
+    <section class="section compact">
+      <div class="container">
+        <div class="principles">
+          <article class="principle"><h3>Observations, not a black box.</h3><p>The SDK returns explainable fields and per-probe outcomes. Your backend owns calibration, scoring, policy, and review.</p></article>
+          <article class="principle"><h3>No embedded transport</h3><p>No vendor endpoint, hidden upload, retry queue, or remote configuration.</p></article>
+          <article class="principle"><h3>Data minimization controls</h3><p>Consent gates, probe selection, field projection, timeouts, and default-off sensitive probes.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading"><h2>Documentation for each decision maker</h2><p>Start with the implementation path that matches your role, then use the catalog as the shared contract between mobile, backend, privacy, and risk teams.</p></div>
+        <div class="route-grid">
+          <a class="route-card" href="./integration/"><h3>Mobile integration</h3><p>Install the TurboModule, configure consent, collect an event, and send it using your existing authenticated API.</p><span>Open integration guide</span></a>
+          <a class="route-card" href="./signals/"><h3>Signal catalog</h3><p>Review every probe, platform, sensitivity level, default state, and representative field group.</p><span>Inspect the catalog</span></a>
+          <a class="route-card" href="./risk-teams/"><h3>Risk team playbook</h3><p>Turn raw observations into governed model features, quality checks, and explainable investigation context.</p><span>Plan feature engineering</span></a>
+          <a class="route-card" href="./privacy/"><h3>Privacy and governance</h3><p>Apply purpose limitation, retention, consent, access controls, and missing-data semantics before production collection.</p><span>Review safeguards</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container narrow">
+        <h2>Install and collect</h2>
+        <p>React Native 0.76 or newer with the New Architecture is required. Expo Go is not supported.</p>
+        <div class="code-block"><button class="copy-button" data-copy="home-install" type="button">Copy</button><pre id="home-install"><code>npm install react-native-device-risk-signals</code></pre></div>
+        <div class="code-block"><button class="copy-button" data-copy="home-code" type="button">Copy</button><pre id="home-code"><code>import { consentFor, DeviceIntel } from "react-native-device-risk-signals";
+
+const deviceIntel = new DeviceIntel({
+  sessionId: checkoutSessionId,
+  consent: consentFor([
+    "device_identity",
+    "application",
+    "os_integrity",
+    "device_security_posture",
+    "network",
+    "runtime",
+  ]),
+});
+
+const event = await deviceIntel.collect();
+// Send with your existing authenticated API client.</code></pre></div>
+        <div class="notice">Collection is local. The package does not create a persistent device identifier and does not send the event anywhere.</div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Open-source mobile security telemetry for React Native.</div><div class="footer-links"><a href="https://www.npmjs.com/package/react-native-device-risk-signals">npm</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals">Source</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals/issues">Issues</a><a href="./privacy/">Responsible use</a></div></div></footer>
+</body>
+</html>

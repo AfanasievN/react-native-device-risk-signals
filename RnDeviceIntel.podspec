@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
   # CoreLocation: opportunistic last-known fix (GeolocationInfoProvider).
   # AVFoundation: AVAudioSession audio-route + latency reads (MediaBluetoothAppsProvider, AudioLatencyProvider).
   # Metal: GPU benchmark/fingerprint (GpuBenchmarkProvider). UIKit/QuartzCore are implicit.
-  s.frameworks = "CoreTelephony", "CFNetwork", "SystemConfiguration", "CoreLocation", "AVFoundation", "Metal"
+  s.frameworks = "CoreTelephony", "CFNetwork", "SystemConfiguration", "CoreLocation", "AVFoundation", "LocalAuthentication", "Metal"
 
   # New-arch dependency wiring (RN >= 0.76) with a fallback for compatible CocoaPods helpers.
   if respond_to?(:install_modules_dependencies, true)

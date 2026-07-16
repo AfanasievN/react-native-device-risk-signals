@@ -25,6 +25,8 @@ or `error` outcome.
 | `gpu_benchmark` | Android, iOS | Off | High | GPU, performance | None; disabled pending calibration |
 | `audio_latency` | Android, iOS | Off | High | Audio hardware, performance | None; disabled pending calibration |
 | `application` | Android, iOS | On | Moderate | App identity, install provenance, granted permissions | Reads the host application only |
+| `device_security_posture` | Android, iOS | On | Moderate | Lock capability, biometrics availability, trusted time, OS security update | None; never displays an authentication prompt |
+| `transaction_safety` | Android, iOS | Off | High | Lock/interactive state, screen capture, accessibility, call/audio state, finite known-app list | None; disabled pending physical-device calibration |
 | `runtime` | Android, iOS | On | Low | React Native runtime, software version | None |
 
 ## Field inventory
@@ -42,6 +44,31 @@ const highSensitivity = PROBE_CATALOG.filter((probe) => probe.sensitivity === "h
 Field projection happens after a probe collects its native payload. Disable the entire probe when the
 application must avoid touching a sensitive or expensive data source at all.
 
+### Application provenance
+
+`application` now exposes Android SDK targets, debuggable/instant-app state, SHA-256 signing
+certificate observations and signing history, plus iOS receipt presence/environment, minimum OS
+version, executable name, extension state, and simulator-build state. Certificate values describe
+the host application's public signing certificates; no private key or device identifier is read.
+
+### OS integrity and transaction context
+
+`os_integrity` includes independent raw observations for tracing, test-key builds, suspicious
+mounts, Zygisk indicators, executable mappings, suspicious environment-variable names, and evidence
+counts. Environment-variable values are deliberately not returned.
+
+`device_security_posture` reports coarse security capabilities and settings. A positive biometric
+capability does not authenticate the current user. `transaction_safety` is intended for collection
+immediately before a protected action and ships disabled because accessibility, capture, call, and
+known remote-access-app observations require product-specific calibration and false-positive review.
+
+### Consistency observations
+
+`deriveConsistencySignals(event, expectations)` compares already collected locale, network/SIM
+country, timezone, bundle id, and app version values. It performs no additional native collection and
+returns only boolean equality observations when both values exist. It intentionally produces no
+weight, score, or fraud verdict.
+
 ## Data minimization guidance
 
 - Start with an explicit `consentFor(...)` allowlist instead of enabling everything implicitly.
@@ -50,6 +77,8 @@ application must avoid touching a sensitive or expensive data source at all.
 - Never interpret missing data as evidence that a device is safe.
 - Do not persist raw events longer than required for the documented purpose.
 - Do not combine these observations into a covert, persistent cross-install device identifier.
+- Keep `transaction_safety` disabled until its fields have been validated on representative physical
+  devices and accepted by the application's privacy and accessibility review.
 
 The host application remains responsible for legal basis, disclosure, consent, access control,
 retention, transport security, and responding to user rights requests.

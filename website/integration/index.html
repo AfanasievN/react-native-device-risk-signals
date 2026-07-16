@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Integration Guide | React Native Device Risk Signals</title>
+  <meta name="description" content="Install and configure React Native Device Risk Signals, collect typed events with explicit consent, and integrate them with your existing mobile API transport.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/integration/">
+  <meta property="og:title" content="React Native Device Risk Signals Integration"><meta property="og:description" content="From installation to a privacy-aware production collection flow."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/integration/">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="./" aria-current="page">Integration</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>On this page</strong><a href="#requirements">Requirements</a><a href="#install">Install</a><a href="#configure">Configure</a><a href="#collect">Collect</a><a href="#transaction">Protected actions</a><a href="#backend">Backend contract</a></aside>
+    <article class="prose">
+      <header class="page-intro"><p class="eyebrow">Implementation guide</p><h1>Integrate without changing your transport</h1><p class="lede">The SDK collects locally. Your application decides when to collect and how to send the event through its existing authenticated API.</p></header>
+      <section id="requirements"><h2>Requirements</h2><table><tbody><tr><th>React Native</th><td>0.76 or newer, New Architecture enabled</td></tr><tr><th>Android</th><td>API 24 or newer</td></tr><tr><th>iOS</th><td>CocoaPods and the minimum iOS version supported by the host React Native release</td></tr><tr><th>Expo</th><td>Native prebuild or custom development build; Expo Go is not supported</td></tr></tbody></table></section>
+      <section id="install"><h2>Install</h2><div class="code-block"><button class="copy-button" type="button" data-copy="install-command">Copy</button><pre id="install-command"><code>npm install react-native-device-risk-signals
+npx pod-install</code></pre></div><p>Use the repository package manager and existing Bundler workflow when applicable. Autolinking registers the native module.</p></section>
+      <section id="configure"><h2>Configure purpose and consent</h2><p>Start with the smallest set that serves a documented purpose. Consent is subtractive: it can remove probes from collection, not silently enable additional ones.</p><div class="code-block"><button class="copy-button" type="button" data-copy="configure-code">Copy</button><pre id="configure-code"><code>import { consentFor, DeviceIntel } from "react-native-device-risk-signals";
+
+const deviceIntel = new DeviceIntel({
+  sessionId: session.id,
+  consent: consentFor([
+    "device_identity",
+    "application",
+    "os_integrity",
+    "device_security_posture",
+    "runtime",
+  ]),
+  probes: {
+    network: { enabled: false },
+    geolocation: { enabled: false },
+    transaction_safety: { enabled: false },
+  },
+});</code></pre></div><div class="notice warning">Do not enable high-sensitivity probes because they are available. Document the purpose, lawful basis, retention, and access policy first.</div></section>
+      <section id="collect"><h2>Collect at a meaningful event</h2><p>Attach a server-generated session or action identifier. Avoid stable identifiers created solely for fingerprinting.</p><div class="code-block"><button class="copy-button" type="button" data-copy="collect-code">Copy</button><pre id="collect-code"><code>const event = await deviceIntel.collect({
+  sessionId: checkoutSessionId,
+});
+
+await api.post("/mobile-risk-observations", {
+  accountActionId,
+  observations: event,
+});</code></pre></div><p>The example endpoint is owned by the host application. It is not part of this package.</p></section>
+      <section id="transaction"><h2>Collect protected-action context separately</h2><p><code>transaction_safety</code> is disabled by default. If your physical-device calibration and privacy review support it, collect immediately before a protected action rather than during every app launch.</p><div class="code-block"><button class="copy-button" type="button" data-copy="transaction-code">Copy</button><pre id="transaction-code"><code>const protectedActionEvent = await deviceIntel.collect({
+  probes: {
+    transaction_safety: { enabled: true, timeoutMs: 900 },
+  },
+});</code></pre></div><p>Accessibility or screen-sharing state can be legitimate. Use it as review context, not an automatic accusation.</p></section>
+      <section id="backend"><h2>Backend contract</h2><ol><li>Authenticate the mobile request using your normal session controls.</li><li>Validate event schema, SDK version, collection timestamp, and action binding.</li><li>Preserve probe outcome semantics. Missing, skipped, timeout, and error are distinct.</li><li>Compute derived features and policy on a trusted backend.</li><li>Apply retention, access controls, monitoring, and deletion requirements.</li></ol><div class="notice">Treat all client telemetry as attacker-influenced. Device observations add context but never replace server-side controls or platform attestation.</div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Keep collection narrow and transport explicit.</div><div class="footer-links"><a href="../signals/">Signals</a><a href="../privacy/">Privacy</a><a href="../faq/">FAQ</a></div></div></footer>
+</body>
+</html>

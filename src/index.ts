@@ -18,3 +18,5 @@ export type {RuntimeSignals} from "./probes/runtimeProbe";
 export type {Probe, ProbeOutcome, ProbeResult} from "./probes/types";
 export type {ProbeDescriptor, ProbeId, ProbePlatform, ProbeSensitivity} from "./probeCatalog";
 export {getProbeDescriptor, PROBE_CATALOG} from "./probeCatalog";
+export {deriveConsistencySignals} from "./consistencySignals";
+export type {ConsistencyExpectations, ConsistencySignals} from "./consistencySignals";

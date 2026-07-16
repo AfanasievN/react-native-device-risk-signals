@@ -4,6 +4,15 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+- Expanded application provenance with Android SDK/signing observations and iOS receipt/build
+  metadata.
+- Strengthened OS-integrity observations for tracing, test keys, suspicious mounts, Zygisk,
+  executable mappings, environment-variable names, and evidence counts.
+- Added the default-on `device_security_posture` probe and the calibration-gated,
+  default-off `transaction_safety` probe without adding permission prompts.
+- Added `deriveConsistencySignals()` for raw country, timezone, bundle, and version equality
+  observations without scoring or verdicts.
+
 ## [0.2.0] - 2026-07-16
 
 - **Breaking:** Removed the built-in transport, `collectAndSend()`, `TransportConfig`, wire envelope,

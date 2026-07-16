@@ -23,7 +23,7 @@ application owns transport, authentication, storage, scoring, and policy.
   <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-C95736" />
 </p>
 
-[Quick start](#quick-start) · [What it detects](#what-it-detects) ·
+[Documentation](https://afanasievn.github.io/react-native-device-risk-signals/) · [Quick start](#quick-start) · [What it detects](#what-it-detects) ·
 [AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
 [Probe Catalog](#probe-catalog) · [Privacy](#privacy-and-responsible-use) ·
 [FAQ](#frequently-asked-questions)
@@ -486,13 +486,14 @@ an event should be sent and how delivery failures are handled.
 
 | Group          | Probe ids                                                           | Notes                                                       |
 | -------------- | ------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Device and app | `device_identity`, `application`                                    | Device/OS identity and host application metadata            |
+| Device and app | `device_identity`, `application`, `device_security_posture`         | Device/OS identity, app provenance, and security posture     |
 | Hardware       | `hardware`, `gpu_benchmark`, `audio_latency`                        | GPU and audio benchmarks ship disabled                      |
 | Integrity      | `os_integrity`, `os_integrity_frida_scan`, `os_integrity_fork_test` | The fork test is iOS-only and ships disabled                |
 | Runtime        | `runtime`, `fonts`                                                  | JavaScript runtime and installed-font observations          |
 | Connectivity   | `network`, `telephony`                                              | Availability depends on platform and OS restrictions        |
 | Context        | `locale`, `geolocation`                                             | Geolocation uses only information available to the host app |
 | Media and apps | `media_bluetooth_apps`                                              | Media route, Bluetooth, and finite known-app observations   |
+| Transaction    | `transaction_safety`                                               | Point-in-time protection context; ships disabled             |
 
 Some values are opportunistic by design. Unsupported or unavailable information should appear as a
 skipped probe or an unavailable value, not be treated as evidence of low risk.
@@ -511,6 +512,26 @@ const enabledByDefault = PROBE_CATALOG.filter((probe) => probe.enabledByDefault)
 
 See the complete [Data Dictionary](docs/DATA_DICTIONARY.md) and transparent
 [benchmark methodology and baseline](docs/BENCHMARKS.md).
+
+### Consistency signals
+
+Compare raw values that were already collected without performing extra device reads or producing a
+risk score:
+
+```ts
+import {collect, deriveConsistencySignals} from "react-native-device-risk-signals";
+
+const event = await collect(config);
+const consistency = deriveConsistencySignals(event, {
+  claimedCountry: customerProfile.country,
+  expectedTimezoneId: checkoutContext.timezone,
+  expectedBundleId: "com.example.mobile",
+  expectedAppVersion: "4.2.0",
+});
+
+// Example: {localeCountryMatchesClaimed: true, localeMatchesSimCountry: false}
+// Missing source values are omitted rather than interpreted as safe or suspicious.
+```
 
 ## Data flow
 
@@ -537,7 +558,8 @@ flowchart LR
 
 Review every enabled probe, platform permission, privacy disclosure, and retention rule before a
 production rollout. Higher-risk probes such as GPU benchmarking, audio latency measurement, and the
-iOS fork test intentionally ship disabled.
+iOS fork test intentionally ship disabled. `transaction_safety` is also disabled until calibrated on
+representative physical devices and reviewed for accessibility-related false positives.
 
 ## Frequently asked questions
 

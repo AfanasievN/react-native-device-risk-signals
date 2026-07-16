@@ -42,6 +42,7 @@ class OsIntegrityProvider(private val context: Context) {
     map.putBoolean("rootManagementAppFound", anyPackageInstalled(KnownAppLists.rootManagementPackages))
     map.putBoolean("suspiciousFilePathsFound", allSuspiciousPaths.isNotEmpty())
     map.putArray("suspiciousFilePaths", toStringArray(allSuspiciousPaths))
+    map.putInt("suspiciousPathCount", allSuspiciousPaths.size)
     map.putBoolean("writableSystemPathFound", writableSystemPaths().isNotEmpty())
     map.putBoolean("dangerousPropsPresent", dangerousProps())
 
@@ -49,6 +50,7 @@ class OsIntegrityProvider(private val context: Context) {
     val injected = suspiciousMappedLibraries()
     map.putBoolean("injectedLibrariesFound", injected.isNotEmpty())
     map.putArray("injectedLibraryNames", toStringArray(injected))
+    map.putInt("injectedLibraryCount", injected.size)
     map.putBoolean(
       "hookFrameworkFound",
       injected.isNotEmpty() || anyPackageInstalled(KnownAppLists.hookFrameworkPackages),
@@ -56,6 +58,18 @@ class OsIntegrityProvider(private val context: Context) {
 
     // ── Android integrity properties ────────────────────────────────────────────────────────────
     map.putBoolean("magiskMountsFound", magiskMountsFound())
+    map.putBoolean("suspiciousMountsFound", suspiciousMountsFound())
+    map.putBoolean("zygiskIndicatorsFound", zygiskIndicatorsFound())
+    map.putBoolean("suspiciousExecutableMappingsFound", suspiciousExecutableMappingsFound())
+    val tracerPid = tracerPid()
+    if (tracerPid != null) {
+      map.putInt("tracerPid", tracerPid)
+      map.putBoolean("tracedByOtherProcess", tracerPid > 0)
+    }
+    map.putBoolean("testKeysBuild", (Build.TAGS ?: "").contains("test-keys", ignoreCase = true))
+    val suspiciousEnvironment = suspiciousEnvironmentVariableNames()
+    map.putBoolean("suspiciousEnvironmentVariablesFound", suspiciousEnvironment.isNotEmpty())
+    map.putArray("suspiciousEnvironmentVariableNames", toStringArray(suspiciousEnvironment))
     getSystemProperty("ro.boot.verifiedbootstate")?.let { map.putString("verifiedBootState", it) }
     getSystemProperty("ro.boot.flash.locked")?.let { map.putBoolean("bootloaderLocked", it == "1") }
     selinuxEnforcing()?.let { map.putBoolean("selinuxEnforcing", it) }
@@ -143,6 +157,52 @@ class OsIntegrityProvider(private val context: Context) {
     }
     return false
   }
+
+  private fun suspiciousMountsFound(): Boolean = scanFiles(MOUNT_INFO_PATHS, SUSPICIOUS_MOUNT_SIGNATURES)
+
+  private fun zygiskIndicatorsFound(): Boolean =
+    scanFiles(MOUNT_INFO_PATHS + "/proc/self/maps", ZYGISK_SIGNATURES)
+
+  private fun scanFiles(paths: List<String>, signatures: List<String>): Boolean {
+    for (path in paths.distinct()) {
+      try {
+        if (File(path).useLines { lines -> lines.any { line -> signatures.any { line.contains(it, true) } } }) {
+          return true
+        }
+      } catch (e: Exception) {
+        // Protected procfs entry: unknown rather than fatal.
+      }
+    }
+    return false
+  }
+
+  private fun tracerPid(): Int? = try {
+    File("/proc/self/status").useLines { lines ->
+      lines.firstOrNull { it.startsWith("TracerPid:") }
+        ?.substringAfter(':')
+        ?.trim()
+        ?.toIntOrNull()
+    }
+  } catch (e: Exception) {
+    null
+  }
+
+  private fun suspiciousExecutableMappingsFound(): Boolean = try {
+    File("/proc/self/maps").useLines { lines ->
+      lines.any { line ->
+        val parts = line.trim().split(Regex("\\s+"), limit = 6)
+        val permissions = parts.getOrNull(1).orEmpty()
+        val path = parts.getOrNull(5).orEmpty().lowercase()
+        permissions.contains('x') &&
+          (permissions.contains('w') || path.contains("/data/local/tmp") || path.contains("(deleted)"))
+      }
+    }
+  } catch (e: Exception) {
+    false
+  }
+
+  private fun suspiciousEnvironmentVariableNames(): List<String> =
+    SUSPICIOUS_ENVIRONMENT_VARIABLES.filter { !safeString { System.getenv(it) }.isNullOrEmpty() }
 
   private fun selinuxEnforcing(): Boolean? {
     // /sys/fs/selinux/enforce: "1" enforcing, "0" permissive. Unreadable ⇒ unknown (null).
@@ -234,6 +294,20 @@ class OsIntegrityProvider(private val context: Context) {
   }
 
   companion object {
+    private val SUSPICIOUS_ENVIRONMENT_VARIABLES = listOf(
+      "LD_PRELOAD",
+      "DYLD_INSERT_LIBRARIES",
+      "DYLD_LIBRARY_PATH",
+      "FRIDA_GADGET_CONFIG",
+    )
+    private val SUSPICIOUS_MOUNT_SIGNATURES = listOf(
+      "magisk",
+      "kernelsu",
+      "apatch",
+      "overlayfs",
+      "/data/adb/modules",
+    )
+    private val ZYGISK_SIGNATURES = listOf("zygisk", "riru", "lsposed", "libzygisk")
     private val SU_BINARY_PATHS = listOf(
       "/system/bin/su",
       "/system/xbin/su",

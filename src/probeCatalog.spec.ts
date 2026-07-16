@@ -16,6 +16,8 @@ jest.mock("./NativeDeviceIntel", () => ({
     getGpuBenchmark: jest.fn(),
     getAudioLatency: jest.fn(),
     getApplicationSignals: jest.fn(),
+    getDeviceSecurityPosture: jest.fn(),
+    getTransactionSafetySignals: jest.fn(),
   },
 }));
 
@@ -37,7 +39,7 @@ describe("PROBE_CATALOG", () => {
   });
 
   it("marks higher-risk probes that ship disabled", () => {
-    for (const id of ["gpu_benchmark", "audio_latency", "os_integrity_fork_test"]) {
+    for (const id of ["gpu_benchmark", "audio_latency", "os_integrity_fork_test", "transaction_safety"]) {
       expect(PROBE_CATALOG.find((descriptor) => descriptor.id === id)?.enabledByDefault).toBe(false);
     }
   });

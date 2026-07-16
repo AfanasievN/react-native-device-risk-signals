@@ -31,6 +31,11 @@ These rules apply to the entire repository.
 New sensitive or expensive probes must ship disabled until representative physical-device QA and a
 documented benchmark justify enabling them.
 
+Consistency helpers may compare already collected raw values, but must omit comparisons when either
+side is unavailable and must never assign weights, aggregate a score, or return a fraud/safety verdict.
+Transaction-time probes must remain disabled by default until their accessibility and remote-control
+observations have been calibrated on representative physical devices.
+
 ## Compatibility and generated code
 
 - The supported floor is React Native 0.76 with the New Architecture enabled.

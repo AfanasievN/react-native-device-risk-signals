@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://afanasievn.github.io/react-native-device-risk-signals/sitemap.xml

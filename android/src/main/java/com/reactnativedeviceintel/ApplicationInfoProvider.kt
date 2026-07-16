@@ -10,6 +10,7 @@ import android.os.Process
 import android.os.SystemClock
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
+import java.security.MessageDigest
 
 /**
  * application — host app identity, install provenance, and process/permission state. Every read is of
@@ -24,7 +25,10 @@ class ApplicationInfoProvider(private val context: Context) {
     val packageName = context.packageName
 
     safe {
-      val info = pm.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS)
+      val flags = PackageManager.GET_PERMISSIONS or
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) PackageManager.GET_SIGNING_CERTIFICATES
+        else @Suppress("DEPRECATION") PackageManager.GET_SIGNATURES
+      val info = pm.getPackageInfo(packageName, flags)
       info.versionName?.let { map.putString("appVersion", it) }
       val versionCode =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -40,6 +44,8 @@ class ApplicationInfoProvider(private val context: Context) {
       map.putDouble("lastUpdateTimeMs", info.lastUpdateTime.toDouble())
       addGrantedPermissions(map, info)
       addSplits(map, info.applicationInfo)
+      addApplicationPolicy(map, pm, packageName, info.applicationInfo)
+      addSigningCertificates(map, info)
     }
 
     safe { pm.getApplicationLabel(context.applicationInfo).toString() }
@@ -51,6 +57,47 @@ class ApplicationInfoProvider(private val context: Context) {
 
     return map
   }
+
+  private fun addApplicationPolicy(
+    map: WritableMap,
+    pm: PackageManager,
+    packageName: String,
+    appInfo: ApplicationInfo?,
+  ) {
+    if (appInfo == null) return
+    map.putInt("targetSdkVersion", appInfo.targetSdkVersion)
+    map.putInt("minSdkVersion", appInfo.minSdkVersion)
+    map.putBoolean("isDebuggable", (appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      safe { pm.isInstantApp(packageName) }?.let { map.putBoolean("isInstantApp", it) }
+    }
+  }
+
+  private fun addSigningCertificates(map: WritableMap, info: PackageInfo) {
+    val current: List<ByteArray>
+    val history: List<ByteArray>
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      val signing = info.signingInfo ?: return
+      map.putBoolean("hasMultipleSigners", signing.hasMultipleSigners())
+      current = signing.apkContentsSigners.orEmpty().map { it.toByteArray() }
+      history = (signing.signingCertificateHistory ?: signing.apkContentsSigners).orEmpty().map { it.toByteArray() }
+    } else {
+      @Suppress("DEPRECATION")
+      val signatures = info.signatures.orEmpty().map { it.toByteArray() }
+      current = signatures
+      history = signatures
+      map.putBoolean("hasMultipleSigners", signatures.size > 1)
+    }
+    map.putArray("signingCertificateSha256", toDigestArray(current))
+    map.putArray("signingCertificateHistorySha256", toDigestArray(history))
+  }
+
+  private fun toDigestArray(certificates: List<ByteArray>) = Arguments.createArray().apply {
+    certificates.map(::sha256).distinct().sorted().forEach(::pushString)
+  }
+
+  private fun sha256(value: ByteArray): String =
+    MessageDigest.getInstance("SHA-256").digest(value).joinToString("") { "%02x".format(it) }
 
   // The host app's OWN requested permissions that are currently granted. Reads only our package —
   // no QUERY_ALL_PACKAGES, no new permission. An unusual grant set is a consistency/automation tell.
