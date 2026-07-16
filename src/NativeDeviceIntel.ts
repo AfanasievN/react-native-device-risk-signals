@@ -230,8 +230,8 @@ export type ForkJailbreakSignal = {
  * network — connectivity, VPN/proxy, and interface topology. No SSID on Android (ACCESS_FINE_LOCATION
  * is `tools:node="remove"` in the app manifest by existing decision — documented, not a bug), and no
  * SSID on iOS without the Wi-Fi-info entitlement; those fields are therefore expected-null. Public-IP
- * discovery is intentionally NOT here (it needs an outbound call to a configurable echo endpoint —
- * that belongs in the JS/transport layer, not a permission-free native read).
+ * discovery is intentionally NOT here because it needs an outbound call to an application-owned
+ * endpoint. This SDK performs no network requests.
  */
 export type NetworkSignals = {
   isConnected?: boolean;

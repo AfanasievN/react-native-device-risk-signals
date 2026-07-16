@@ -9,6 +9,8 @@ const requiredFiles = [
   "android/build.gradle",
   "ios/DeviceIntel.mm",
   "RnDeviceIntel.podspec",
+  "docs/DATA_DICTIONARY.md",
+  "docs/BENCHMARKS.md",
   "README.md",
   "LICENSE",
 ];

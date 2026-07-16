@@ -1,6 +1,6 @@
 import type {Probe} from "../probes/types";
 import {assertDefined} from "../testing/assertDefined";
-import {applyConfig, DEFAULT_PROBE_CONFIG, mergeConfigs} from "./probeConfig";
+import {applyConfig, DEFAULT_PROBE_CONFIG, mergeConfigs, validateProbeConfig} from "./probeConfig";
 
 function fakeProbe(overrides: Partial<Probe> = {}): Probe {
   return {
@@ -85,5 +85,33 @@ describe("mergeConfigs", () => {
   it("is a no-op identity for a single config", () => {
     const cfg = {probes: {p: {enabled: false}}};
     expect(mergeConfigs(cfg)).toEqual(cfg);
+  });
+});
+
+describe("validateProbeConfig", () => {
+  it("reports unknown probe ids with a stable machine-readable code", () => {
+    expect(validateProbeConfig({probes: {os_integritty: {enabled: false}}})).toContainEqual({
+      code: "unknown_probe",
+      path: "probes.os_integritty",
+      message: 'Unknown probe id "os_integritty".',
+    });
+  });
+
+  it("reports invalid timeout values", () => {
+    expect(validateProbeConfig({probes: {network: {timeoutMs: 0}}})).toContainEqual({
+      code: "invalid_timeout",
+      path: "probes.network.timeoutMs",
+      message: "timeoutMs must be a positive finite number.",
+    });
+  });
+
+  it("reports fields that do not exist in the selected probe", () => {
+    expect(
+      validateProbeConfig({probes: {network: {fields: {include: ["isVpnActive", "vpnProviderName"]}}}}),
+    ).toContainEqual({
+      code: "unknown_field",
+      path: "probes.network.fields.include[1]",
+      message: 'Unknown field "vpnProviderName" for probe "network".',
+    });
   });
 });

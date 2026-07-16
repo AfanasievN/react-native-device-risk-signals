@@ -1,5 +1,6 @@
 package com.reactnativedeviceintel
 
+import android.annotation.SuppressLint
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -44,7 +45,16 @@ class GeolocationInfoProvider(private val context: Context) {
     return map
   }
 
+  @SuppressLint("MissingPermission")
   private fun freshestLastKnownLocation(): Location? {
+    // Re-check at the exact protected API boundary. Permission can be revoked between the outer
+    // observation and this call, and Android lint intentionally does not trust a distant check.
+    val coarseGranted =
+      context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    val fineGranted =
+      context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    if (!coarseGranted && !fineGranted) return null
+
     val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
     var best: Location? = null
     for (provider in PROVIDERS) {

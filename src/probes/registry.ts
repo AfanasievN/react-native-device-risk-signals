@@ -1,22 +1,28 @@
 import type {Probe, ProbeOutcome, ProbeResult} from "./types";
 
 function runWithTimeout<T>(probe: Probe<T>): Promise<ProbeOutcome<T>> {
-  let timedOut = false;
-  const timeout = new Promise<ProbeOutcome<T>>((resolve) => {
-    setTimeout(() => {
-      timedOut = true;
+  return new Promise((resolve) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      settled = true;
       resolve({status: "timeout"});
     }, probe.timeoutMs);
+
+    Promise.resolve()
+      .then(() => probe.collect())
+      .then((data) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve({status: "success", data});
+      })
+      .catch((error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve({status: "error", error: error instanceof Error ? error.message : String(error)});
+      });
   });
-
-  const attempt = probe
-    .collect()
-    .then((data): ProbeOutcome<T> => (timedOut ? {status: "timeout"} : {status: "success", data}))
-    .catch(
-      (error): ProbeOutcome<T> => ({status: "error", error: error instanceof Error ? error.message : String(error)}),
-    );
-
-  return Promise.race([attempt, timeout]);
 }
 
 /**

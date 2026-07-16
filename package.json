@@ -1,6 +1,6 @@
 {
   "name": "react-native-device-risk-signals",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "React Native device risk signals for root, jailbreak, emulator, tampering, Frida, VPN, and proxy detection",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -28,8 +28,10 @@
     "build": "tsc -p tsconfig.build.json",
     "test": "jest --runInBand --watchman=false",
     "typecheck": "tsc --noEmit",
+    "verify:contract": "node scripts/verify-native-contract.mjs",
     "verify:package": "node scripts/verify-package.mjs",
-    "verify": "npm test && npm run typecheck && npm run build && npm run verify:package",
+    "verify": "npm test && npm run typecheck && npm run verify:contract && npm run build && npm run verify:package",
+    "benchmark:runner": "npm run build && node scripts/benchmark-probe-runner.mjs",
     "prepare": "npm run build",
     "prepublishOnly": "npm run verify",
     "example:start": "npm --prefix example run start",
@@ -45,6 +47,7 @@
     "src",
     "!src/**/*.spec.ts",
     "RnDeviceIntel.podspec",
+    "docs",
     "README.md",
     "LICENSE"
   ],
@@ -76,7 +79,7 @@
   ],
   "peerDependencies": {
     "react": ">=18",
-    "react-native": ">=0.71"
+    "react-native": ">=0.76"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

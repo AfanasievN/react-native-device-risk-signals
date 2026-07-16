@@ -1,5 +1,5 @@
 import {consentFor} from "./config/consent";
-import {DeviceIntel, type RawSignalEvent} from "./DeviceIntel";
+import {DeviceIntel} from "./DeviceIntel";
 import type {Probe} from "./probes/types";
 import {assertDefined} from "./testing/assertDefined";
 
@@ -32,11 +32,6 @@ jest.mock("./NativeDeviceIntel", () => ({
       return mockGetRandomSessionId;
     },
   },
-}));
-
-const mockSend = jest.fn().mockResolvedValue({ok: true, status: 200});
-jest.mock("./transport/transport", () => ({
-  Transport: jest.fn().mockImplementation(() => ({send: mockSend})),
 }));
 
 describe("DeviceIntel.collect", () => {
@@ -82,6 +77,12 @@ describe("DeviceIntel.collect", () => {
 
     const after = await deviceIntel.collect();
     expect(after.probes.fake_probe).toEqual({status: "skipped", reason: "disabled"});
+  });
+
+  it("rejects an unknown probe id instead of silently ignoring a configuration typo", () => {
+    expect(() => new DeviceIntel({config: {probes: {fake_proeb: {enabled: false}}}})).toThrow(
+      /Unknown probe id "fake_proeb"/,
+    );
   });
 });
 
@@ -179,7 +180,7 @@ describe("DeviceIntel per-call config + field projection", () => {
     expect(next.probes.fake_probe).toEqual({status: "success", data: {value: 42}});
   });
 
-  it("field projection (exclude) trims the collected + sent payload", async () => {
+  it("field projection (exclude) trims the collected payload", async () => {
     mockAllProbes = [
       {
         id: "rich",
@@ -233,37 +234,5 @@ describe("DeviceIntel consent gating", () => {
     const deviceIntel = new DeviceIntel({config: {probes: {fake_probe: {enabled: false}}}});
     const event = await deviceIntel.collect({consent: consentFor(["fake_probe"])});
     expect(event.probes.fake_probe).toEqual({status: "skipped", reason: "disabled"});
-  });
-});
-
-describe("DeviceIntel.collectAndSend", () => {
-  beforeEach(() => {
-    mockAllProbes = [fakeProbe];
-    mockSend.mockClear();
-  });
-
-  it("sends the collected event and reports whether it was accepted", async () => {
-    const deviceIntel = new DeviceIntel({transport: {baseUrl: "https://api.example.test"}});
-    const {event, sent} = await deviceIntel.collectAndSend();
-
-    expect(sent).toBe(true);
-    expect(event.probes.fake_probe).toEqual({status: "success", data: {value: 42}});
-  });
-
-  it("sendFields transmits a narrower payload than what collect() returns", async () => {
-    mockAllProbes = [
-      {id: "rich", timeoutMs: 100, enabled: () => true, collect: () => Promise.resolve({a: 1, b: 2, c: 3})},
-    ];
-    const deviceIntel = new DeviceIntel({
-      transport: {baseUrl: "https://api.example.test"},
-      config: {probes: {rich: {sendFields: {include: ["a"]}}}},
-    });
-
-    const {event} = await deviceIntel.collectAndSend();
-    // The returned (collected) view keeps everything...
-    expect(event.probes.rich).toEqual({status: "success", data: {a: 1, b: 2, c: 3}});
-    // ...but the transmitted payload is narrowed by sendFields.
-    const [, sentPayload] = assertDefined(mockSend.mock.calls[0]);
-    expect((sentPayload as RawSignalEvent).probes.rich).toEqual({status: "success", data: {a: 1}});
   });
 });

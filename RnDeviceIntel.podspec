@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
   # Metal: GPU benchmark/fingerprint (GpuBenchmarkProvider). UIKit/QuartzCore are implicit.
   s.frameworks = "CoreTelephony", "CFNetwork", "SystemConfiguration", "CoreLocation", "AVFoundation", "Metal"
 
-  # New-arch dependency wiring (RN >= 0.71) with a fallback, matching sibling packages.
+  # New-arch dependency wiring (RN >= 0.76) with a fallback for compatible CocoaPods helpers.
   if respond_to?(:install_modules_dependencies, true)
     install_modules_dependencies(s)
   else

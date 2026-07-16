@@ -13,9 +13,22 @@ function fakeProbe(overrides: Partial<Probe> = {}): Probe {
 }
 
 describe("collectAll", () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("returns a success outcome for a probe that resolves", async () => {
     const result = assertDefined((await collectAll([fakeProbe({collect: () => Promise.resolve("ok")})]))[0]);
     expect(result.outcome).toEqual({status: "success", data: "ok"});
+  });
+
+  it("clears the timeout timer when a probe resolves before its deadline", async () => {
+    jest.useFakeTimers();
+
+    const result = await collectAll([fakeProbe({timeoutMs: 1000, collect: () => Promise.resolve("fast")})]);
+
+    expect(result[0]?.outcome).toEqual({status: "success", data: "fast"});
+    expect(jest.getTimerCount()).toBe(0);
   });
 
   it("isolates a throwing probe — does not fail collectAll and does not affect other probes", async () => {
@@ -28,6 +41,19 @@ describe("collectAll", () => {
     const healthyResult = results.find((r) => r.id === "healthy");
     expect(throwingResult?.outcome).toEqual({status: "error", error: "boom"});
     expect(healthyResult?.outcome).toEqual({status: "success", data: "fine"});
+  });
+
+  it("isolates a probe that throws synchronously before returning a promise", async () => {
+    const throwing = fakeProbe({
+      id: "sync-throw",
+      collect: () => {
+        throw new Error("sync-boom");
+      },
+    });
+
+    await expect(collectAll([throwing])).resolves.toEqual([
+      expect.objectContaining({id: "sync-throw", outcome: {status: "error", error: "sync-boom"}}),
+    ]);
   });
 
   it("times out a probe that never resolves, without blocking other probes", async () => {

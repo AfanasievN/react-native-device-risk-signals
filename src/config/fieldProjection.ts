@@ -7,7 +7,7 @@ import type {FieldSelection} from "./probeConfig";
  * no selection returns the data untouched.
  *
  * This is the field-level lever for "what is collected and sent": the projected object is what lands
- * in RawSignalEvent.probes[id].data (see DeviceIntel.collect), which is exactly what Transport sends.
+ * in RawSignalEvent.probes[id].data (see DeviceIntel.collect).
  */
 export function projectData<T>(data: T, selection?: FieldSelection): T {
   if (!selection || data === null || typeof data !== "object" || Array.isArray(data)) {

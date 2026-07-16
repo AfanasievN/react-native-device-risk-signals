@@ -47,3 +47,86 @@ jobs:
       - run: npm test --prefix example -- --runInBand --watchman=false
       - run: npm run lint --prefix example
       - run: npx --prefix example tsc --noEmit -p example/tsconfig.json
+
+  compatibility:
+    name: React Native ${{ matrix.react-native }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - react-native: 0.76.9
+            react: 18.3.1
+          - react-native: 0.81.6
+            react: 19.1.0
+          - react-native: 0.86.0
+            react: 19.2.3
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.16.0"
+          cache: npm
+      - run: npm ci
+      - name: Install compatibility target
+        run: npm install --no-save --package-lock=false --legacy-peer-deps react@${{ matrix.react }} react-native@${{ matrix.react-native }}
+      - run: npm run typecheck
+      - run: npm run verify:contract
+      - run: npm run build
+
+  android-native:
+    name: Android native build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.16.0"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            example/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix example
+      - name: Compile Android example and native module
+        working-directory: example/android
+        run: ./gradlew :app:assembleDebug lintDebug --no-daemon
+
+  ios-native:
+    name: iOS native build
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.16.0"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            example/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix example
+      - name: Install Ruby dependencies
+        working-directory: example
+        run: |
+          bundle config set path vendor/bundle
+          bundle install
+      - name: Install CocoaPods dependencies
+        working-directory: example/ios
+        run: bundle exec pod install
+      - name: Compile iOS example and native module
+        working-directory: example/ios
+        run: >-
+          xcodebuild
+          -workspace DeviceRiskSignalsExample.xcworkspace
+          -scheme DeviceRiskSignalsExample
+          -sdk iphonesimulator
+          -configuration Debug
+          CODE_SIGNING_ALLOWED=NO
+          build

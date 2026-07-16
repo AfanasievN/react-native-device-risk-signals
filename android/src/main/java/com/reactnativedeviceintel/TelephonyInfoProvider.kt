@@ -1,6 +1,9 @@
 package com.reactnativedeviceintel
 
+import android.annotation.SuppressLint
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import com.facebook.react.bridge.Arguments
@@ -37,7 +40,11 @@ class TelephonyInfoProvider(private val context: Context) {
     return map
   }
 
+  @SuppressLint("MissingPermission")
   private fun activeSimCount(): Int? = safe {
+    if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+      return@safe null
+    }
     val sm = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
     sm?.activeSubscriptionInfoCount
   }

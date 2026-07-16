@@ -2,6 +2,7 @@ import {ALLOW_ALL_CONSENT, applyConsent, bothConsent, type ConsentGate} from "./
 import {projectData} from "./config/fieldProjection";
 import {
   applyConfig,
+  assertKnownProbeIds,
   DEFAULT_PROBE_CONFIG,
   type FieldSelection,
   mergeConfigs,
@@ -10,17 +11,14 @@ import {
 import {allProbes} from "./probes";
 import {collectAll} from "./probes/registry";
 import type {ProbeResult} from "./probes/types";
-import {Transport, type TransportConfig} from "./transport/transport";
 import NativeDeviceIntel from "./NativeDeviceIntel";
 
 /**
  * Everything you can set AT INIT, in one place — no Firebase, no network, all plain objects/functions:
- *   new DeviceIntel({ transport: {...}, config: {...}, consent })
+ *   new DeviceIntel({ config: {...}, consent })
  * Each field can also be changed later at any entry point (setConfig / setConsent) or per-collect.
  */
 export type DeviceIntelOptions = {
-  /** Where events are sent. Point at the same host as the main app API (see TransportConfig). */
-  transport?: TransportConfig;
   /**
    * Initial collection config — WHAT is collected/sent. A plain object from ANY source (hardcoded
    * here, a bundled JSON, your own backend, or Firebase — see ProbeConfig). The SDK never fetches it.
@@ -93,15 +91,15 @@ export type RawSignalEvent = {
 };
 
 export class DeviceIntel {
-  private transport: Transport;
   private sessionId: string;
   private clientId?: string;
   private probeConfig: ProbeConfig;
   private consent: ConsentGate;
 
   constructor(options: DeviceIntelOptions = {}) {
-    this.transport = new Transport(options.transport ?? {});
-    this.probeConfig = options.config ?? DEFAULT_PROBE_CONFIG;
+    const config = options.config ?? DEFAULT_PROBE_CONFIG;
+    assertKnownProbeIds(config, allProbes);
+    this.probeConfig = config;
     this.consent = options.consent ?? ALLOW_ALL_CONSENT;
     this.sessionId = options.sessionId ?? randomSessionId();
     this.clientId = options.clientId;
@@ -138,6 +136,7 @@ export class DeviceIntel {
    * is a plain object from any source; this method does no I/O.
    */
   setConfig(config: ProbeConfig): void {
+    assertKnownProbeIds(config, allProbes);
     this.probeConfig = config;
   }
 
@@ -174,28 +173,10 @@ export class DeviceIntel {
     });
   }
 
-  collectAndSend(options: CollectOptions & {path?: string} = {}): Promise<{event: RawSignalEvent; sent: boolean}> {
-    const resolved = this.resolveConfig(options);
-    // `event` is the fuller COLLECTED view (fields projection). The transmitted copy has `sendFields`
-    // applied on top, so what's sent is always ⊆ what was collected — see ProbeOverride.sendFields.
-    return this.collect(options).then((event) => {
-      const toSend: RawSignalEvent = {
-        ...event,
-        probes: Object.fromEntries(
-          Object.entries(event.probes).map(([id, outcome]) => [
-            id,
-            projectOutcome(outcome, resolved.probes[id]?.sendFields),
-          ]),
-        ),
-      };
-      return this.transport
-        .send(options.path ?? "/v1/device-intel/events", toSend)
-        .then((result) => ({event, sent: result.ok}));
-    });
-  }
-
   private resolveConfig(options: CollectOptions): ProbeConfig {
-    return options.config ? mergeConfigs(this.probeConfig, options.config) : this.probeConfig;
+    const config = options.config ? mergeConfigs(this.probeConfig, options.config) : this.probeConfig;
+    assertKnownProbeIds(config, allProbes);
+    return config;
   }
 
   private effectiveConsent(options: CollectOptions): ConsentGate {
@@ -204,7 +185,7 @@ export class DeviceIntel {
 }
 
 // Trims a successful probe's data to a field selection (if any). Non-success outcomes pass through
-// untouched. Used for both the collect-time `fields` and the send-time `sendFields` projection.
+// untouched. Used for collect-time field minimization.
 function projectOutcome(outcome: ProbeResult["outcome"], fields: FieldSelection | undefined): ProbeResult["outcome"] {
   if (outcome.status !== "success" || !fields) return outcome;
   return {status: "success", data: projectData(outcome.data, fields)};

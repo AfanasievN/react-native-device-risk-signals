@@ -11,8 +11,8 @@ signals on Android and iOS: root and jailbreak indicators, emulator detection, d
 traces, VPN and proxy state, hardware, locale, application, and runtime data.
 
 The SDK returns typed raw observations with an independent outcome for every probe. It does not
-calculate a risk score, block users, create a persistent device identifier, or upload data unless
-you explicitly configure a transport. Scoring and policy stay on infrastructure you control.
+calculate a risk score, block users, create a persistent device identifier, or upload data. Your
+application owns transport, authentication, storage, scoring, and policy.
 
 <p align="center">
   <a href="https://www.npmjs.com/package/react-native-device-risk-signals"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-device-risk-signals?color=C95736" /></a>
@@ -25,7 +25,8 @@ you explicitly configure a transport. Scoring and policy stay on infrastructure 
 
 [Quick start](#quick-start) · [What it detects](#what-it-detects) ·
 [AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
-[Privacy](#privacy-and-responsible-use) · [FAQ](#frequently-asked-questions)
+[Probe Catalog](#probe-catalog) · [Privacy](#privacy-and-responsible-use) ·
+[FAQ](#frequently-asked-questions)
 
 ## Quick start
 
@@ -64,7 +65,7 @@ the current device and exposes the complete result as selectable JSON.
 </p>
 
 <p align="center">
-  <sub>Real screenshots from the included iOS example. The demo has no endpoint configured.</sub>
+  <sub>Real screenshots from the included iOS example. The demo never uploads collected data.</sub>
 </p>
 
 ## Why this library
@@ -74,8 +75,8 @@ the current device and exposes the complete result as selectable JSON.
   `error`; one slow native call does not fail the collection.
 - **Explicit data control.** Disable probes, change timeouts, project fields, and apply a subtractive
   consent gate at initialization or per collection.
-- **Local by default.** `collect()` performs no upload. Network transport is optional and configured
-  by the host application.
+- **Local by design.** The package contains no network transport. The host application decides if,
+  where, and how a collected event is sent.
 - **Android and iOS.** The package uses React Native codegen and autolinking for the New Architecture.
 
 ## What it detects
@@ -121,13 +122,13 @@ for consequential decisions.
 
 | Surface | Support |
 | --- | --- |
-| React Native | `0.71` and newer |
-| Architecture | TurboModules and codegen; designed and tested for the New Architecture |
+| React Native | `0.76` and newer; CI covers `0.76.9`, `0.81.6`, and `0.86.0` |
+| Architecture | TurboModules and codegen; New Architecture only |
 | Android | API 24 and newer |
 | iOS | Uses the minimum iOS version supported by the host React Native release; CocoaPods integration |
 | Expo | Not available in Expo Go; requires a native prebuild or custom development build |
 | TypeScript | Typed public API and generated declaration files |
-| Data transport | Local collection by default; optional HTTPS transport to your own backend |
+| Data transport | Not included; applications use their existing API client or transport layer |
 
 ## Installation
 
@@ -149,7 +150,8 @@ Install CocoaPods dependencies after adding the package to an iOS app:
 npx pod-install
 ```
 
-The package supports React Native 0.71 and newer. Android defaults to API 24 or newer.
+The package supports React Native 0.76 and newer with the New Architecture. Android defaults to API
+24 or newer.
 
 ## AI-assisted installation and integration
 
@@ -169,7 +171,7 @@ Before changing files, inspect the repository and determine:
 - which platforms are present;
 - the Android minSdk and the existing iOS CocoaPods/Bundler workflow.
 
-Confirm that the project is compatible with React Native >= 0.71, Android API >= 24, and a native
+Confirm that the project is compatible with React Native >= 0.76, Android API >= 24, and a native
 TurboModule build. Expo Go is not supported; for Expo, use the project's existing prebuild or custom
 development-client workflow. Install the package with the repository's package manager, preserve
 the existing lockfile strategy, and run CocoaPods using Bundler when the project already uses a
@@ -192,12 +194,12 @@ Requirements:
 - create one reusable DeviceIntel instance or service instead of constructing it throughout the UI;
 - use the application's existing session id when available and never derive a persistent device id;
 - begin with an explicit, conservative consentFor(...) probe list and explain every enabled group;
-- call collect() locally first; configure collectAndSend() only if a suitable first-party backend
-  endpoint and payload contract already exist;
+- call collect() locally and pass the result to the application's existing API client only when a
+  suitable first-party backend endpoint and payload contract already exist;
 - handle success, skipped, timeout, and error outcomes without treating missing data as low risk;
 - keep risk scoring and blocking decisions on the backend and do not block a user from one signal;
 - account for Android/iOS differences, Expo prebuild requirements, and New Architecture codegen;
-- minimize transmitted fields with configuration/sendFields when transport is enabled;
+- minimize retained fields with `fields.include` before handing the event to any transport;
 - add focused tests using the project's existing tools and update relevant privacy documentation;
 - do not introduce vendor services, secrets, new permissions, or unrelated refactors.
 
@@ -453,27 +455,32 @@ const event = await deviceIntel.collect({
 ```
 
 Per-call configuration is layered over instance configuration. A consent gate is applied last and
-can only remove probes; it cannot re-enable a disabled probe.
+can only remove probes; it cannot re-enable a disabled probe. Unknown probe ids, invalid timeouts,
+and unknown selected fields throw `ProbeConfigValidationError` instead of being silently ignored.
 
-### Send to your backend
-
-Configure a HTTPS base URL only when the application is ready to transmit an event:
+Validate untrusted or remotely supplied configuration before constructing the SDK:
 
 ```ts
-const deviceIntel = new DeviceIntel({
-  transport: {
-    baseUrl: "https://api.example.com",
-    timeoutMs: 5000,
-  },
-});
+import {validateProbeConfig} from "react-native-device-risk-signals";
 
-const { event, sent } = await deviceIntel.collectAndSend({
-  path: "/v1/device-signals",
-});
+const issues = validateProbeConfig(candidateConfig);
+if (issues.length > 0) {
+  // Reject the configuration or report it through the application's own diagnostics.
+}
 ```
 
-`collectAndSend()` returns the collected event even when delivery fails. Use `sendFields` in a probe
-override when the transmitted payload must be narrower than the locally collected payload.
+### Send with your application API client
+
+The SDK intentionally has no transport. Collect and minimize the event, then use the authenticated
+API layer that already owns retries, headers, telemetry, and error handling in your application:
+
+```ts
+const event = await deviceIntel.collect();
+await appApi.post("/v1/device-signals", event);
+```
+
+Do not place credentials or vendor endpoints in SDK configuration. The application decides whether
+an event should be sent and how delivery failures are handled.
 
 ## Available signal groups
 
@@ -490,6 +497,21 @@ override when the transmitted payload must be narrower than the locally collecte
 Some values are opportunistic by design. Unsupported or unavailable information should appear as a
 skipped probe or an unavailable value, not be treated as evidence of low risk.
 
+## Probe Catalog
+
+`PROBE_CATALOG` is a machine-readable inventory of every probe, including platforms, default state,
+sensitivity, permissions, data categories, purpose, notes, and selectable fields.
+
+```ts
+import {getProbeDescriptor, PROBE_CATALOG} from "react-native-device-risk-signals";
+
+const network = getProbeDescriptor("network");
+const enabledByDefault = PROBE_CATALOG.filter((probe) => probe.enabledByDefault);
+```
+
+See the complete [Data Dictionary](docs/DATA_DICTIONARY.md) and transparent
+[benchmark methodology and baseline](docs/BENCHMARKS.md).
+
 ## Data flow
 
 ```mermaid
@@ -498,7 +520,7 @@ flowchart LR
   B --> C[Independent native probes]
   C --> D[RawSignalEvent]
   D --> E[On-device use]
-  D -.->|optional HTTPS| F[Your backend]
+  D -.->|application-owned transport| F[Your backend]
   F --> G[Risk policy and scoring]
 ```
 
@@ -545,8 +567,8 @@ must minimize, disclose, retain, and protect any data it chooses to use.
 
 ### Does the SDK upload data?
 
-`collect()` runs locally and does not upload its result. Network transmission occurs only when the
-host application explicitly configures a first-party endpoint and calls `collectAndSend()`.
+No. The package contains no network transport. `collect()` returns a local value, and only the host
+application can decide to pass that value to its own API client.
 
 ### Does it replace Google Play Integrity, Apple App Attest, or DeviceCheck?
 
@@ -631,10 +653,11 @@ availability note at the top of this README.
 
 ## Security
 
-This project uses CI, CodeQL analysis for JavaScript and TypeScript, dependency review, Dependabot
-security updates, and npm provenance through Trusted Publishing. These checks reduce risk but cannot
-guarantee that the software is vulnerability-free. Report suspected vulnerabilities privately as
-described in [SECURITY.md](SECURITY.md).
+This project uses CI, CodeQL analysis for JavaScript/TypeScript, Java/Kotlin, and Objective-C/C++,
+native Android and iOS builds, dependency review, Dependabot security updates, and npm provenance
+through Trusted Publishing. These checks reduce risk but cannot guarantee that the software is
+vulnerability-free. Report suspected vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md).
 
 ## Contributing
 

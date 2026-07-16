@@ -1,6 +1,6 @@
 import React from 'react';
-import ReactTestRenderer, {act} from 'react-test-renderer';
-import {SignalInspector} from '../src/SignalInspector';
+import ReactTestRenderer, { act } from 'react-test-renderer';
+import { SignalInspector } from '../src/SignalInspector';
 
 const event = {
   session_id: 'demo-session',
@@ -10,12 +10,20 @@ const event = {
   probes: {
     device_identity: {
       status: 'success' as const,
-      data: {manufacturer: 'Google', model: 'Pixel'},
+      data: { manufacturer: 'Google', model: 'Pixel' },
       durationMs: 8,
     },
-    locale: {status: 'success' as const, data: {language: 'en'}, durationMs: 2},
-    network: {status: 'skipped' as const, reason: 'disabled' as const},
-    telephony: {status: 'error' as const, message: 'Unavailable', durationMs: 1},
+    locale: {
+      status: 'success' as const,
+      data: { language: 'en' },
+      durationMs: 2,
+    },
+    network: { status: 'skipped' as const, reason: 'disabled' as const },
+    telephony: {
+      status: 'error' as const,
+      message: 'Unavailable',
+      durationMs: 1,
+    },
   },
 };
 
@@ -26,22 +34,27 @@ describe('SignalInspector', () => {
 
     await act(() => {
       renderer = ReactTestRenderer.create(
-        <SignalInspector collectSignals={collectSignals} platformName="Android" />,
+        <SignalInspector
+          collectSignals={collectSignals}
+          platformName="Android"
+        />,
       );
     });
 
     const root = renderer!.root;
-    expect(root.findByProps({testID: 'empty-state'}).props.children).toBeTruthy();
+    expect(
+      root.findByProps({ testID: 'empty-state' }).props.children,
+    ).toBeTruthy();
 
     await act(async () => {
-      await root.findByProps({testID: 'collect-signals'}).props.onPress();
+      await root.findByProps({ testID: 'collect-signals' }).props.onPress();
     });
 
     expect(collectSignals).toHaveBeenCalledTimes(1);
-    expect(root.findByProps({testID: 'collection-summary'}).props.children).toBe(
-      '2 observed · 1 skipped · 1 failed',
-    );
-    expect(root.findByProps({testID: 'raw-json'}).props.children).toContain(
+    expect(
+      root.findByProps({ testID: 'collection-summary' }).props.children,
+    ).toBe('2 observed · 1 skipped · 1 failed');
+    expect(root.findByProps({ testID: 'raw-json' }).props.children).toContain(
       '"manufacturer": "Google"',
     );
   });
@@ -59,11 +72,46 @@ describe('SignalInspector', () => {
     });
 
     await act(async () => {
-      await renderer!.root.findByProps({testID: 'collect-signals'}).props.onPress();
+      await renderer!.root
+        .findByProps({ testID: 'collect-signals' })
+        .props.onPress();
     });
 
-    expect(renderer!.root.findByProps({testID: 'collection-error'}).props.children).toContain(
-      'Native module unavailable',
-    );
+    expect(
+      renderer!.root.findByProps({ testID: 'collection-error' }).props.children,
+    ).toContain('Native module unavailable');
+  });
+
+  it('shows the measured end-to-end collection duration for device benchmarking', async () => {
+    const now = jest
+      .spyOn(Date, 'now')
+      .mockReturnValueOnce(1000)
+      .mockReturnValueOnce(1037);
+    const collectSignals = jest.fn().mockResolvedValue(event);
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+
+    try {
+      await act(() => {
+        renderer = ReactTestRenderer.create(
+          <SignalInspector
+            collectSignals={collectSignals}
+            platformName="Android"
+          />,
+        );
+      });
+
+      await act(async () => {
+        await renderer!.root
+          .findByProps({ testID: 'collect-signals' })
+          .props.onPress();
+      });
+
+      expect(
+        renderer!.root.findByProps({ testID: 'collection-duration' }).props
+          .children,
+      ).toBe('37 ms total');
+    } finally {
+      now.mockRestore();
+    }
   });
 });

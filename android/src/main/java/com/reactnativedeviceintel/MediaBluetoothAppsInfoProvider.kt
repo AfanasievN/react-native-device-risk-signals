@@ -1,9 +1,13 @@
 package com.reactnativedeviceintel
 
+import android.annotation.SuppressLint
+import android.Manifest
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.os.Build
 import android.provider.Settings
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableArray
@@ -54,8 +58,14 @@ class MediaBluetoothAppsInfoProvider(private val context: Context) {
     }
   }
 
+  @SuppressLint("MissingPermission")
   private fun addBondedBluetooth(map: WritableMap) {
     try {
+      if (
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+        context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+      ) return
+
       val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager ?: return
       val adapter = manager.adapter ?: return
       // COUNT only. bondedDevices requires BLUETOOTH_CONNECT (already granted at app level); guard

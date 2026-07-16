@@ -1,4 +1,5 @@
 import type {Probe} from "../probes/types";
+import {getProbeDescriptor, PROBE_CATALOG} from "../probeCatalog";
 
 /**
  * Field-level selection for a single probe's collected data. Applied to the TOP-LEVEL keys of the
@@ -19,10 +20,6 @@ export type ProbeOverride = {
   /** Field selection applied to what is COLLECTED — the payload returned from collect() and kept for
    * on-device use. */
   fields?: FieldSelection;
-  /** Field selection applied ADDITIONALLY at send time (collectAndSend), on top of `fields`. Lets you
-   * collect a fuller payload locally but transmit a narrower one — the sent data is always ⊆ the
-   * collected data. Omit to send exactly what was collected. */
-  sendFields?: FieldSelection;
 };
 
 /**
@@ -41,12 +38,76 @@ export type ProbeConfig = {
 
 export const DEFAULT_PROBE_CONFIG: ProbeConfig = {probes: {}};
 
+export type ProbeConfigIssueCode = "unknown_probe" | "invalid_timeout" | "unknown_field";
+
+export type ProbeConfigIssue = {
+  code: ProbeConfigIssueCode;
+  path: string;
+  message: string;
+};
+
+function validateAgainstIds(config: ProbeConfig, knownIds: ReadonlySet<string>): ProbeConfigIssue[] {
+  const issues: ProbeConfigIssue[] = [];
+  for (const [id, override] of Object.entries(config.probes)) {
+    if (!knownIds.has(id)) {
+      issues.push({code: "unknown_probe", path: `probes.${id}`, message: `Unknown probe id "${id}".`});
+      continue;
+    }
+
+    if (override.timeoutMs !== undefined && (!Number.isFinite(override.timeoutMs) || override.timeoutMs <= 0)) {
+      issues.push({
+        code: "invalid_timeout",
+        path: `probes.${id}.timeoutMs`,
+        message: "timeoutMs must be a positive finite number.",
+      });
+    }
+
+    const descriptor = getProbeDescriptor(id);
+    if (!descriptor || !override.fields) continue;
+    const selection = "include" in override.fields ? override.fields.include : override.fields.exclude;
+    const selectionName = "include" in override.fields ? "include" : "exclude";
+    const knownFields = new Set<string>(descriptor.fields);
+    selection.forEach((field, index) => {
+      if (!knownFields.has(field)) {
+        issues.push({
+          code: "unknown_field",
+          path: `probes.${id}.fields.${selectionName}[${index}]`,
+          message: `Unknown field "${field}" for probe "${id}".`,
+        });
+      }
+    });
+  }
+  return issues;
+}
+
+export function validateProbeConfig(config: ProbeConfig): ProbeConfigIssue[] {
+  return validateAgainstIds(config, new Set(PROBE_CATALOG.map(({id}) => id)));
+}
+
+export class ProbeConfigValidationError extends Error {
+  constructor(readonly issues: readonly ProbeConfigIssue[]) {
+    super(issues.map(({message}) => message).join(" "));
+    this.name = "ProbeConfigValidationError";
+  }
+}
+
+export function assertKnownProbeIds(config: ProbeConfig, probes: readonly Probe[]): void {
+  const issues = validateAgainstIds(config, new Set(probes.map((probe) => probe.id)));
+  if (issues.length > 0) {
+    const error = new ProbeConfigValidationError(issues);
+    if (issues.some(({code}) => code === "unknown_probe")) {
+      error.message += " Check PROBE_CATALOG for supported probe ids.";
+    }
+    throw error;
+  }
+}
+
 /**
  * Layer several configs into one, later wins. This is how the resolution order is expressed:
  *   mergeConfigs(baseConfig, profileConfig, perCallConfig)
  * Per-probe overrides merge field-by-field ({...earlier, ...later}), so a later layer that sets only
- * `enabled` does not wipe an earlier layer's `timeoutMs`/`fields`. A `fields`/`sendFields` selection
- * is replaced wholesale by a later layer that specifies it (not deep-merged) — predictable and easy
+ * `enabled` does not wipe an earlier layer's `timeoutMs`/`fields`. A `fields` selection is replaced
+ * wholesale by a later layer that specifies it (not deep-merged) — predictable and easy
  * to reason about.
  */
 export function mergeConfigs(...configs: ProbeConfig[]): ProbeConfig {
@@ -63,8 +124,8 @@ export function mergeConfigs(...configs: ProbeConfig[]): ProbeConfig {
  * Pure, synchronous merge: config overrides the static `enabled`/`timeoutMs` defaults baked into each
  * Probe at source. Unknown probe ids in the config are ignored (forward-compatible with older app
  * builds receiving a config written for a newer build, and with probe ids removed in a later release).
- * Missing per-probe overrides fall through to the probe's own default untouched. (`fields`/`sendFields`
- * are not applied here — they are applied to collected data after the probe runs; see
+ * Missing per-probe overrides fall through to the probe's own default untouched. (`fields` is not
+ * applied here — it is applied to collected data after the probe runs; see
  * fieldProjection.ts. This function only decides whether/how long a probe RUNS.)
  *
  * This is a hard prerequisite for gpu_benchmark/audio_latency: those probes ship with

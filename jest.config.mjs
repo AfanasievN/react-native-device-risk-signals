@@ -9,7 +9,7 @@ export default {
   modulePathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/dist/"],
   transformIgnorePatterns: [`node_modules/(?!(${needsTransform.join("|")})/)`],
   // Coverage focuses on the testable LOGIC. Excluded (not unit-testable / not logic): the codegen
-  // native spec (types + TurboModuleRegistry bridge), the barrel, test helpers, the transport I/O
+  // native spec (types + TurboModuleRegistry bridge), the barrel, and test helpers
   // layer (exercised via mocks at the DeviceIntel level), and the doc-only wire envelope.
   collectCoverageFrom: [
     "src/**/*.ts",
@@ -17,6 +17,5 @@ export default {
     "!src/NativeDeviceIntel.ts",
     "!src/index.ts",
     "!src/testing/**",
-    "!src/transport/**",
   ],
 };

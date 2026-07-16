@@ -1,6 +1,9 @@
 package com.reactnativedeviceintel
 
+import android.annotation.SuppressLint
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.TrafficStats
@@ -23,10 +26,12 @@ class NetworkInfoProvider(private val context: Context) {
   fun getNetworkSignals(): WritableMap {
     val map = Arguments.createMap()
 
+    val hasNetworkState =
+      context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED
     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-    val caps: NetworkCapabilities? = try {
-      cm?.getNetworkCapabilities(cm.activeNetwork)
-    } catch (e: Exception) {
+    val caps: NetworkCapabilities? = if (hasNetworkState) {
+      cm?.let { activeNetworkCapabilities(it) }
+    } else {
       null
     }
 
@@ -66,6 +71,13 @@ class NetworkInfoProvider(private val context: Context) {
 
     addTrafficCounters(map)
     return map
+  }
+
+  @SuppressLint("MissingPermission")
+  private fun activeNetworkCapabilities(connectivityManager: ConnectivityManager): NetworkCapabilities? = try {
+    connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+  } catch (e: Exception) {
+    null
   }
 
   /**
