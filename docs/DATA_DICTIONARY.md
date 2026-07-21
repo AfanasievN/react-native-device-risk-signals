@@ -9,6 +9,11 @@ that is already available to the host application, as noted below. Every success
 under `RawSignalEvent.probes[probeId].data`; unavailable probes return an explicit `skipped`, `timeout`,
 or `error` outcome.
 
+For backend schema planning, use the hosted [complete probe and field table](https://afanasievn.github.io/react-native-device-risk-signals/signals/)
+or download the synchronized [machine-readable catalog](https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json).
+Both are generated from `src/probeCatalog.ts`; exact scalar, array, and nested-object types remain in
+the exported TypeScript contract.
+
 | Probe | Platforms | Default | Sensitivity | Data categories | Permission behavior |
 | --- | --- | --- | --- | --- | --- |
 | `device_identity` | Android, iOS | On | High | Device, operating system | None |

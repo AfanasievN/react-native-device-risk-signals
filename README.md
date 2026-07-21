@@ -20,7 +20,7 @@ application owns transport, authentication, storage, scoring, and policy.
 
 [Documentation](https://afanasievn.github.io/react-native-device-risk-signals/) · [Quick start](#quick-start) · [What it detects](#what-it-detects) ·
 [AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
-[Probe Catalog](#probe-catalog) · [Compatibility reports](docs/DEVICE_COMPATIBILITY.md) ·
+[Probe Catalog](https://afanasievn.github.io/react-native-device-risk-signals/signals/) · [Compatibility reports](docs/DEVICE_COMPATIBILITY.md) ·
 [Ask a question](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/q-a) ·
 [Share your integration](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/show-and-tell)
 
@@ -539,7 +539,10 @@ const network = getProbeDescriptor("network");
 const enabledByDefault = PROBE_CATALOG.filter((probe) => probe.enabledByDefault);
 ```
 
-See the complete [Data Dictionary](docs/DATA_DICTIONARY.md) and transparent
+See the complete backend envelope and field table in the hosted
+[Signal Catalog](https://afanasievn.github.io/react-native-device-risk-signals/signals/), download the
+[machine-readable probe catalog](https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json),
+or continue to the detailed [Data Dictionary](docs/DATA_DICTIONARY.md) and transparent
 [benchmark methodology and baseline](docs/BENCHMARKS.md).
 
 ### Consistency signals

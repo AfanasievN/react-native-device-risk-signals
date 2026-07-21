@@ -1,0 +1,667 @@
+{
+  "catalog_version": 1,
+  "source": "src/probeCatalog.ts",
+  "probes": [
+    {
+      "id": "device_identity",
+      "title": "Device identity",
+      "purpose": "Describe the claimed device and operating-system build for consistency checks.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "device",
+        "operating_system"
+      ],
+      "fields": [
+        "manufacturer",
+        "model",
+        "brand",
+        "systemName",
+        "systemVersion",
+        "isTablet",
+        "osBuild",
+        "kernelVersion",
+        "kernelOsRelease",
+        "kernelOsType",
+        "androidBuild",
+        "isIosAppOnMac",
+        "isMacCatalystApp"
+      ]
+    },
+    {
+      "id": "hardware",
+      "title": "Hardware",
+      "purpose": "Collect coarse hardware, display, memory, battery, and device-class observations.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "hardware",
+        "display",
+        "battery",
+        "storage",
+        "nfc_state"
+      ],
+      "fields": [
+        "screenWidthPx",
+        "screenHeightPx",
+        "screenDensity",
+        "screenDpi",
+        "screenPhysicalWidthPx",
+        "screenPhysicalHeightPx",
+        "screenPhysicalDensity",
+        "screenBrightness",
+        "screenOrientation",
+        "processorCount",
+        "cpuArchitecture",
+        "cpuMaxFrequencyMhz",
+        "totalMemoryBytes",
+        "freeMemoryBytes",
+        "isLowMemory",
+        "processResidentMemoryBytes",
+        "isLowRamDevice",
+        "runtimeMaxMemoryBytes",
+        "lowPowerModeEnabled",
+        "batteryLevel",
+        "batteryState",
+        "batteryTemperatureC",
+        "batteryHealth",
+        "batteryVoltageMv",
+        "batteryTechnology",
+        "batteryPresent",
+        "batteryLow",
+        "powerSource",
+        "batteryCycleCount",
+        "chargeTimeRemainingMs",
+        "nfcAvailable",
+        "nfcEnabled",
+        "storageTotalBytes",
+        "storageFreeBytes",
+        "uptimeMs"
+      ],
+      "notes": "Detailed battery/power and NFC state are Android-only. Storage and uptime are Android-only because the corresponding iOS APIs require additional declarations."
+    },
+    {
+      "id": "fonts",
+      "title": "Installed fonts",
+      "purpose": "Produce a platform-local digest of installed font names for consistency analysis.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "installed_fonts"
+      ],
+      "fields": [
+        "fontsDigest"
+      ],
+      "notes": "Digests are comparable only within the same platform and are not persistent device identifiers."
+    },
+    {
+      "id": "os_integrity",
+      "title": "OS integrity",
+      "purpose": "Expose root, jailbreak, emulator, debugger, hook, and boot-integrity observations.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "device_integrity",
+        "runtime_security"
+      ],
+      "fields": [
+        "isEmulator",
+        "isDebuggerAttached",
+        "isDebuggerWaiting",
+        "developerModeEnabled",
+        "usbDebuggingEnabled",
+        "suBinaryFound",
+        "rootManagementAppFound",
+        "suspiciousFilePathsFound",
+        "suspiciousFilePaths",
+        "writableSystemPathFound",
+        "dangerousPropsPresent",
+        "dangerousSystemProperties",
+        "canOpenJailbreakScheme",
+        "symbolicLinksSuspicious",
+        "injectedLibrariesFound",
+        "injectedLibraryNames",
+        "loadedHookClassNames",
+        "hookFrameworkFound",
+        "magiskMountsFound",
+        "verifiedBootState",
+        "bootloaderLocked",
+        "selinuxEnforcing",
+        "ldPreloadSet",
+        "ldPreloadValue",
+        "hiddenApiPolicy",
+        "emulatorFingerprintMatch",
+        "emulatorFilesFound",
+        "emulatorBuildMarkers",
+        "emulatorFilePaths",
+        "emulatorSystemPropertyMarkers",
+        "emulatorCpuMarkers",
+        "emulatorVendorMarkers",
+        "deviceFarmMarkers",
+        "emulatorChecksPerformed",
+        "sensorCount",
+        "hasAccelerometer",
+        "hasGyroscope",
+        "hasMagnetometer",
+        "hasProximitySensor",
+        "isRunningInUserTestHarness",
+        "simulatorEnvironmentPresent",
+        "abi",
+        "dyldImageCount",
+        "tracerPid",
+        "tracedByOtherProcess",
+        "testKeysBuild",
+        "suspiciousMountsFound",
+        "zygiskIndicatorsFound",
+        "suspiciousExecutableMappingsFound",
+        "suspiciousEnvironmentVariablesFound",
+        "suspiciousEnvironmentVariableNames",
+        "suspiciousPathCount",
+        "injectedLibraryCount"
+      ],
+      "notes": "Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation."
+    },
+    {
+      "id": "os_integrity_frida_scan",
+      "title": "Frida port scan",
+      "purpose": "Check the local Frida server default port as an active instrumentation signal.",
+      "platforms": [
+        "android"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "moderate",
+      "permissions": [],
+      "dataCategories": [
+        "runtime_security"
+      ],
+      "fields": [
+        "scanPerformed",
+        "defaultPortOpen",
+        "scannedPort"
+      ]
+    },
+    {
+      "id": "os_integrity_fork_test",
+      "title": "iOS fork jailbreak test",
+      "purpose": "Test whether the iOS process can fork outside the normal application sandbox.",
+      "platforms": [
+        "ios"
+      ],
+      "enabledByDefault": false,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "device_integrity"
+      ],
+      "fields": [
+        "testPerformed",
+        "forkSucceeded"
+      ],
+      "notes": "Disabled until stability is validated on a representative physical-device lab."
+    },
+    {
+      "id": "network",
+      "title": "Network context",
+      "purpose": "Describe connectivity, VPN, proxy, interfaces, local addresses, and traffic counters.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [
+        "Uses ACCESS_NETWORK_STATE only when already declared by the host application"
+      ],
+      "dataCategories": [
+        "network",
+        "local_ip_address"
+      ],
+      "fields": [
+        "isConnected",
+        "connectionType",
+        "isMetered",
+        "isVpnActive",
+        "isProxyConfigured",
+        "proxyHost",
+        "proxyPort",
+        "wifiSsid",
+        "wifiBssid",
+        "interfaceNames",
+        "localIpAddresses",
+        "linkDownstreamKbps",
+        "linkUpstreamKbps",
+        "networkTransportTypes",
+        "dnsServerAddresses",
+        "isPrivateDnsActive",
+        "privateDnsServerName",
+        "activeNetworkMtu",
+        "isInternetValidated",
+        "hasCaptivePortal",
+        "mobileRxBytes",
+        "mobileTxBytes",
+        "wifiRxBytes",
+        "wifiTxBytes"
+      ],
+      "notes": "Active-link details require host-declared ACCESS_NETWORK_STATE. Missing permission/read failures are omitted; no DNS lookup or network request is performed. SSID and BSSID are normally absent."
+    },
+    {
+      "id": "telephony",
+      "title": "Telephony context",
+      "purpose": "Collect opportunistic carrier, SIM, roaming, and network-country observations.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [
+        "Uses READ_PHONE_STATE only when already granted to the host application for SIM count"
+      ],
+      "dataCategories": [
+        "carrier",
+        "sim",
+        "country"
+      ],
+      "fields": [
+        "phoneType",
+        "networkOperatorName",
+        "simOperatorName",
+        "networkCountryIso",
+        "simCountryIso",
+        "simState",
+        "simCount",
+        "hasIccCard",
+        "isNetworkRoaming",
+        "dataState",
+        "carrierMobileCountryCode",
+        "carrierMobileNetworkCode",
+        "carrierAllowsVoip",
+        "imei"
+      ],
+      "notes": "No phone-state permission is requested. IMEI is intentionally unavailable to normal applications."
+    },
+    {
+      "id": "locale",
+      "title": "Locale",
+      "purpose": "Describe locale, timezone, formatting, and keyboard-language consistency.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "moderate",
+      "permissions": [],
+      "dataCategories": [
+        "locale",
+        "timezone",
+        "keyboard_language"
+      ],
+      "fields": [
+        "language",
+        "languages",
+        "country",
+        "timezoneId",
+        "timezoneOffsetMinutes",
+        "uses24HourClock",
+        "currencyCode",
+        "calendar",
+        "decimalSeparator",
+        "groupingSeparator",
+        "measurementSystem",
+        "firstDayOfWeek",
+        "keyboardLanguages"
+      ]
+    },
+    {
+      "id": "geolocation",
+      "title": "Geolocation context",
+      "purpose": "Read permission state and an already-available last-known location without prompting.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [
+        "Uses only location permission already granted to the host application"
+      ],
+      "dataCategories": [
+        "precise_location",
+        "location_permission"
+      ],
+      "fields": [
+        "authorizationStatus",
+        "hasCoarsePermission",
+        "latitude",
+        "longitude",
+        "accuracyMeters",
+        "altitudeMeters",
+        "locationServicesEnabled",
+        "isFromMockProvider",
+        "mockLocationAppsFound",
+        "isSimulatedBySoftware",
+        "isProducedByAccessory",
+        "provider",
+        "locationAgeMs",
+        "gnssSupported"
+      ],
+      "notes": "The SDK never requests location permission or starts an active location update. mockLocationAppsFound is reserved but not populated because broad package enumeration is prohibited."
+    },
+    {
+      "id": "media_bluetooth_apps",
+      "title": "Media, Bluetooth, accessibility, and known apps",
+      "purpose": "Expose media-route, paired-device count, accessibility, and finite known-app observations.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "high",
+      "permissions": [
+        "Uses BLUETOOTH_CONNECT only when already granted to the host application"
+      ],
+      "dataCategories": [
+        "media_route",
+        "bluetooth",
+        "accessibility",
+        "installed_apps"
+      ],
+      "fields": [
+        "audioOutputRoute",
+        "isMusicActive",
+        "isOtherAudioPlaying",
+        "isScreenCaptured",
+        "isScreenMirrored",
+        "connectedScreenCount",
+        "mirroredScreenCount",
+        "displayCount",
+        "presentationDisplayCount",
+        "bluetoothBondedDeviceCount",
+        "installedFlaggedApps",
+        "openableFlaggedSchemes",
+        "enabledAccessibilityServices",
+        "accessibilityRunning",
+        "accessibilityFeatures"
+      ],
+      "notes": "App visibility is limited to an audited finite list; QUERY_ALL_PACKAGES is not requested. iOS mirroring uses UIScreen.mirroredScreen rather than external-screen presence."
+    },
+    {
+      "id": "gpu_benchmark",
+      "title": "GPU benchmark",
+      "purpose": "Collect GPU identity and bounded workload timing for device-class consistency analysis.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": false,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "gpu",
+        "performance"
+      ],
+      "fields": [
+        "benchmarkPerformed",
+        "skippedReason",
+        "rendererName",
+        "vendorName",
+        "apiVersion",
+        "shadingLanguageVersion",
+        "maxTextureSize",
+        "drawCallsCompleted",
+        "durationMs",
+        "gpuTimeMs",
+        "operationTimeP50Ms",
+        "operationTimeP95Ms",
+        "operationTimeMadMs",
+        "operationTimeCoefficientOfVariation",
+        "warmupSlope"
+      ],
+      "notes": "Disabled by default because it is high entropy and requires device-lab calibration."
+    },
+    {
+      "id": "audio_latency",
+      "title": "Audio latency",
+      "purpose": "Collect coarse audio pipeline properties for device-class consistency analysis.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": false,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "audio_hardware",
+        "performance"
+      ],
+      "fields": [
+        "measured",
+        "outputLatencyMs",
+        "inputLatencyMs",
+        "ioBufferDurationMs",
+        "framesPerBuffer",
+        "nativeSampleRate"
+      ],
+      "notes": "Disabled by default pending representative device-lab calibration."
+    },
+    {
+      "id": "application",
+      "title": "Host application",
+      "purpose": "Describe the host app, install source, granted permissions, and package delivery shape.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "moderate",
+      "permissions": [],
+      "dataCategories": [
+        "application",
+        "install_provenance",
+        "permissions"
+      ],
+      "fields": [
+        "appVersion",
+        "appBuild",
+        "bundleId",
+        "appName",
+        "installerPackage",
+        "isForeground",
+        "processUptimeMs",
+        "grantedPermissions",
+        "isSplitApks",
+        "splitNames",
+        "firstInstallTimeMs",
+        "lastUpdateTimeMs",
+        "targetSdkVersion",
+        "minSdkVersion",
+        "minimumOsVersion",
+        "isDebuggable",
+        "isInstantApp",
+        "signingCertificateSha256",
+        "signingCertificateHistorySha256",
+        "hasMultipleSigners",
+        "receiptPresent",
+        "receiptEnvironment",
+        "bundleExecutable",
+        "isAppExtension",
+        "isSimulatorBuild",
+        "isInstalledOnExternalStorage",
+        "embeddedProvisioningProfilePresent",
+        "getTaskAllowEntitlement"
+      ],
+      "notes": "getTaskAllowEntitlement is reserved but not populated because the public iPhoneOS headers do not expose a supported entitlement lookup API."
+    },
+    {
+      "id": "device_security_posture",
+      "title": "Device security posture",
+      "purpose": "Expose coarse lock, biometric availability, trusted-time, provisioning, and security-update observations.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "moderate",
+      "permissions": [],
+      "dataCategories": [
+        "device_security",
+        "authentication_capability",
+        "operating_system"
+      ],
+      "fields": [
+        "hasSecureLockScreen",
+        "isDeviceLocked",
+        "isUserUnlocked",
+        "protectedDataAvailable",
+        "biometryAvailable",
+        "biometryType",
+        "fingerprintHardwarePresent",
+        "faceHardwarePresent",
+        "strongBoxAvailable",
+        "automaticTimeEnabled",
+        "automaticTimeZoneEnabled",
+        "deviceProvisioned",
+        "securityPatch"
+      ],
+      "notes": "Reports capability/state only and never displays an authentication prompt or reads biometric material."
+    },
+    {
+      "id": "transaction_safety",
+      "title": "Transaction safety",
+      "purpose": "Collect point-in-time remote-control, screen-capture, accessibility, lock, and call-state observations.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": false,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "runtime_security",
+        "accessibility",
+        "installed_apps",
+        "device_state"
+      ],
+      "fields": [
+        "isDeviceLocked",
+        "isInteractive",
+        "isScreenCaptured",
+        "isScreenMirrored",
+        "accessibilityRunning",
+        "accessibilityFeatureCount",
+        "enabledAccessibilityServiceCount",
+        "remoteAccessAppsFound",
+        "remoteAccessAppCount",
+        "audioMode",
+        "isCallActive"
+      ],
+      "notes": "Ships disabled until physical-device calibration; collect immediately before a protected action."
+    },
+    {
+      "id": "runtime",
+      "title": "React Native runtime",
+      "purpose": "Describe the JavaScript engine and active React Native architecture.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": true,
+      "sensitivity": "low",
+      "permissions": [],
+      "dataCategories": [
+        "runtime",
+        "software_version"
+      ],
+      "fields": [
+        "jsEngine",
+        "hermesVersion",
+        "isHermes",
+        "isFabric",
+        "isTurboModule",
+        "isBridgeless",
+        "isDebugBuild",
+        "reactNativeVersion",
+        "platformOs"
+      ]
+    },
+    {
+      "id": "runtime_timing",
+      "title": "Runtime timing profile",
+      "purpose": "Measure bounded JS event-loop, native clock, and JS-to-native call timing distributions.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": false,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "runtime",
+        "performance"
+      ],
+      "fields": [
+        "jsClockSource",
+        "jsTimerSampleCount",
+        "jsTimerResolutionMs",
+        "eventLoopSampleCount",
+        "eventLoopP50Ms",
+        "eventLoopP95Ms",
+        "eventLoopMadMs",
+        "bridgeRoundTripMs",
+        "nativeClockSource",
+        "nativeSampleCount",
+        "nativeTimerResolutionNs",
+        "nativeIntervalMedianNs",
+        "nativeIntervalP95Ns",
+        "nativeIntervalMadNs"
+      ],
+      "notes": "Disabled by default because timing is noisy, high entropy, and requires physical-device calibration."
+    },
+    {
+      "id": "numeric_consistency",
+      "title": "Numeric runtime consistency",
+      "purpose": "Compare deterministic integer and floating-point behavior across JavaScript and native runtimes.",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "enabledByDefault": false,
+      "sensitivity": "high",
+      "permissions": [],
+      "dataCategories": [
+        "runtime",
+        "performance"
+      ],
+      "fields": [
+        "integerVectorMatches",
+        "integerMismatchCount",
+        "floatSampleCount",
+        "floatMismatchCount",
+        "floatMaxAbsoluteDifference",
+        "signedZeroPreserved",
+        "subnormalPreserved"
+      ],
+      "notes": "Disabled by default; returns comparison aggregates rather than raw stable identifiers or a verdict."
+    }
+  ]
+}

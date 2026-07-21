@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import {readProbeCatalog} from "./read-probe-catalog.mjs";
 
 const root = process.cwd();
 const siteRoot = path.join(root, "website");
@@ -50,8 +51,38 @@ for (const relativePath of expectedPages) {
   }
 }
 
-for (const asset of ["assets/styles.css", "assets/site.js", "robots.txt", "sitemap.xml", ".nojekyll"]) {
+for (const asset of ["assets/styles.css", "assets/site.js", "probe-catalog.json", "robots.txt", "sitemap.xml", ".nojekyll"]) {
   assert(fs.existsSync(path.join(siteRoot, asset)), `Missing website/${asset}`);
+}
+
+const probeCatalog = readProbeCatalog(root);
+const signalsPath = path.join(siteRoot, "signals/index.html");
+if (fs.existsSync(signalsPath)) {
+  const signals = fs.readFileSync(signalsPath, "utf8");
+  const documentedRows = new Map(
+    [...signals.matchAll(/<tr\s+data-probe-id="([^"]+)"[^>]*>([\s\S]*?)<\/tr>/g)].map((match) => [match[1], match[2]]),
+  );
+
+  assert(documentedRows.size === probeCatalog.length, `Signal table must document all ${probeCatalog.length} probes`);
+  for (const descriptor of probeCatalog) {
+    const row = documentedRows.get(descriptor.id);
+    assert(Boolean(row), `Signal table is missing probe ${descriptor.id}`);
+    if (!row) continue;
+    for (const field of descriptor.fields) {
+      assert(row.includes(`<code>${field}</code>`), `Signal table is missing ${descriptor.id}.${field}`);
+    }
+  }
+}
+
+const catalogJsonPath = path.join(siteRoot, "probe-catalog.json");
+if (fs.existsSync(catalogJsonPath)) {
+  const publishedCatalog = JSON.parse(fs.readFileSync(catalogJsonPath, "utf8"));
+  assert(publishedCatalog.catalog_version === 1, "Published probe catalog must declare catalog_version 1");
+  assert(publishedCatalog.source === "src/probeCatalog.ts", "Published probe catalog must identify its source of truth");
+  assert(
+    JSON.stringify(publishedCatalog.probes) === JSON.stringify(probeCatalog),
+    "website/probe-catalog.json must exactly match src/probeCatalog.ts",
+  );
 }
 
 const riskGuidePath = path.join(siteRoot, "risk-teams/index.html");

@@ -3,42 +3,186 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Device Signal Catalog | React Native Risk Signals</title>
-  <meta name="description" content="Explore the Android and iOS device risk signal catalog, including integrity, application, security posture, network, locale, and transaction safety probes.">
+  <meta name="description" content="Design a backend contract from the complete Android and iOS device signal table, including every public probe, selectable field, outcome, and platform boundary.">
   <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/signals/">
-  <meta property="og:title" content="React Native Device Signal Catalog"><meta property="og:description" content="Platforms, sensitivity, defaults, and purpose for every public probe."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/signals/">
+  <meta property="og:title" content="React Native Device Signal and Backend Contract Catalog"><meta property="og:description" content="Every public probe and selectable field with platforms, outcomes, permissions, sensitivity, defaults, and missing-data semantics."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/signals/">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
   <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="./" aria-current="page">Signals</a><a href="../integration/">Integration</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
   <main id="content" class="container docs-layout">
-    <aside class="sidebar"><strong>On this page</strong><a href="#model">Collection model</a><a href="#catalog">Probe catalog</a><a href="#outcomes">Probe outcomes</a><a href="#source">Source of truth</a></aside>
+    <aside class="sidebar"><strong>On this page</strong><a href="#model">Collection model</a><a href="#contract">Backend contract</a><a href="#catalog">Complete probe table</a><a href="#outcomes">Probe outcomes</a><a href="#source">Source of truth</a></aside>
     <article class="prose">
-      <header class="page-intro"><p class="eyebrow">Machine-readable inventory</p><h1>Device signal catalog</h1><p class="lede">Nineteen probe groups expose raw observations with explicit platform, sensitivity, permission, and default-state metadata.</p></header>
+      <header class="page-intro"><p class="eyebrow">Machine-readable inventory</p><h1>Device signal and backend contract catalog</h1><p class="lede">Every public probe and selectable top-level field, with platform, sensitivity, permission, default-state, and missing-data semantics.</p><div class="button-row"><a class="button" href="../probe-catalog.json">Download probe-catalog.json</a><a class="button secondary" href="https://github.com/AfanasievN/react-native-device-risk-signals/blob/main/src/NativeDeviceIntel.ts">View exact TypeScript field types</a></div></header>
       <section id="model"><h2>How collection is organized</h2><p>A probe is an independently executed group of related observations. Each probe can succeed, be skipped, time out, or return an error without invalidating the rest of the event.</p><div class="notice">Field availability depends on the platform, OS version, device hardware, host-app permissions, and collection configuration. Missing does not mean safe.</div></section>
+      <section id="contract">
+        <h2>Backend event contract</h2>
+        <p>Design the ingestion boundary around the stable event envelope and an open map of probe outcomes. Probe IDs and successful data fields are additive, so consumers should tolerate unknown keys while validating the fields they use.</p>
+        <div class="code-block"><button class="copy-button" type="button" data-copy="backend-contract">Copy</button><pre id="backend-contract"><code>type RawSignalEvent = {
+  session_id: string;
+  client_id?: string;
+  event_type: "device_intel_collection";
+  schema_version: number;
+  collected_at: string; // ISO 8601
+  probes: Record&lt;string,
+    | { status: "success"; data: Record&lt;string, unknown&gt; }
+    | { status: "skipped"; reason: string }
+    | { status: "timeout" }
+    | { status: "error"; error: string }
+  &gt;;
+};</code></pre></div>
+        <div class="contract-rules" aria-label="Backend contract rules">
+          <div><strong>Version the envelope</strong><p><code>schema_version</code> changes only when the event envelope changes. New probe IDs can appear without an envelope version bump.</p></div>
+          <div><strong>Keep absence distinct</strong><p>An omitted field, a skipped probe, a timeout, an error, and an observed <code>false</code> are different states.</p></div>
+          <div><strong>Allow additive data</strong><p>Persist the SDK version with your event and ignore unknown probe IDs or fields until your backend explicitly adopts them.</p></div>
+          <div><strong>Validate successful data</strong><p>Use the table below for selectable names and the exported TypeScript types for exact scalar, array, and nested-object shapes.</p></div>
+        </div>
+      </section>
       <section id="catalog">
         <h2>Probe catalog</h2><p>Use the filters to review platform coverage. High-sensitivity and expensive probes require extra purpose, retention, and calibration review.</p>
         <div class="catalog-controls" role="group" aria-label="Filter signals by platform"><button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button><button class="filter-button" type="button" data-filter="android" aria-pressed="false">Android</button><button class="filter-button" type="button" data-filter="ios" aria-pressed="false">iOS</button></div>
-        <div class="catalog">
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">device_identity</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>Device identity</h3><p>Claimed device model, manufacturer, OS build, kernel, and tablet state for consistency analysis.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">hardware</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>Hardware</h3><p>Display, CPU, memory, battery, storage, orientation, and device-class observations.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">fonts</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>Installed fonts</h3><p>A platform-local font-name digest. It is not intended as a persistent device identifier.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">os_integrity</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>OS integrity</h3><p>Root, jailbreak, debugger, hooks, boot state, recognized emulator families, and separate device-farm evidence including Firebase Test Lab and XCTest markers.</p></article>
-          <article class="signal-card" data-platform="android"><p class="signal-id">os_integrity_frida_scan</p><div class="signal-meta"><span class="tag">Android</span><span class="tag">moderate sensitivity</span></div><h3>Frida port scan</h3><p>A bounded local check of the default Frida server port as one active instrumentation observation.</p></article>
-          <article class="signal-card" data-platform="ios"><p class="signal-id">os_integrity_fork_test</p><div class="signal-meta"><span class="tag">iOS</span><span class="tag high">high sensitivity</span><span class="tag default-off">default off</span></div><h3>iOS fork test</h3><p>A jailbreak sandbox observation that remains disabled pending representative physical-device validation.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">network</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>Network context</h3><p>Connectivity, VPN, proxy, interfaces, local addresses, link speed, and Android traffic counters.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">telephony</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>Telephony context</h3><p>Carrier, SIM, roaming, network-country, and permission-aware mobile context.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">locale</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag">moderate sensitivity</span></div><h3>Locale</h3><p>Language, country, timezone, calendar, measurement system, formatting, and keyboard languages.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">geolocation</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>Geolocation context</h3><p>Permission state and an already-available last-known location. The SDK never prompts or starts updates.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">media_bluetooth_apps</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span></div><h3>Media, Bluetooth, accessibility, apps</h3><p>Media routes, capture state, paired-device count, accessibility state, and a finite audited app list.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">gpu_benchmark</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span><span class="tag default-off">default off</span></div><h3>GPU benchmark</h3><p>GPU identity plus per-operation p50, p95, deviation, variation, and warm-up metrics for calibrated consistency analysis.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">audio_latency</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span><span class="tag default-off">default off</span></div><h3>Audio latency</h3><p>Coarse audio-pipeline characteristics for calibrated device-class consistency analysis.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">application</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag">moderate sensitivity</span></div><h3>Host application</h3><p>Version, bundle, installer, delivery shape, signing certificate, receipt, and debug state.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">device_security_posture</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag">moderate sensitivity</span></div><h3>Device security posture</h3><p>Secure lock, lock state, biometric capability, trusted time, provisioning, and security-update context.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">transaction_safety</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span><span class="tag default-off">default off</span></div><h3>Transaction safety</h3><p>Point-in-time screen capture, remote access, accessibility, device lock, and call-state context.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">runtime</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag">low sensitivity</span></div><h3>React Native runtime</h3><p>JavaScript engine, Hermes, Fabric, TurboModules, bridgeless mode, and React Native version.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">runtime_timing</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span><span class="tag default-off">default off</span></div><h3>Runtime timing</h3><p>Bounded JS event-loop, native timer, and JS-to-native call distributions. Disabled until physical-device calibration.</p></article>
-          <article class="signal-card" data-platform="android ios"><p class="signal-id">numeric_consistency</p><div class="signal-meta"><span class="tag">Android + iOS</span><span class="tag high">high sensitivity</span><span class="tag default-off">default off</span></div><h3>Numeric consistency</h3><p>Deterministic integer agreement and floating-point difference aggregates across JavaScript and native runtimes.</p></article>
+        <div class="catalog-table-wrap" tabindex="0" aria-label="Complete public probe catalog">
+          <table class="probe-contract-table">
+            <thead><tr><th>Probe and purpose</th><th>Availability</th><th>Data classification</th><th>Permission behavior and notes</th><th>Possible success data</th></tr></thead>
+            <tbody>
+          <!-- GENERATED_PROBE_ROWS_START -->
+          <tr data-probe-id="device_identity" data-platform="android ios">
+            <td class="probe-summary"><code>device_identity</code><strong>Device identity</strong><p>Describe the claimed device and operating-system build for consistency checks.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">device</span><span class="tag">operating_system</span></div></td>
+            <td><p class="permission-copy">No permission required</p></td>
+            <td><details class="field-disclosure"><summary>13 top-level fields</summary><div class="field-list"><code>manufacturer</code><code>model</code><code>brand</code><code>systemName</code><code>systemVersion</code><code>isTablet</code><code>osBuild</code><code>kernelVersion</code><code>kernelOsRelease</code><code>kernelOsType</code><code>androidBuild</code><code>isIosAppOnMac</code><code>isMacCatalystApp</code></div></details></td>
+          </tr>
+          <tr data-probe-id="hardware" data-platform="android ios">
+            <td class="probe-summary"><code>hardware</code><strong>Hardware</strong><p>Collect coarse hardware, display, memory, battery, and device-class observations.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">hardware</span><span class="tag">display</span><span class="tag">battery</span><span class="tag">storage</span><span class="tag">nfc_state</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Detailed battery/power and NFC state are Android-only. Storage and uptime are Android-only because the corresponding iOS APIs require additional declarations.</p></td>
+            <td><details class="field-disclosure"><summary>35 top-level fields</summary><div class="field-list"><code>screenWidthPx</code><code>screenHeightPx</code><code>screenDensity</code><code>screenDpi</code><code>screenPhysicalWidthPx</code><code>screenPhysicalHeightPx</code><code>screenPhysicalDensity</code><code>screenBrightness</code><code>screenOrientation</code><code>processorCount</code><code>cpuArchitecture</code><code>cpuMaxFrequencyMhz</code><code>totalMemoryBytes</code><code>freeMemoryBytes</code><code>isLowMemory</code><code>processResidentMemoryBytes</code><code>isLowRamDevice</code><code>runtimeMaxMemoryBytes</code><code>lowPowerModeEnabled</code><code>batteryLevel</code><code>batteryState</code><code>batteryTemperatureC</code><code>batteryHealth</code><code>batteryVoltageMv</code><code>batteryTechnology</code><code>batteryPresent</code><code>batteryLow</code><code>powerSource</code><code>batteryCycleCount</code><code>chargeTimeRemainingMs</code><code>nfcAvailable</code><code>nfcEnabled</code><code>storageTotalBytes</code><code>storageFreeBytes</code><code>uptimeMs</code></div></details></td>
+          </tr>
+          <tr data-probe-id="fonts" data-platform="android ios">
+            <td class="probe-summary"><code>fonts</code><strong>Installed fonts</strong><p>Produce a platform-local digest of installed font names for consistency analysis.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">installed_fonts</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Digests are comparable only within the same platform and are not persistent device identifiers.</p></td>
+            <td><details class="field-disclosure"><summary>1 top-level fields</summary><div class="field-list"><code>fontsDigest</code></div></details></td>
+          </tr>
+          <tr data-probe-id="os_integrity" data-platform="android ios">
+            <td class="probe-summary"><code>os_integrity</code><strong>OS integrity</strong><p>Expose root, jailbreak, emulator, debugger, hook, and boot-integrity observations.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">device_integrity</span><span class="tag">runtime_security</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation.</p></td>
+            <td><details class="field-disclosure"><summary>53 top-level fields</summary><div class="field-list"><code>isEmulator</code><code>isDebuggerAttached</code><code>isDebuggerWaiting</code><code>developerModeEnabled</code><code>usbDebuggingEnabled</code><code>suBinaryFound</code><code>rootManagementAppFound</code><code>suspiciousFilePathsFound</code><code>suspiciousFilePaths</code><code>writableSystemPathFound</code><code>dangerousPropsPresent</code><code>dangerousSystemProperties</code><code>canOpenJailbreakScheme</code><code>symbolicLinksSuspicious</code><code>injectedLibrariesFound</code><code>injectedLibraryNames</code><code>loadedHookClassNames</code><code>hookFrameworkFound</code><code>magiskMountsFound</code><code>verifiedBootState</code><code>bootloaderLocked</code><code>selinuxEnforcing</code><code>ldPreloadSet</code><code>ldPreloadValue</code><code>hiddenApiPolicy</code><code>emulatorFingerprintMatch</code><code>emulatorFilesFound</code><code>emulatorBuildMarkers</code><code>emulatorFilePaths</code><code>emulatorSystemPropertyMarkers</code><code>emulatorCpuMarkers</code><code>emulatorVendorMarkers</code><code>deviceFarmMarkers</code><code>emulatorChecksPerformed</code><code>sensorCount</code><code>hasAccelerometer</code><code>hasGyroscope</code><code>hasMagnetometer</code><code>hasProximitySensor</code><code>isRunningInUserTestHarness</code><code>simulatorEnvironmentPresent</code><code>abi</code><code>dyldImageCount</code><code>tracerPid</code><code>tracedByOtherProcess</code><code>testKeysBuild</code><code>suspiciousMountsFound</code><code>zygiskIndicatorsFound</code><code>suspiciousExecutableMappingsFound</code><code>suspiciousEnvironmentVariablesFound</code><code>suspiciousEnvironmentVariableNames</code><code>suspiciousPathCount</code><code>injectedLibraryCount</code></div></details></td>
+          </tr>
+          <tr data-probe-id="os_integrity_frida_scan" data-platform="android">
+            <td class="probe-summary"><code>os_integrity_frida_scan</code><strong>Frida port scan</strong><p>Check the local Frida server default port as an active instrumentation signal.</p></td>
+            <td><div class="table-tags"><span class="tag">Android</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag">moderate sensitivity</span><span class="tag">runtime_security</span></div></td>
+            <td><p class="permission-copy">No permission required</p></td>
+            <td><details class="field-disclosure"><summary>3 top-level fields</summary><div class="field-list"><code>scanPerformed</code><code>defaultPortOpen</code><code>scannedPort</code></div></details></td>
+          </tr>
+          <tr data-probe-id="os_integrity_fork_test" data-platform="ios">
+            <td class="probe-summary"><code>os_integrity_fork_test</code><strong>iOS fork jailbreak test</strong><p>Test whether the iOS process can fork outside the normal application sandbox.</p></td>
+            <td><div class="table-tags"><span class="tag">iOS</span><span class="tag default-off">default off</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">device_integrity</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Disabled until stability is validated on a representative physical-device lab.</p></td>
+            <td><details class="field-disclosure"><summary>2 top-level fields</summary><div class="field-list"><code>testPerformed</code><code>forkSucceeded</code></div></details></td>
+          </tr>
+          <tr data-probe-id="network" data-platform="android ios">
+            <td class="probe-summary"><code>network</code><strong>Network context</strong><p>Describe connectivity, VPN, proxy, interfaces, local addresses, and traffic counters.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">network</span><span class="tag">local_ip_address</span></div></td>
+            <td><p class="permission-copy">Uses ACCESS_NETWORK_STATE only when already declared by the host application</p><p class="probe-notes">Active-link details require host-declared ACCESS_NETWORK_STATE. Missing permission/read failures are omitted; no DNS lookup or network request is performed. SSID and BSSID are normally absent.</p></td>
+            <td><details class="field-disclosure"><summary>24 top-level fields</summary><div class="field-list"><code>isConnected</code><code>connectionType</code><code>isMetered</code><code>isVpnActive</code><code>isProxyConfigured</code><code>proxyHost</code><code>proxyPort</code><code>wifiSsid</code><code>wifiBssid</code><code>interfaceNames</code><code>localIpAddresses</code><code>linkDownstreamKbps</code><code>linkUpstreamKbps</code><code>networkTransportTypes</code><code>dnsServerAddresses</code><code>isPrivateDnsActive</code><code>privateDnsServerName</code><code>activeNetworkMtu</code><code>isInternetValidated</code><code>hasCaptivePortal</code><code>mobileRxBytes</code><code>mobileTxBytes</code><code>wifiRxBytes</code><code>wifiTxBytes</code></div></details></td>
+          </tr>
+          <tr data-probe-id="telephony" data-platform="android ios">
+            <td class="probe-summary"><code>telephony</code><strong>Telephony context</strong><p>Collect opportunistic carrier, SIM, roaming, and network-country observations.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">carrier</span><span class="tag">sim</span><span class="tag">country</span></div></td>
+            <td><p class="permission-copy">Uses READ_PHONE_STATE only when already granted to the host application for SIM count</p><p class="probe-notes">No phone-state permission is requested. IMEI is intentionally unavailable to normal applications.</p></td>
+            <td><details class="field-disclosure"><summary>14 top-level fields</summary><div class="field-list"><code>phoneType</code><code>networkOperatorName</code><code>simOperatorName</code><code>networkCountryIso</code><code>simCountryIso</code><code>simState</code><code>simCount</code><code>hasIccCard</code><code>isNetworkRoaming</code><code>dataState</code><code>carrierMobileCountryCode</code><code>carrierMobileNetworkCode</code><code>carrierAllowsVoip</code><code>imei</code></div></details></td>
+          </tr>
+          <tr data-probe-id="locale" data-platform="android ios">
+            <td class="probe-summary"><code>locale</code><strong>Locale</strong><p>Describe locale, timezone, formatting, and keyboard-language consistency.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag">moderate sensitivity</span><span class="tag">locale</span><span class="tag">timezone</span><span class="tag">keyboard_language</span></div></td>
+            <td><p class="permission-copy">No permission required</p></td>
+            <td><details class="field-disclosure"><summary>13 top-level fields</summary><div class="field-list"><code>language</code><code>languages</code><code>country</code><code>timezoneId</code><code>timezoneOffsetMinutes</code><code>uses24HourClock</code><code>currencyCode</code><code>calendar</code><code>decimalSeparator</code><code>groupingSeparator</code><code>measurementSystem</code><code>firstDayOfWeek</code><code>keyboardLanguages</code></div></details></td>
+          </tr>
+          <tr data-probe-id="geolocation" data-platform="android ios">
+            <td class="probe-summary"><code>geolocation</code><strong>Geolocation context</strong><p>Read permission state and an already-available last-known location without prompting.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">precise_location</span><span class="tag">location_permission</span></div></td>
+            <td><p class="permission-copy">Uses only location permission already granted to the host application</p><p class="probe-notes">The SDK never requests location permission or starts an active location update. mockLocationAppsFound is reserved but not populated because broad package enumeration is prohibited.</p></td>
+            <td><details class="field-disclosure"><summary>14 top-level fields</summary><div class="field-list"><code>authorizationStatus</code><code>hasCoarsePermission</code><code>latitude</code><code>longitude</code><code>accuracyMeters</code><code>altitudeMeters</code><code>locationServicesEnabled</code><code>isFromMockProvider</code><code>mockLocationAppsFound</code><code>isSimulatedBySoftware</code><code>isProducedByAccessory</code><code>provider</code><code>locationAgeMs</code><code>gnssSupported</code></div></details></td>
+          </tr>
+          <tr data-probe-id="media_bluetooth_apps" data-platform="android ios">
+            <td class="probe-summary"><code>media_bluetooth_apps</code><strong>Media, Bluetooth, accessibility, and known apps</strong><p>Expose media-route, paired-device count, accessibility, and finite known-app observations.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">media_route</span><span class="tag">bluetooth</span><span class="tag">accessibility</span><span class="tag">installed_apps</span></div></td>
+            <td><p class="permission-copy">Uses BLUETOOTH_CONNECT only when already granted to the host application</p><p class="probe-notes">App visibility is limited to an audited finite list; QUERY_ALL_PACKAGES is not requested. iOS mirroring uses UIScreen.mirroredScreen rather than external-screen presence.</p></td>
+            <td><details class="field-disclosure"><summary>15 top-level fields</summary><div class="field-list"><code>audioOutputRoute</code><code>isMusicActive</code><code>isOtherAudioPlaying</code><code>isScreenCaptured</code><code>isScreenMirrored</code><code>connectedScreenCount</code><code>mirroredScreenCount</code><code>displayCount</code><code>presentationDisplayCount</code><code>bluetoothBondedDeviceCount</code><code>installedFlaggedApps</code><code>openableFlaggedSchemes</code><code>enabledAccessibilityServices</code><code>accessibilityRunning</code><code>accessibilityFeatures</code></div></details></td>
+          </tr>
+          <tr data-probe-id="gpu_benchmark" data-platform="android ios">
+            <td class="probe-summary"><code>gpu_benchmark</code><strong>GPU benchmark</strong><p>Collect GPU identity and bounded workload timing for device-class consistency analysis.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag default-off">default off</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">gpu</span><span class="tag">performance</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Disabled by default because it is high entropy and requires device-lab calibration.</p></td>
+            <td><details class="field-disclosure"><summary>15 top-level fields</summary><div class="field-list"><code>benchmarkPerformed</code><code>skippedReason</code><code>rendererName</code><code>vendorName</code><code>apiVersion</code><code>shadingLanguageVersion</code><code>maxTextureSize</code><code>drawCallsCompleted</code><code>durationMs</code><code>gpuTimeMs</code><code>operationTimeP50Ms</code><code>operationTimeP95Ms</code><code>operationTimeMadMs</code><code>operationTimeCoefficientOfVariation</code><code>warmupSlope</code></div></details></td>
+          </tr>
+          <tr data-probe-id="audio_latency" data-platform="android ios">
+            <td class="probe-summary"><code>audio_latency</code><strong>Audio latency</strong><p>Collect coarse audio pipeline properties for device-class consistency analysis.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag default-off">default off</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">audio_hardware</span><span class="tag">performance</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Disabled by default pending representative device-lab calibration.</p></td>
+            <td><details class="field-disclosure"><summary>6 top-level fields</summary><div class="field-list"><code>measured</code><code>outputLatencyMs</code><code>inputLatencyMs</code><code>ioBufferDurationMs</code><code>framesPerBuffer</code><code>nativeSampleRate</code></div></details></td>
+          </tr>
+          <tr data-probe-id="application" data-platform="android ios">
+            <td class="probe-summary"><code>application</code><strong>Host application</strong><p>Describe the host app, install source, granted permissions, and package delivery shape.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag">moderate sensitivity</span><span class="tag">application</span><span class="tag">install_provenance</span><span class="tag">permissions</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">getTaskAllowEntitlement is reserved but not populated because the public iPhoneOS headers do not expose a supported entitlement lookup API.</p></td>
+            <td><details class="field-disclosure"><summary>28 top-level fields</summary><div class="field-list"><code>appVersion</code><code>appBuild</code><code>bundleId</code><code>appName</code><code>installerPackage</code><code>isForeground</code><code>processUptimeMs</code><code>grantedPermissions</code><code>isSplitApks</code><code>splitNames</code><code>firstInstallTimeMs</code><code>lastUpdateTimeMs</code><code>targetSdkVersion</code><code>minSdkVersion</code><code>minimumOsVersion</code><code>isDebuggable</code><code>isInstantApp</code><code>signingCertificateSha256</code><code>signingCertificateHistorySha256</code><code>hasMultipleSigners</code><code>receiptPresent</code><code>receiptEnvironment</code><code>bundleExecutable</code><code>isAppExtension</code><code>isSimulatorBuild</code><code>isInstalledOnExternalStorage</code><code>embeddedProvisioningProfilePresent</code><code>getTaskAllowEntitlement</code></div></details></td>
+          </tr>
+          <tr data-probe-id="device_security_posture" data-platform="android ios">
+            <td class="probe-summary"><code>device_security_posture</code><strong>Device security posture</strong><p>Expose coarse lock, biometric availability, trusted-time, provisioning, and security-update observations.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag">moderate sensitivity</span><span class="tag">device_security</span><span class="tag">authentication_capability</span><span class="tag">operating_system</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Reports capability/state only and never displays an authentication prompt or reads biometric material.</p></td>
+            <td><details class="field-disclosure"><summary>13 top-level fields</summary><div class="field-list"><code>hasSecureLockScreen</code><code>isDeviceLocked</code><code>isUserUnlocked</code><code>protectedDataAvailable</code><code>biometryAvailable</code><code>biometryType</code><code>fingerprintHardwarePresent</code><code>faceHardwarePresent</code><code>strongBoxAvailable</code><code>automaticTimeEnabled</code><code>automaticTimeZoneEnabled</code><code>deviceProvisioned</code><code>securityPatch</code></div></details></td>
+          </tr>
+          <tr data-probe-id="transaction_safety" data-platform="android ios">
+            <td class="probe-summary"><code>transaction_safety</code><strong>Transaction safety</strong><p>Collect point-in-time remote-control, screen-capture, accessibility, lock, and call-state observations.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag default-off">default off</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">runtime_security</span><span class="tag">accessibility</span><span class="tag">installed_apps</span><span class="tag">device_state</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Ships disabled until physical-device calibration; collect immediately before a protected action.</p></td>
+            <td><details class="field-disclosure"><summary>11 top-level fields</summary><div class="field-list"><code>isDeviceLocked</code><code>isInteractive</code><code>isScreenCaptured</code><code>isScreenMirrored</code><code>accessibilityRunning</code><code>accessibilityFeatureCount</code><code>enabledAccessibilityServiceCount</code><code>remoteAccessAppsFound</code><code>remoteAccessAppCount</code><code>audioMode</code><code>isCallActive</code></div></details></td>
+          </tr>
+          <tr data-probe-id="runtime" data-platform="android ios">
+            <td class="probe-summary"><code>runtime</code><strong>React Native runtime</strong><p>Describe the JavaScript engine and active React Native architecture.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag">default on</span></div></td>
+            <td><div class="table-tags"><span class="tag">low sensitivity</span><span class="tag">runtime</span><span class="tag">software_version</span></div></td>
+            <td><p class="permission-copy">No permission required</p></td>
+            <td><details class="field-disclosure"><summary>9 top-level fields</summary><div class="field-list"><code>jsEngine</code><code>hermesVersion</code><code>isHermes</code><code>isFabric</code><code>isTurboModule</code><code>isBridgeless</code><code>isDebugBuild</code><code>reactNativeVersion</code><code>platformOs</code></div></details></td>
+          </tr>
+          <tr data-probe-id="runtime_timing" data-platform="android ios">
+            <td class="probe-summary"><code>runtime_timing</code><strong>Runtime timing profile</strong><p>Measure bounded JS event-loop, native clock, and JS-to-native call timing distributions.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag default-off">default off</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">runtime</span><span class="tag">performance</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Disabled by default because timing is noisy, high entropy, and requires physical-device calibration.</p></td>
+            <td><details class="field-disclosure"><summary>14 top-level fields</summary><div class="field-list"><code>jsClockSource</code><code>jsTimerSampleCount</code><code>jsTimerResolutionMs</code><code>eventLoopSampleCount</code><code>eventLoopP50Ms</code><code>eventLoopP95Ms</code><code>eventLoopMadMs</code><code>bridgeRoundTripMs</code><code>nativeClockSource</code><code>nativeSampleCount</code><code>nativeTimerResolutionNs</code><code>nativeIntervalMedianNs</code><code>nativeIntervalP95Ns</code><code>nativeIntervalMadNs</code></div></details></td>
+          </tr>
+          <tr data-probe-id="numeric_consistency" data-platform="android ios">
+            <td class="probe-summary"><code>numeric_consistency</code><strong>Numeric runtime consistency</strong><p>Compare deterministic integer and floating-point behavior across JavaScript and native runtimes.</p></td>
+            <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag default-off">default off</span></div></td>
+            <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">runtime</span><span class="tag">performance</span></div></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Disabled by default; returns comparison aggregates rather than raw stable identifiers or a verdict.</p></td>
+            <td><details class="field-disclosure"><summary>7 top-level fields</summary><div class="field-list"><code>integerVectorMatches</code><code>integerMismatchCount</code><code>floatSampleCount</code><code>floatMismatchCount</code><code>floatMaxAbsoluteDifference</code><code>signedZeroPreserved</code><code>subnormalPreserved</code></div></details></td>
+          </tr>
+          <!-- GENERATED_PROBE_ROWS_END -->
+            </tbody>
+          </table>
         </div>
       </section>
       <section id="outcomes"><h2>Independent probe outcomes</h2><table><thead><tr><th>Outcome</th><th>Meaning</th><th>Backend treatment</th></tr></thead><tbody><tr><td><code>success</code></td><td>The probe returned an observation payload.</td><td>Validate schema and freshness before feature use.</td></tr><tr><td><code>skipped</code></td><td>Configuration, consent, platform, or capability excluded the probe.</td><td>Keep separate from negative evidence.</td></tr><tr><td><code>timeout</code></td><td>The configured deadline elapsed.</td><td>Monitor collection health, do not convert to a safe value.</td></tr><tr><td><code>error</code></td><td>The probe failed in isolation.</td><td>Track error class and SDK version operationally.</td></tr></tbody></table></section>
