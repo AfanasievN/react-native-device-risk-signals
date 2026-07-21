@@ -64,6 +64,8 @@ export type DeviceIdentity = {
   kernelOsRelease?: string; // uname release / kern.osrelease.
   kernelOsType?: string; // uname sysname / kern.ostype (e.g. "Linux" / "Darwin").
   androidBuild?: AndroidBuildInfo; // Android-only; omitted on iOS.
+  isIosAppOnMac?: boolean; // iOS 14+: an iPhone/iPad app running directly on Apple silicon macOS.
+  isMacCatalystApp?: boolean; // iOS: compile-time Mac Catalyst environment observation.
 };
 
 /**
@@ -109,6 +111,7 @@ export type ApplicationSignals = {
   bundleExecutable?: string;
   isAppExtension?: boolean;
   isSimulatorBuild?: boolean;
+  isInstalledOnExternalStorage?: boolean; // Android-only: ApplicationInfo.FLAG_EXTERNAL_STORAGE.
 };
 
 /**
@@ -141,6 +144,10 @@ export type HardwareSignals = {
   totalMemoryBytes?: number; // physical RAM (Android ActivityManager.totalMem / iOS hw.memsize).
   freeMemoryBytes?: number; // available RAM (Android availMem / iOS mach vm free).
   isLowMemory?: boolean; // Android ActivityManager.MemoryInfo.lowMemory.
+  processResidentMemoryBytes?: number; // Current process resident/PSS memory; omitted when unavailable.
+  isLowRamDevice?: boolean; // Android ActivityManager.isLowRamDevice (static device-class signal).
+  runtimeMaxMemoryBytes?: number; // Android VM heap ceiling from Runtime.maxMemory().
+  lowPowerModeEnabled?: boolean; // Android power-save mode / iOS Low Power Mode.
   // Battery — a device-farm tell (pinned 100% / always charging / fixed temp).
   batteryLevel?: number; // 0..1.
   batteryState?: string; // "charging" | "unplugged" | "full" | "unknown"
@@ -175,6 +182,7 @@ export type OsIntegritySignals = {
   // Baseline (both platforms; present since the skeleton — kept required for backward-compat).
   isEmulator: boolean;
   isDebuggerAttached: boolean;
+  isDebuggerWaiting?: boolean; // Android Debug.waitingForDebugger(); omitted on iOS.
   developerModeEnabled: boolean; // Android: Settings.Global.DEVELOPMENT_SETTINGS_ENABLED (the
   // Developer-Options master toggle). iOS: no public API — always false.
   usbDebuggingEnabled?: boolean; // Android-only: Settings.Global.ADB_ENABLED (USB debugging), a
@@ -187,12 +195,14 @@ export type OsIntegritySignals = {
   suspiciousFilePaths?: string[]; // The specific paths that were found (raw, for server triage).
   writableSystemPathFound?: boolean; // Android: /system et al writable. iOS: wrote a file outside sandbox.
   dangerousPropsPresent?: boolean; // Android: ro.debuggable=1 / ro.secure=0. iOS: n/a (omitted).
+  dangerousSystemProperties?: string[]; // Android raw matched key=value observations.
   canOpenJailbreakScheme?: boolean; // iOS: canOpenURL cydia:// / sileo:// / etc. Android: n/a.
   symbolicLinksSuspicious?: boolean; // iOS: /Applications, /var/stash etc. are symlinks (jb telltale).
 
   // Hook / injection frameworks (Frida non-port evidence, Substrate, Xposed, cycript...).
   injectedLibrariesFound?: boolean; // Android: /proc/self/maps has an unexpected .so. iOS: dyld injected image.
   injectedLibraryNames?: string[]; // Raw names of the suspicious mapped libraries / dyld images.
+  loadedHookClassNames?: string[]; // Android: loadable Xposed/Substrate/LSPosed class names.
   hookFrameworkFound?: boolean; // Aggregate: any of the above name-matched a known hook framework.
 
   // Android integrity properties (all omitted on iOS).
@@ -381,8 +391,15 @@ export type GeolocationSignals = {
   longitude?: number;
   accuracyMeters?: number;
   altitudeMeters?: number;
+  locationServicesEnabled?: boolean; // System-wide service toggle; does not imply app authorization.
   isFromMockProvider?: boolean; // android: Location.isMock/isFromMockProvider — a direct spoofing tell.
-  mockLocationAppsFound?: boolean; // android: an installed app holding mock-location capability.
+  /**
+   * Reserved for compatibility and intentionally not populated: discovering arbitrary mock-location
+   * apps requires broad package enumeration, which this SDK does not perform.
+   */
+  mockLocationAppsFound?: boolean;
+  isSimulatedBySoftware?: boolean; // iOS 15+: cached location source reports software simulation.
+  isProducedByAccessory?: boolean; // iOS 15+: cached location source reports an external accessory.
   provider?: string; // android: gps/network/fused.
   locationAgeMs?: number; // staleness of the fix.
   gnssSupported?: boolean; // hardware has GNSS at all (emulator tell when false on a "phone").

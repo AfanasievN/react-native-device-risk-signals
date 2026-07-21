@@ -52,4 +52,27 @@ describe("PROBE_CATALOG", () => {
       expect(PROBE_CATALOG.find((descriptor) => descriptor.id === id)?.enabledByDefault).toBe(false);
     }
   });
+
+  it("keeps the OSS gap fields selectable on their owning probes", () => {
+    const fieldsFor = (id: string) => PROBE_CATALOG.find((descriptor) => descriptor.id === id)?.fields;
+
+    expect(fieldsFor("device_identity")).toEqual(
+      expect.arrayContaining(["isIosAppOnMac", "isMacCatalystApp"]),
+    );
+    expect(fieldsFor("hardware")).toEqual(
+      expect.arrayContaining([
+        "lowPowerModeEnabled",
+        "processResidentMemoryBytes",
+        "isLowRamDevice",
+        "runtimeMaxMemoryBytes",
+      ]),
+    );
+    expect(fieldsFor("os_integrity")).toEqual(
+      expect.arrayContaining(["isDebuggerWaiting", "dangerousSystemProperties", "loadedHookClassNames"]),
+    );
+    expect(fieldsFor("geolocation")).toEqual(
+      expect.arrayContaining(["locationServicesEnabled", "isSimulatedBySoftware", "isProducedByAccessory"]),
+    );
+    expect(fieldsFor("application")).toEqual(expect.arrayContaining(["isInstalledOnExternalStorage"]));
+  });
 });

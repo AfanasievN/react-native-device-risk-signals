@@ -28,8 +28,19 @@ static NSString *const kJailbreakPaths[] = {
   @"/private/var/stash",
   @"/usr/libexec/cydia",
   @"/usr/lib/libjailbreak.dylib",
+  @"/usr/lib/ellekit.dylib",
+  @"/usr/sbin/frida-server",
+  @"/usr/bin/frida-server",
+  @"/usr/lib/frida/frida-agent.dylib",
+  @"/usr/lib/frida/frida-gadget.dylib",
+  @"/.installed_dopamine",
   @"/var/jb",
   @"/var/jb/usr/lib/libjailbreak.dylib",
+  @"/var/jb/usr/lib/ellekit.dylib",
+  @"/var/jb/basebin/jailbreakd",
+  @"/var/jb/.installed_palera1n",
+  @"/var/mobile/Library/TrollStore",
+  @"/Applications/TrollStore.app",
 };
 
 // Shells that only exist post-jailbreak.
@@ -43,11 +54,13 @@ static NSString *const kSymlinkPaths[] = {
 // dyld image path fragments that indicate an injected hook framework.
 static const char *kInjectionSignatures[] = {
   "MobileSubstrate", "substrate", "SubstrateLoader", "TweakInject", "libsubstitute",
-  "substitute", "libhooker", "frida", "cynject", "cycript", "RocketBootstrap"
+  "substitute", "libhooker", "ellekit", "frida", "FridaGadget", "cynject", "cycript",
+  "RocketBootstrap", "PreferenceLoader", "SSLKillSwitch", "systemhook.dylib"
 };
 
 static NSString *const kSuspiciousEnvironmentVariables[] = {
-  @"DYLD_INSERT_LIBRARIES", @"DYLD_LIBRARY_PATH", @"LD_PRELOAD", @"FRIDA_GADGET_CONFIG"
+  @"DYLD_INSERT_LIBRARIES", @"DYLD_LIBRARY_PATH", @"DYLD_FRAMEWORK_PATH", @"LD_PRELOAD",
+  @"FRIDA_GADGET_CONFIG"
 };
 
 @implementation JailbreakDetector

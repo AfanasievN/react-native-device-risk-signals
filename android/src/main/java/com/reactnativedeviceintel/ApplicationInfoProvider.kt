@@ -68,6 +68,11 @@ class ApplicationInfoProvider(private val context: Context) {
     map.putInt("targetSdkVersion", appInfo.targetSdkVersion)
     map.putInt("minSdkVersion", appInfo.minSdkVersion)
     map.putBoolean("isDebuggable", (appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0)
+    @Suppress("DEPRECATION")
+    map.putBoolean(
+      "isInstalledOnExternalStorage",
+      (appInfo.flags and ApplicationInfo.FLAG_EXTERNAL_STORAGE) != 0,
+    )
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       safe { pm.isInstantApp(packageName) }?.let { map.putBoolean("isInstantApp", it) }
     }

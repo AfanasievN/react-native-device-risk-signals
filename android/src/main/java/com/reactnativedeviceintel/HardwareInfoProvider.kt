@@ -7,9 +7,12 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.os.BatteryManager
+import android.os.PowerManager
 import android.os.StatFs
 import android.os.SystemClock
 import android.provider.Settings
+import android.system.Os
+import android.system.OsConstants
 import android.util.DisplayMetrics
 import android.view.Display
 import com.facebook.react.bridge.Arguments
@@ -35,6 +38,7 @@ class HardwareInfoProvider(private val context: Context) {
     addMemory(map)
     addStorage(map)
     addBattery(map)
+    addPower(map)
     safe { SystemClock.elapsedRealtime() }?.let { map.putDouble("uptimeMs", it.toDouble()) }
 
     return map
@@ -111,6 +115,20 @@ class HardwareInfoProvider(private val context: Context) {
       map.putDouble("freeMemoryBytes", info.availMem.toDouble())
       map.putBoolean("isLowMemory", info.lowMemory)
     }
+    safe { am.isLowRamDevice }?.let { map.putBoolean("isLowRamDevice", it) }
+    val statm = safe { File("/proc/self/statm").readText() }
+    val pageSize = safe { Os.sysconf(OsConstants._SC_PAGESIZE) }
+    if (statm != null && pageSize != null) {
+      ProcessMemoryCalculator.residentBytes(statm, pageSize)
+        ?.let { if (it > 0) map.putDouble("processResidentMemoryBytes", it.toDouble()) }
+    }
+    safe { Runtime.getRuntime().maxMemory() }
+      ?.let { if (it > 0) map.putDouble("runtimeMaxMemoryBytes", it.toDouble()) }
+  }
+
+  private fun addPower(map: WritableMap) {
+    val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
+    safe { power.isPowerSaveMode }?.let { map.putBoolean("lowPowerModeEnabled", it) }
   }
 
   private fun addBattery(map: WritableMap) {

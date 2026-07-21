@@ -4,6 +4,41 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-21
+
+### Added
+
+- Added system location-services state on Android and iOS, plus iOS 15+ cached-location source
+  observations for software simulation and external accessories.
+- Added Android debugger-wait state, raw dangerous system-property matches, and loadable
+  Xposed/Substrate/LSPosed class names without initializing third-party classes.
+- Added low-power mode and current-process resident memory on both platforms, plus Android low-RAM
+  device class and VM heap ceiling.
+- Added Android external-storage installation state and iOS App-on-Mac/Mac Catalyst execution
+  environment observations.
+### Improved
+
+- Expanded raw Android artifact coverage for KernelSU, APatch, resetprop, and Frida while preserving
+  concrete paths and properties instead of producing a root verdict.
+- Expanded iOS rootless-jailbreak and injection coverage for Dopamine, palera1n, TrollStore,
+  ElleKit, Frida, and `DYLD_FRAMEWORK_PATH` artifacts.
+- Added pure Kotlin classifiers and resident-memory parsing helpers with focused unit tests, plus
+  contract/catalog regression coverage for every new optional field.
+- Clarified omission semantics throughout the public contract, Probe Catalog, Data Dictionary, and
+  README. Unreadable or unavailable observations are omitted rather than replaced with `false` or
+  zero.
+
+### Compatibility and privacy
+
+- This is a backward-compatible additive release for React Native 0.76+ with the New Architecture.
+- No runtime dependencies, native binary dependencies, permissions, network requests, persistent
+  identifiers, `QUERY_ALL_PACKAGES`, or Apple Required-Reason API declarations were added.
+- `mockLocationAppsFound` remains optional for source compatibility but is intentionally not
+  populated because a safe complete implementation would require broad installed-app visibility.
+
+See the [v0.4.0 release notes](docs/releases/0.4.0.md) for upgrade guidance and the complete field
+overview.
+
 ## [0.3.0] - 2026-07-21
 
 ### Added
@@ -66,7 +101,8 @@ All notable public changes will be documented in this file.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/AfanasievN/react-native-device-risk-signals/releases/tag/v0.1.1

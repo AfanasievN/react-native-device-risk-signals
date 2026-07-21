@@ -5,9 +5,14 @@ import type {Probe} from "./types";
 const TIMER_SAMPLES = 128;
 const EVENT_LOOP_SAMPLES = 8;
 
+type TimingGlobals = {
+  performance?: {now?: () => number};
+};
+
 function clock(): {source: string; now: () => number} {
-  if (typeof globalThis.performance?.now === "function") {
-    return {source: "performance_now", now: () => globalThis.performance.now()};
+  const performance = (globalThis as unknown as TimingGlobals).performance;
+  if (typeof performance?.now === "function") {
+    return {source: "performance_now", now: () => performance.now?.() ?? Date.now()};
   }
   return {source: "date_now", now: () => Date.now()};
 }

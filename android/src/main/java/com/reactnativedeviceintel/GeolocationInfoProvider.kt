@@ -24,6 +24,7 @@ class GeolocationInfoProvider(private val context: Context) {
     val hasFine = hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     map.putBoolean("hasCoarsePermission", hasCoarse)
     map.putString("authorizationStatus", if (hasCoarse || hasFine) "granted" else "denied")
+    locationServicesEnabled()?.let { map.putBoolean("locationServicesEnabled", it) }
     map.putBoolean(
       "gnssSupported",
       safeBool { context.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS) },
@@ -77,6 +78,18 @@ class GeolocationInfoProvider(private val context: Context) {
     }
   }
 
+  private fun locationServicesEnabled(): Boolean? = safeValue {
+    val manager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+      ?: return@safeValue null
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      manager.isLocationEnabled
+    } else {
+      @Suppress("DEPRECATION")
+      manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+        manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+  }
+
   private fun hasPermission(permission: String): Boolean = safeBool {
     context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
   }
@@ -85,6 +98,12 @@ class GeolocationInfoProvider(private val context: Context) {
     block()
   } catch (e: Throwable) {
     false
+  }
+
+  private inline fun <T> safeValue(block: () -> T?): T? = try {
+    block()
+  } catch (e: Throwable) {
+    null
   }
 
   companion object {

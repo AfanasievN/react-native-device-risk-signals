@@ -13,9 +13,14 @@
   NSProcessInfo *processInfo = [NSProcessInfo processInfo];
   result[@"processorCount"] = @(processInfo.processorCount);
   result[@"totalMemoryBytes"] = @(processInfo.physicalMemory);
+  result[@"lowPowerModeEnabled"] = @(processInfo.lowPowerModeEnabled);
   int64_t freeMemory = [self freeMemoryBytes];
   if (freeMemory > 0) {
     result[@"freeMemoryBytes"] = @(freeMemory);
+  }
+  int64_t residentMemory = [self processResidentMemoryBytes];
+  if (residentMemory > 0) {
+    result[@"processResidentMemoryBytes"] = @(residentMemory);
   }
 
   // UIScreen / UIDevice / UIFont must be touched on the main thread; TurboModule methods run off it.
@@ -87,6 +92,19 @@
   }
   mach_port_deallocate(mach_task_self(), host);
   return freeBytes;
+}
+
+- (int64_t)processResidentMemoryBytes
+{
+  mach_task_basic_info_data_t info;
+  mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+  kern_return_t status = task_info(
+    mach_task_self(),
+    MACH_TASK_BASIC_INFO,
+    (task_info_t)&info,
+    &count
+  );
+  return status == KERN_SUCCESS ? (int64_t)info.resident_size : -1;
 }
 
 - (NSString *)batteryStateString:(UIDeviceBatteryState)state

@@ -61,6 +61,7 @@ class OsIntegrityProvider(private val context: Context) {
     // ── Baseline (kept required for backward-compat with the skeleton contract) ──────────────────
     map.putBoolean("isEmulator", emulatorEvidence.isStrongEmulatorEvidence)
     map.putBoolean("isDebuggerAttached", safeBool { Debug.isDebuggerConnected() })
+    map.putBoolean("isDebuggerWaiting", safeBool { Debug.waitingForDebugger() })
     // developerModeEnabled = the Developer-Options master toggle; usbDebuggingEnabled = the (distinct)
     // USB-debugging switch. A device can have Developer Options on with ADB off — they are separate
     // raw signals, both read from Settings.Global (ADB_ENABLED was moved out of Settings.Secure in API 17).
@@ -77,16 +78,23 @@ class OsIntegrityProvider(private val context: Context) {
     map.putArray("suspiciousFilePaths", toStringArray(allSuspiciousPaths))
     map.putInt("suspiciousPathCount", allSuspiciousPaths.size)
     map.putBoolean("writableSystemPathFound", writableSystemPaths().isNotEmpty())
-    map.putBoolean("dangerousPropsPresent", dangerousProps())
+    val rootProperties = systemProperties(ROOT_RELEVANT_SYSTEM_PROPERTIES)
+    if (rootProperties.available) {
+      val dangerousProperties = IntegrityEvidenceClassifier.dangerousSystemProperties(rootProperties.values)
+      map.putBoolean("dangerousPropsPresent", dangerousProperties.isNotEmpty())
+      map.putArray("dangerousSystemProperties", toStringArray(dangerousProperties))
+    }
 
     // ── Hooks / injection ────────────────────────────────────────────────────────────────────────
     val injected = suspiciousMappedLibraries()
+    val loadedHookClasses = loadedHookClassNames()
     map.putBoolean("injectedLibrariesFound", injected.isNotEmpty())
     map.putArray("injectedLibraryNames", toStringArray(injected))
     map.putInt("injectedLibraryCount", injected.size)
+    map.putArray("loadedHookClassNames", toStringArray(loadedHookClasses))
     map.putBoolean(
       "hookFrameworkFound",
-      injected.isNotEmpty() || anyPackageInstalled(KnownAppLists.hookFrameworkPackages),
+      injected.isNotEmpty() || loadedHookClasses.isNotEmpty() || anyPackageInstalled(KnownAppLists.hookFrameworkPackages),
     )
 
     // ── Android integrity properties ────────────────────────────────────────────────────────────
@@ -168,12 +176,6 @@ class OsIntegrityProvider(private val context: Context) {
   private fun writableSystemPaths(): List<String> =
     WRITABLE_PROBE_PATHS.filter { path -> safeBool { File(path).canWrite() } }
 
-  private fun dangerousProps(): Boolean {
-    val debuggable = getSystemProperty("ro.debuggable")
-    val secure = getSystemProperty("ro.secure")
-    return debuggable == "1" || secure == "0"
-  }
-
   /**
    * Pure-Kotlin text scan of /proc/self/maps (v1 — no JNI/NDK, which would add a 4-ABI build matrix
    * this repo does not currently require). Returns the distinct
@@ -198,6 +200,16 @@ class OsIntegrityProvider(private val context: Context) {
     }
     return hits.toList()
   }
+
+  private fun loadedHookClassNames(): List<String> =
+    IntegrityEvidenceClassifier.loadedHookClassNames(HOOK_CLASS_NAMES) { name ->
+      try {
+        Class.forName(name, false, context.classLoader)
+        true
+      } catch (e: Throwable) {
+        false
+      }
+    }
 
   private fun magiskMountsFound(): Boolean {
     for (path in MOUNT_INFO_PATHS) {
@@ -294,11 +306,13 @@ class OsIntegrityProvider(private val context: Context) {
     null
   }
 
-  private fun emulatorSystemProperties(): SystemPropertySnapshot {
+  private fun emulatorSystemProperties(): SystemPropertySnapshot = systemProperties(EMULATOR_SYSTEM_PROPERTIES)
+
+  private fun systemProperties(keys: List<String>): SystemPropertySnapshot {
     return try {
       val clazz = Class.forName("android.os.SystemProperties")
       val getter = clazz.getMethod("get", String::class.java)
-      val values = EMULATOR_SYSTEM_PROPERTIES.mapNotNull { key ->
+      val values = keys.mapNotNull { key ->
         val value = getter.invoke(null, key) as? String
         if (value.isNullOrEmpty()) null else key to value
       }.toMap()
@@ -346,6 +360,18 @@ class OsIntegrityProvider(private val context: Context) {
       "DYLD_LIBRARY_PATH",
       "FRIDA_GADGET_CONFIG",
     )
+    private val ROOT_RELEVANT_SYSTEM_PROPERTIES = listOf(
+      "ro.debuggable",
+      "ro.secure",
+      "service.adb.root",
+      "ro.sys.initd",
+    )
+    private val HOOK_CLASS_NAMES = listOf(
+      "de.robv.android.xposed.XposedBridge",
+      "com.saurik.substrate.MS\$SubstrateClass",
+      "com.saurik.substrate.MS",
+      "org.lsposed.lspd.core.Main",
+    )
     private val SUSPICIOUS_MOUNT_SIGNATURES = listOf(
       "magisk",
       "kernelsu",
@@ -377,11 +403,16 @@ class OsIntegrityProvider(private val context: Context) {
       "/system/xbin/daemonsu",
       "/data/adb/magisk",
       "/data/adb/modules",
+      "/sys/kernel/kernelsu",
+      "/data/adb/ksu",
+      "/data/adb/ap",
+      "/data/magisk/resetprop",
       "/cache/su",
       "/dev/com.koushikdutta.superuser.daemon/",
       "/system/etc/init.d/99SuperSUDaemon",
       "/system/xbin/busybox",
       "/data/local/tmp/frida-server",
+      "/data/local/tmp/frida-gadget.so",
     )
 
     private val WRITABLE_PROBE_PATHS = listOf(

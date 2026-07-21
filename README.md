@@ -86,13 +86,13 @@ platform, OS version, hardware, host-app permissions, and the probes you enable.
 
 | Category | Example signals |
 | --- | --- |
-| Root and jailbreak | Root-management apps, `su`, suspicious files, writable system paths, jailbreak URL schemes |
-| Emulator and tampering | Emulator heuristics, debugger state, developer mode, Frida ports, injected libraries, hooking frameworks |
-| Device and application | Model, OS build, app version, bundle id, installer source, permissions, split APK state |
-| Hardware | Screen, CPU, memory, battery, storage, installed-font digest |
+| Root and jailbreak | Root-management apps, `su`, modern root/rootless artifacts, writable system paths, jailbreak URL schemes |
+| Emulator and tampering | Emulator heuristics, debugger/wait state, dangerous properties, Frida, injected libraries, hook classes |
+| Device and application | Model, OS build, iOS-on-Mac state, app version, installer source, permissions, split/external APK state |
+| Hardware | Screen, CPU, device/process memory, low-power mode, battery, storage, installed-font digest |
 | Network | Connection type, VPN state, proxy configuration, interfaces, local IP addresses |
 | Runtime | Hermes, Fabric, TurboModules, bridgeless mode, debug build, React Native version |
-| Locale and context | Language, country, timezone, calendar, measurement system, location authorization |
+| Locale and context | Language, timezone, location authorization/services, and cached-location source information |
 | Optional benchmarks | GPU and audio observations; disabled by default until explicitly enabled |
 
 See [Available signal groups](#available-signal-groups) for probe ids and platform notes.
@@ -516,6 +516,11 @@ an event should be sent and how delivery failures are handled.
 Some values are opportunistic by design. Unsupported or unavailable information should appear as a
 skipped probe or an unavailable value, not be treated as evidence of low risk.
 
+In particular, `mockLocationAppsFound` remains optional for compatibility but is not populated:
+enumerating arbitrary mock-location apps would violate the package-visibility boundary. Android
+uses `Location.isMock`/`isFromMockProvider` for an available cached fix, while iOS 15+ exposes the
+cached location's software-simulation and accessory-source flags.
+
 ## Probe Catalog
 
 `PROBE_CATALOG` is a machine-readable inventory of every probe, including platforms, default state,
@@ -591,6 +596,8 @@ flowchart LR
   responsibility.
 - Location, telephony, application visibility, and high-entropy fingerprints should be treated as
   sensitive data.
+- Integrity checks inspect only this process, selected filesystem paths, a finite package list, and
+  documented system state; they never enumerate every installed application or process.
 - Do not use the library for covert tracking or as the sole basis for a consequential decision.
 
 Review every enabled probe, platform permission, privacy disclosure, and retention rule before a

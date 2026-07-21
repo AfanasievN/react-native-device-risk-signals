@@ -52,12 +52,37 @@ application must avoid touching a sensitive or expensive data source at all.
 certificate observations and signing history, plus iOS receipt presence/environment, minimum OS
 version, executable name, extension state, and simulator-build state. Certificate values describe
 the host application's public signing certificates; no private key or device identifier is read.
+Android additionally reports `isInstalledOnExternalStorage` from the host application's own
+`ApplicationInfo` flags. It never inspects another application to produce this field.
+
+### Device, hardware, and location context
+
+`device_identity` reports `isIosAppOnMac` on iOS 14 and newer and the compile-time
+`isMacCatalystApp` environment flag. Both fields describe the current execution environment and are
+not identifiers.
+
+`hardware` reports the system low-power state and current-process resident memory on both platforms.
+Android additionally exposes the static low-RAM device class and the current VM heap ceiling. A
+failed memory read is omitted; it is never converted to zero.
+
+`geolocation.locationServicesEnabled` is the system-wide location-services state and is independent
+from the host application's authorization. On iOS 15 and newer, a cached location may include
+`isSimulatedBySoftware` and `isProducedByAccessory` from `CLLocationSourceInformation`. Those source
+fields are omitted when there is no cached location or the OS does not expose source information.
+
+`mockLocationAppsFound` is retained in the optional public type for compatibility but is **not populated**.
+Android has no safe complete app-level implementation without broad installed-package enumeration,
+which this SDK prohibits. Use the direct `isFromMockProvider` observation when an Android cached
+location is available; missing data must not be interpreted as a clean location source.
 
 ### OS integrity and transaction context
 
-`os_integrity` includes independent raw observations for tracing, test-key builds, suspicious
-mounts, Zygisk indicators, executable mappings, suspicious environment-variable names, and evidence
-counts. Emulator observations now include matched build markers, discovered emulator file paths,
+`os_integrity` includes independent raw observations for tracing, debugger-wait state, test-key
+builds, suspicious mounts, Zygisk indicators, executable mappings, suspicious environment-variable
+names, matched dangerous Android system properties, loadable hook class names, and evidence counts.
+The dangerous-property field returns only observed `key=value` matches; when system properties are
+unreadable, both the raw list and its optional aggregate are omitted. Hook classes are looked up
+without class initialization. Emulator observations include matched build markers, discovered emulator file paths,
 QEMU or virtual-hardware property markers, CPU markers, recognized emulator-family markers, sensor
 availability, Android Test Harness Mode, Firebase Test Lab presence, and iOS simulator or XCTest
 environment presence. Broad observations such as `test-keys`, an `unknown`
@@ -70,6 +95,10 @@ Recognized Android emulator-family markers currently include `genymotion`, `blue
 documented system property. Other cloud providers are not named unless they expose a stable,
 application-visible signal; provider attribution must not be inferred from ordinary physical-device
 build values.
+
+The filesystem and dyld catalogs include selected modern KernelSU, APatch, resetprop, rootless
+jailbreak, Dopamine, palera1n, TrollStore, ElleKit, and Frida artifacts. A hit is returned as a path,
+property, class, or image name; it is never converted into an on-device root/jailbreak verdict.
 
 `device_security_posture` reports coarse security capabilities and settings. A positive biometric
 capability does not authenticate the current user. `transaction_safety` is intended for collection

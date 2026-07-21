@@ -31,6 +31,7 @@
     status = [CLLocationManager authorizationStatus];
   }
   result[@"authorizationStatus"] = [self statusString:status];
+  result[@"locationServicesEnabled"] = @([CLLocationManager locationServicesEnabled]);
 
   BOOL authorized = (status == kCLAuthorizationStatusAuthorizedAlways ||
                      status == kCLAuthorizationStatusAuthorizedWhenInUse);
@@ -52,6 +53,13 @@
       }
       if (location.verticalAccuracy >= 0) {
         result[@"altitudeMeters"] = @(location.altitude);
+      }
+      if (@available(iOS 15.0, *)) {
+        CLLocationSourceInformation *source = location.sourceInformation;
+        if (source != nil) {
+          result[@"isSimulatedBySoftware"] = @(source.isSimulatedBySoftware);
+          result[@"isProducedByAccessory"] = @(source.isProducedByAccessory);
+        }
       }
       NSTimeInterval age = -[location.timestamp timeIntervalSinceNow];
       if (age >= 0) {

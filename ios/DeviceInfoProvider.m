@@ -1,4 +1,5 @@
 #import "DeviceInfoProvider.h"
+#import <TargetConditionals.h>
 #import <UIKit/UIKit.h>
 #import <sys/sysctl.h>
 
@@ -14,6 +15,17 @@
   result[@"systemName"] = device.systemName;
   result[@"systemVersion"] = device.systemVersion;
   result[@"isTablet"] = @(device.userInterfaceIdiom == UIUserInterfaceIdiomPad);
+#if TARGET_OS_MACCATALYST
+  result[@"isMacCatalystApp"] = @YES;
+#else
+  result[@"isMacCatalystApp"] = @NO;
+#endif
+  if (@available(iOS 14.0, *)) {
+    NSProcessInfo *processInfo = NSProcessInfo.processInfo;
+    if ([processInfo respondsToSelector:@selector(isiOSAppOnMac)]) {
+      result[@"isIosAppOnMac"] = @(processInfo.isiOSAppOnMac);
+    }
+  }
 
   // OS / kernel fingerprint. NONE of these sysctl keys are Apple Required-Reason APIs — only
   // kern.boottime is, and it is deliberately NOT read. androidBuild is Android-only (omitted here).
