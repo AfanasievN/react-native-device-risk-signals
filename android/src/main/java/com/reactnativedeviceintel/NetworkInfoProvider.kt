@@ -1,6 +1,7 @@
 package com.reactnativedeviceintel
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
@@ -24,38 +25,28 @@ import java.net.NetworkInterface
  */
 class NetworkInfoProvider(private val context: Context) {
 
+  private data class ActiveNetworkSnapshot(
+    val activeNetworkPresent: Boolean?,
+    val capabilities: NetworkCapabilities?,
+    val capabilitiesPresent: Boolean?,
+    val linkProperties: LinkProperties?,
+  )
+
   fun getNetworkSignals(): WritableMap {
     val map = Arguments.createMap()
 
     val hasNetworkState =
       context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED
     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-    var caps: NetworkCapabilities? = null
-    var linkProperties: LinkProperties? = null
+    val snapshot = if (hasNetworkState && cm != null) readActiveNetwork(cm) else null
+    val caps = snapshot?.capabilities
+    val linkProperties = snapshot?.linkProperties
 
-    val activeNetworkRead = if (hasNetworkState && cm != null) {
-      runCatching { cm.activeNetwork }
-    } else {
-      null
-    }
-    val activeNetwork = activeNetworkRead?.getOrNull()
-    val activeNetworkPresent = activeNetworkRead?.let { read ->
-      if (read.isSuccess) activeNetwork != null else null
-    }
-    val capabilitiesRead = if (activeNetwork != null && cm != null) {
-      runCatching { cm.getNetworkCapabilities(activeNetwork) }
-    } else {
-      null
-    }
-    if (capabilitiesRead?.isSuccess == true) caps = capabilitiesRead.getOrNull()
-    val capabilitiesPresent = capabilitiesRead?.let { read ->
-      if (read.isSuccess) caps != null else null
-    }
-    if (activeNetwork != null && cm != null) {
-      linkProperties = runCatching { cm.getLinkProperties(activeNetwork) }.getOrNull()
-    }
-
-    NetworkObservationPolicy.connectivity(hasNetworkState, activeNetworkPresent, capabilitiesPresent)
+    NetworkObservationPolicy.connectivity(
+      hasNetworkState,
+      snapshot?.activeNetworkPresent,
+      snapshot?.capabilitiesPresent,
+    )
       ?.let { observation ->
         map.putBoolean("isConnected", observation.isConnected)
         val type = observation.connectionType ?: caps?.let(::connectionType)
@@ -112,6 +103,32 @@ class NetworkInfoProvider(private val context: Context) {
 
     addTrafficCounters(map)
     return map
+  }
+
+  /**
+   * Called only after the host app's ACCESS_NETWORK_STATE grant has been verified. Lint cannot
+   * propagate that runtime check into this helper, so the suppression is intentionally scoped to
+   * the three guarded ConnectivityManager reads rather than the provider or module.
+   */
+  @SuppressLint("MissingPermission")
+  private fun readActiveNetwork(cm: ConnectivityManager): ActiveNetworkSnapshot {
+    val activeNetworkRead = runCatching { cm.activeNetwork }
+    val activeNetwork = activeNetworkRead.getOrNull()
+    val activeNetworkPresent = if (activeNetworkRead.isSuccess) activeNetwork != null else null
+    if (activeNetwork == null) {
+      return ActiveNetworkSnapshot(activeNetworkPresent, null, null, null)
+    }
+
+    val capabilitiesRead = runCatching { cm.getNetworkCapabilities(activeNetwork) }
+    val capabilities = capabilitiesRead.getOrNull()
+    val capabilitiesPresent = if (capabilitiesRead.isSuccess) capabilities != null else null
+    val linkProperties = runCatching { cm.getLinkProperties(activeNetwork) }.getOrNull()
+    return ActiveNetworkSnapshot(
+      activeNetworkPresent,
+      capabilities,
+      capabilitiesPresent,
+      linkProperties,
+    )
   }
 
   private fun addLinkProperties(map: WritableMap, properties: LinkProperties) {
