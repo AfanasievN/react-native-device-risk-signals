@@ -4,6 +4,39 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-21
+
+### Added
+
+- Added Android battery-health, voltage, technology, physical-presence, low-battery, power-source,
+  cycle-count, and charge-time observations, plus NFC availability and adapter state.
+- Added Android active-network transports, DNS servers, Private DNS state and strict hostname, MTU,
+  Internet validation, and captive-portal observations when the host already has
+  `ACCESS_NETWORK_STATE`.
+- Added Android platform build time, iOS embedded-provisioning-profile presence, and raw display
+  topology on both platforms.
+### Improved
+
+- Corrected iOS mirroring semantics to use `UIScreen.mirroredScreen`; an attached extended display
+  is no longer reported as screen mirroring.
+- Stopped reporting `usbDebuggingEnabled: false` from the ordinary-app Android fallback. The field
+  is now omitted because modern Android does not expose a trustworthy third-party ADB-state read.
+- Tightened Android network omission semantics: missing permission and failed platform reads no
+  longer look like observed offline or negative states.
+- Added pure Kotlin classifiers and policy helpers with focused unit tests, plus contract/catalog,
+  platform-gating, dependency, permission, and Apple privacy-manifest regression coverage.
+
+### Compatibility and privacy
+
+- This is a backward-compatible additive release for React Native 0.76+ with the New Architecture.
+- All 23 newly collected observations are optional. `getTaskAllowEntitlement` is reserved in the
+  optional contract but deliberately omitted until Apple exposes a supported public iOS API.
+- No runtime or native binary dependencies, Android permissions, network requests, persistent
+  identifiers, `QUERY_ALL_PACKAGES`, or Apple Required-Reason API declarations were added.
+
+See the [v0.5.0 release notes](docs/releases/0.5.0.md) for upgrade guidance and the complete field
+overview.
+
 ## [0.4.0] - 2026-07-21
 
 ### Added
@@ -101,7 +134,8 @@ overview.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.1.1...v0.2.0

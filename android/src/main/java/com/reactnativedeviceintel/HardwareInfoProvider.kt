@@ -4,9 +4,12 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
+import android.nfc.NfcAdapter
 import android.os.BatteryManager
+import android.os.Build
 import android.os.PowerManager
 import android.os.StatFs
 import android.os.SystemClock
@@ -39,6 +42,7 @@ class HardwareInfoProvider(private val context: Context) {
     addStorage(map)
     addBattery(map)
     addPower(map)
+    addNfc(map)
     safe { SystemClock.elapsedRealtime() }?.let { map.putDouble("uptimeMs", it.toDouble()) }
 
     return map
@@ -149,6 +153,48 @@ class HardwareInfoProvider(private val context: Context) {
     if (temp != Int.MIN_VALUE) {
       map.putDouble("batteryTemperatureC", temp / 10.0) // EXTRA_TEMPERATURE is tenths of a degree C.
     }
+    if (battery.hasExtra(BatteryManager.EXTRA_HEALTH)) {
+      BatterySignalClassifier.healthName(battery.getIntExtra(BatteryManager.EXTRA_HEALTH, -1))
+        ?.let { map.putString("batteryHealth", it) }
+    }
+    if (battery.hasExtra(BatteryManager.EXTRA_VOLTAGE)) {
+      battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
+        .takeIf { it > 0 }
+        ?.let { map.putInt("batteryVoltageMv", it) }
+    }
+    if (battery.hasExtra(BatteryManager.EXTRA_TECHNOLOGY)) {
+      battery.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)
+        ?.takeIf(String::isNotEmpty)
+        ?.let { map.putString("batteryTechnology", it) }
+    }
+    if (battery.hasExtra(BatteryManager.EXTRA_PRESENT)) {
+      map.putBoolean("batteryPresent", battery.getBooleanExtra(BatteryManager.EXTRA_PRESENT, false))
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && battery.hasExtra(BatteryManager.EXTRA_BATTERY_LOW)) {
+      map.putBoolean("batteryLow", battery.getBooleanExtra(BatteryManager.EXTRA_BATTERY_LOW, false))
+    }
+    if (battery.hasExtra(BatteryManager.EXTRA_PLUGGED)) {
+      BatterySignalClassifier.powerSourceName(battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1))
+        ?.let { map.putString("powerSource", it) }
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && battery.hasExtra(BatteryManager.EXTRA_CYCLE_COUNT)) {
+      BatterySignalClassifier.nonNegative(battery.getIntExtra(BatteryManager.EXTRA_CYCLE_COUNT, -1).toLong())
+        ?.let { map.putDouble("batteryCycleCount", it.toDouble()) }
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      val manager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+      safe { manager?.computeChargeTimeRemaining() }
+        ?.let(BatterySignalClassifier::nonNegative)
+        ?.let { map.putDouble("chargeTimeRemainingMs", it.toDouble()) }
+    }
+  }
+
+  private fun addNfc(map: WritableMap) {
+    val available = safe { context.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC) } ?: return
+    map.putBoolean("nfcAvailable", available)
+    if (!available) return
+    val adapter = safe { NfcAdapter.getDefaultAdapter(context) } ?: return
+    safe { adapter.isEnabled }?.let { map.putBoolean("nfcEnabled", it) }
   }
 
   private fun fontsDigest(): String? {

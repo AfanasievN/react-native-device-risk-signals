@@ -1,12 +1,13 @@
 package com.reactnativedeviceintel
 
-import android.annotation.SuppressLint
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.NetworkCapabilities
 import android.net.TrafficStats
+import android.os.Build
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
@@ -29,55 +30,123 @@ class NetworkInfoProvider(private val context: Context) {
     val hasNetworkState =
       context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED
     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-    val caps: NetworkCapabilities? = if (hasNetworkState) {
-      cm?.let { activeNetworkCapabilities(it) }
+    var caps: NetworkCapabilities? = null
+    var linkProperties: LinkProperties? = null
+
+    val activeNetworkRead = if (hasNetworkState && cm != null) {
+      runCatching { cm.activeNetwork }
     } else {
       null
     }
+    val activeNetwork = activeNetworkRead?.getOrNull()
+    val activeNetworkPresent = activeNetworkRead?.let { read ->
+      if (read.isSuccess) activeNetwork != null else null
+    }
+    val capabilitiesRead = if (activeNetwork != null && cm != null) {
+      runCatching { cm.getNetworkCapabilities(activeNetwork) }
+    } else {
+      null
+    }
+    if (capabilitiesRead?.isSuccess == true) caps = capabilitiesRead.getOrNull()
+    val capabilitiesPresent = capabilitiesRead?.let { read ->
+      if (read.isSuccess) caps != null else null
+    }
+    if (activeNetwork != null && cm != null) {
+      linkProperties = runCatching { cm.getLinkProperties(activeNetwork) }.getOrNull()
+    }
+
+    NetworkObservationPolicy.connectivity(hasNetworkState, activeNetworkPresent, capabilitiesPresent)
+      ?.let { observation ->
+        map.putBoolean("isConnected", observation.isConnected)
+        val type = observation.connectionType ?: caps?.let(::connectionType)
+        type?.let { map.putString("connectionType", it) }
+      }
 
     if (caps != null) {
-      map.putBoolean("isConnected", true)
-      map.putString("connectionType", connectionType(caps))
       map.putBoolean(
         "isMetered",
         !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED),
       )
       map.putBoolean("isVpnActive", caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN))
+      map.putBoolean(
+        "isInternetValidated",
+        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
+      )
+      map.putBoolean(
+        "hasCaptivePortal",
+        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL),
+      )
+      map.putArray("networkTransportTypes", toStringArray(networkTransportTypes(caps)))
       val down = caps.linkDownstreamBandwidthKbps
       val up = caps.linkUpstreamBandwidthKbps
       if (down > 0) map.putInt("linkDownstreamKbps", down)
       if (up > 0) map.putInt("linkUpstreamKbps", up)
-    } else {
-      map.putBoolean("isConnected", false)
-      map.putString("connectionType", "none")
-      // Fall back to interface scan for VPN presence even when there's no active default network.
-      map.putBoolean("isVpnActive", vpnInterfacePresent())
     }
 
+    linkProperties?.let { addLinkProperties(map, it) }
+
     // Interface topology — reveals tun/tap/ppp VPN overlays regardless of the capabilities read.
-    val (names, addresses) = interfaceInventory()
-    map.putArray("interfaceNames", toStringArray(names))
-    map.putArray("localIpAddresses", toStringArray(addresses))
+    val inventory = interfaceInventory()
+    inventory?.let { (names, addresses) ->
+      map.putArray("interfaceNames", toStringArray(names))
+      map.putArray("localIpAddresses", toStringArray(addresses))
+      if (caps == null) {
+        // Interface state remains observable without ACCESS_NETWORK_STATE.
+        map.putBoolean("isVpnActive", names.any(::isVpnInterfaceName))
+      }
+    }
 
     // System HTTP proxy.
-    val proxyHost = safeString { System.getProperty("http.proxyHost") }
-    val proxyPort = safeString { System.getProperty("http.proxyPort") }
-    val proxyConfigured = !proxyHost.isNullOrEmpty()
-    map.putBoolean("isProxyConfigured", proxyConfigured)
-    if (proxyConfigured) {
-      map.putString("proxyHost", proxyHost)
-      proxyPort?.toIntOrNull()?.let { map.putInt("proxyPort", it) }
+    val proxyHostRead = runCatching { System.getProperty("http.proxyHost") }
+    if (proxyHostRead.isSuccess) {
+      val proxyHost = proxyHostRead.getOrNull()
+      val proxyConfigured = !proxyHost.isNullOrEmpty()
+      map.putBoolean("isProxyConfigured", proxyConfigured)
+      if (proxyConfigured) {
+        map.putString("proxyHost", proxyHost)
+        safeString { System.getProperty("http.proxyPort") }
+          ?.toIntOrNull()
+          ?.let { map.putInt("proxyPort", it) }
+      }
     }
 
     addTrafficCounters(map)
     return map
   }
 
-  @SuppressLint("MissingPermission")
-  private fun activeNetworkCapabilities(connectivityManager: ConnectivityManager): NetworkCapabilities? = try {
-    connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-  } catch (e: Exception) {
-    null
+  private fun addLinkProperties(map: WritableMap, properties: LinkProperties) {
+    safe {
+      val dns = properties.dnsServers.mapNotNull { it.hostAddress }.distinct()
+      map.putArray("dnsServerAddresses", toStringArray(dns))
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      safe { properties.isPrivateDnsActive }
+        ?.let { map.putBoolean("isPrivateDnsActive", it) }
+      safe { properties.privateDnsServerName }
+        ?.takeIf(String::isNotEmpty)
+        ?.let { map.putString("privateDnsServerName", it) }
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      safe { properties.mtu }
+        ?.takeIf { it > 0 }
+        ?.let { map.putInt("activeNetworkMtu", it) }
+    }
+  }
+
+  private fun networkTransportTypes(caps: NetworkCapabilities): List<String> = buildList {
+    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) add("cellular")
+    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) add("wifi")
+    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) add("bluetooth")
+    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) add("ethernet")
+    if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) add("vpn")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+      caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI_AWARE)) add("wifiAware")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 &&
+      caps.hasTransport(NetworkCapabilities.TRANSPORT_LOWPAN)) add("lowpan")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+      caps.hasTransport(NetworkCapabilities.TRANSPORT_USB)) add("usb")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM &&
+      caps.hasTransport(NetworkCapabilities.TRANSPORT_SATELLITE)) add("satellite")
   }
 
   /**
@@ -108,15 +177,13 @@ class NetworkInfoProvider(private val context: Context) {
     else -> "other"
   }
 
-  private fun vpnInterfacePresent(): Boolean = interfaceInventory().first.any { isVpnInterfaceName(it) }
-
   private fun isVpnInterfaceName(name: String): Boolean {
     val lower = name.lowercase()
     return lower.startsWith("tun") || lower.startsWith("tap") || lower.startsWith("ppp") ||
       lower.startsWith("utun") || lower.startsWith("ipsec")
   }
 
-  private fun interfaceInventory(): Pair<List<String>, List<String>> {
+  private fun interfaceInventory(): Pair<List<String>, List<String>>? {
     val names = mutableListOf<String>()
     val addresses = mutableListOf<String>()
     try {
@@ -135,7 +202,8 @@ class NetworkInfoProvider(private val context: Context) {
         }
       }
     } catch (e: Exception) {
-      // No interface visibility — return whatever we gathered.
+      // No interface visibility — omit instead of treating an empty inventory as a negative result.
+      return null
     }
     return Pair(names, addresses)
   }
@@ -153,6 +221,12 @@ class NetworkInfoProvider(private val context: Context) {
   }
 
   private inline fun safeLong(block: () -> Long): Long? = try {
+    block()
+  } catch (e: Throwable) {
+    null
+  }
+
+  private inline fun <T> safe(block: () -> T): T? = try {
     block()
   } catch (e: Throwable) {
     null

@@ -5,6 +5,7 @@ import android.Manifest
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.display.DisplayManager
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
@@ -35,6 +36,9 @@ class MediaBluetoothAppsInfoProvider(private val context: Context) {
     // ── Bluetooth (bonded devices) ──
     addBondedBluetooth(map)
 
+    // ── Display topology ──
+    addDisplayTopology(map)
+
     // ── App audit ──
     val flagged = KnownAppLists.allQueriedPackages.filter { isInstalled(it) }
     map.putArray("installedFlaggedApps", toStringArray(flagged))
@@ -43,6 +47,13 @@ class MediaBluetoothAppsInfoProvider(private val context: Context) {
     map.putArray("enabledAccessibilityServices", toStringArray(enabledAccessibilityServices()))
 
     return map
+  }
+
+  private fun addDisplayTopology(map: WritableMap) {
+    val manager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager ?: return
+    safe { manager.displays.size }?.let { map.putInt("displayCount", it) }
+    safe { manager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION).size }
+      ?.let { map.putInt("presentationDisplayCount", it) }
   }
 
   private fun audioOutputRoute(audio: AudioManager): String? = safe {

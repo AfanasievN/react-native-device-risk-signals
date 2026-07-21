@@ -40,7 +40,14 @@
     UIApplication *app = [UIApplication sharedApplication];
     result[@"isInteractive"] = @(app.applicationState == UIApplicationStateActive);
     result[@"isScreenCaptured"] = @(UIScreen.mainScreen.isCaptured);
-    result[@"isScreenMirrored"] = @(UIScreen.screens.count > 1);
+    BOOL isMirrored = NO;
+    for (UIScreen *screen in UIScreen.screens) {
+      if (screen.mirroredScreen != nil) {
+        isMirrored = YES;
+        break;
+      }
+    }
+    result[@"isScreenMirrored"] = @(isMirrored);
     BOOL voiceOver = UIAccessibilityIsVoiceOverRunning();
     BOOL switchControl = UIAccessibilityIsSwitchControlRunning();
     BOOL guidedAccess = UIAccessibilityIsGuidedAccessEnabled();

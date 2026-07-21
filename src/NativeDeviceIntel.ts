@@ -47,6 +47,7 @@ export type AndroidBuildInfo = {
   baseOs?: string; // Build.VERSION.BASE_OS (API 23+).
   socManufacturer?: string; // Build.SOC_MANUFACTURER (API 31+).
   socModel?: string; // Build.SOC_MODEL (API 31+).
+  buildTimeMs?: number; // Build.TIME: platform build timestamp, not app install time.
 };
 
 export type DeviceIdentity = {
@@ -112,6 +113,8 @@ export type ApplicationSignals = {
   isAppExtension?: boolean;
   isSimulatorBuild?: boolean;
   isInstalledOnExternalStorage?: boolean; // Android-only: ApplicationInfo.FLAG_EXTERNAL_STORAGE.
+  embeddedProvisioningProfilePresent?: boolean; // iOS: embedded.mobileprovision exists in this bundle.
+  getTaskAllowEntitlement?: boolean; // Reserved; not populated without a supported public iOS API.
 };
 
 /**
@@ -152,6 +155,16 @@ export type HardwareSignals = {
   batteryLevel?: number; // 0..1.
   batteryState?: string; // "charging" | "unplugged" | "full" | "unknown"
   batteryTemperatureC?: number; // Android only.
+  batteryHealth?: string; // Android: good/overheat/dead/overVoltage/unspecifiedFailure/cold/unknown.
+  batteryVoltageMv?: number; // Android ACTION_BATTERY_CHANGED millivolts.
+  batteryTechnology?: string; // Android battery chemistry string reported by the system.
+  batteryPresent?: boolean; // Android reports whether a physical battery is present.
+  batteryLow?: boolean; // Android 9+: system low-battery classification.
+  powerSource?: string; // Android: battery/ac/usb/wireless/dock.
+  batteryCycleCount?: number; // Android 14+, omitted when the device does not expose it.
+  chargeTimeRemainingMs?: number; // Android 9+ estimate; omitted when it cannot be computed.
+  nfcAvailable?: boolean; // Android hardware feature presence; iOS omitted.
+  nfcEnabled?: boolean; // Android NFC adapter state, when an adapter can be read.
   // Storage — ANDROID ONLY (StatFs; permission-free, not a restricted API). Omitted on iOS because
   // iOS disk-space IS an Apple Required-Reason API and this SDK deliberately touches none. Round /
   // identical total storage recurring across a fleet is a device-farm/emulator tell.
@@ -185,8 +198,8 @@ export type OsIntegritySignals = {
   isDebuggerWaiting?: boolean; // Android Debug.waitingForDebugger(); omitted on iOS.
   developerModeEnabled: boolean; // Android: Settings.Global.DEVELOPMENT_SETTINGS_ENABLED (the
   // Developer-Options master toggle). iOS: no public API — always false.
-  usbDebuggingEnabled?: boolean; // Android-only: Settings.Global.ADB_ENABLED (USB debugging), a
-  // DISTINCT signal from developerModeEnabled — Developer Options can be on with ADB off. Omitted on iOS.
+  usbDebuggingEnabled?: boolean; // Reserved for compatibility and currently not populated: modern
+  // Android does not expose a trustworthy third-party ADB-enabled read. Omitted on both platforms.
 
   // Root / jailbreak — file, binary and package/app evidence.
   suBinaryFound?: boolean; // Android: `su` on any PATH dir. iOS: jailbreak shells (bash/sh/ssh) present.
@@ -324,6 +337,13 @@ export type NetworkSignals = {
   localIpAddresses?: string[]; // Non-loopback interface addresses.
   linkDownstreamKbps?: number; // Android NetworkCapabilities link speed estimate.
   linkUpstreamKbps?: number;
+  networkTransportTypes?: string[]; // Android active-network transports; may contain multiple values.
+  dnsServerAddresses?: string[]; // Android DNS servers attached to the active link.
+  isPrivateDnsActive?: boolean; // Android 9+: encrypted system DNS is active.
+  privateDnsServerName?: string; // Android 9+: strict-mode hostname; absent in opportunistic mode.
+  activeNetworkMtu?: number; // Android 10+: non-default MTU; omitted when the platform reports 0.
+  isInternetValidated?: boolean; // Android active network passed system validation.
+  hasCaptivePortal?: boolean; // Android system classified the active network as captive.
   // Traffic counters (Android only — TrafficStats; iOS has no public API, omitted). CUMULATIVE bytes
   // SINCE BOOT, not a rate — pair with hardware.uptimeMs (or a session delta) to derive an average.
   // Permission-free counters that can be normalized into average traffic rates.
@@ -416,7 +436,11 @@ export type MediaBluetoothAppsSignals = {
   isMusicActive?: boolean;
   isOtherAudioPlaying?: boolean; // ios.
   isScreenCaptured?: boolean; // ios: UIScreen.isCaptured. Android omitted (no point-in-time API < API 35).
-  isScreenMirrored?: boolean; // ios: an additional (non-builtin) UIScreen is attached.
+  isScreenMirrored?: boolean; // ios: at least one connected UIScreen reports a mirrored source.
+  connectedScreenCount?: number; // iOS: all connected UIScreen instances, including the main screen.
+  mirroredScreenCount?: number; // iOS: connected screens whose mirroredScreen is non-null.
+  displayCount?: number; // Android: all DisplayManager displays visible to the process.
+  presentationDisplayCount?: number; // Android: displays suitable for secondary presentation content.
   bluetoothBondedDeviceCount?: number; // android only. Count only — the device NAMES are deliberately
   // NOT collected (they are PII: names of the user's other devices/peripherals). Compliance minimization.
   installedFlaggedApps?: string[]; // android: package ids present from KnownAppLists (root/hook/RAT).

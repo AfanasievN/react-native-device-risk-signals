@@ -62,11 +62,10 @@ class OsIntegrityProvider(private val context: Context) {
     map.putBoolean("isEmulator", emulatorEvidence.isStrongEmulatorEvidence)
     map.putBoolean("isDebuggerAttached", safeBool { Debug.isDebuggerConnected() })
     map.putBoolean("isDebuggerWaiting", safeBool { Debug.waitingForDebugger() })
-    // developerModeEnabled = the Developer-Options master toggle; usbDebuggingEnabled = the (distinct)
-    // USB-debugging switch. A device can have Developer Options on with ADB off — they are separate
-    // raw signals, both read from Settings.Global (ADB_ENABLED was moved out of Settings.Secure in API 17).
+    // Developer Options remains readable. Settings.Global.ADB_ENABLED is not a trustworthy
+    // third-party observation on modern Android: ordinary apps receive 0. Keep its optional public
+    // field reserved, but omit it rather than translating "unavailable" into "ADB disabled".
     map.putBoolean("developerModeEnabled", isGlobalSettingEnabled(Settings.Global.DEVELOPMENT_SETTINGS_ENABLED))
-    map.putBoolean("usbDebuggingEnabled", isGlobalSettingEnabled(Settings.Global.ADB_ENABLED))
 
     // ── Root: files / binaries / packages ────────────────────────────────────────────────────────
     val suFound = SU_BINARY_PATHS.filter { safeExists(it) }

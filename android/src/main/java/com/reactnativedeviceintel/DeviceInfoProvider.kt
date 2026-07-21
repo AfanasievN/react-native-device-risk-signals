@@ -65,6 +65,7 @@ class DeviceInfoProvider(private val context: Context) {
       putIfNotEmpty(b, "socManufacturer", readProp { Build.SOC_MANUFACTURER })
       putIfNotEmpty(b, "socModel", readProp { Build.SOC_MODEL })
     }
+    readProp { Build.TIME }?.let { if (it > 0) b.putDouble("buildTimeMs", it.toDouble()) }
     return b
   }
 

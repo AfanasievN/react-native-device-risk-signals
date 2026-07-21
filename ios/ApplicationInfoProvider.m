@@ -35,6 +35,13 @@
         ? @"sandbox" : @"production";
   }
   result[@"isAppExtension"] = @([[NSBundle mainBundle].bundlePath.pathExtension.lowercaseString isEqualToString:@"appex"]);
+  NSString *profilePath = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:@"embedded.mobileprovision"];
+  result[@"embeddedProvisioningProfilePresent"] = @(
+    [[NSFileManager defaultManager] fileExistsAtPath:profilePath]
+  );
+  // getTaskAllowEntitlement is intentionally omitted. SecTask entitlement lookup symbols are not
+  // declared by the public iPhoneOS Security headers, so using hand-written declarations would cross
+  // the package's public-system-API boundary. The optional contract field remains reserved.
 #if TARGET_OS_SIMULATOR
   result[@"isSimulatorBuild"] = @YES;
   result[@"isDebuggable"] = @YES;

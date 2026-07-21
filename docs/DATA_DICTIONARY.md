@@ -50,20 +50,47 @@ application must avoid touching a sensitive or expensive data source at all.
 
 `application` now exposes Android SDK targets, debuggable/instant-app state, SHA-256 signing
 certificate observations and signing history, plus iOS receipt presence/environment, minimum OS
-version, executable name, extension state, and simulator-build state. Certificate values describe
+version, executable name, extension state, simulator-build state, and
+`embeddedProvisioningProfilePresent`. Certificate values describe
 the host application's public signing certificates; no private key or device identifier is read.
 Android additionally reports `isInstalledOnExternalStorage` from the host application's own
 `ApplicationInfo` flags. It never inspects another application to produce this field.
+
+`getTaskAllowEntitlement` is reserved in the optional contract but is **not populated**. Although
+Apple documents `SecTask` entitlement lookup, the current iPhoneOS SDK does not declare those symbols
+in its public headers. This package does not hand-declare platform symbols or use a private API to
+turn an unavailable observation into `false`.
 
 ### Device, hardware, and location context
 
 `device_identity` reports `isIosAppOnMac` on iOS 14 and newer and the compile-time
 `isMacCatalystApp` environment flag. Both fields describe the current execution environment and are
-not identifiers.
+not identifiers. Its nested Android `androidBuild.buildTimeMs` is the public `Build.TIME` platform
+build timestamp; it is not the app install time and may be absent or inaccurate on vendor builds.
 
 `hardware` reports the system low-power state and current-process resident memory on both platforms.
 Android additionally exposes the static low-RAM device class and the current VM heap ceiling. A
 failed memory read is omitted; it is never converted to zero.
+
+Android battery context includes the observed health, millivolts, technology string, physical-battery
+presence, system low-battery classification, power source, Android 14+ cycle count, and Android 9+
+charge-time estimate. Missing intent extras, undocumented enum values, negative cycle counts, and a
+failed charge-time computation are omitted. Android also reports `nfcAvailable`; `nfcEnabled` is
+included only when an NFC adapter exists and its state can be read. Neither read starts NFC activity
+or adds a permission.
+
+### Network and display topology
+
+When the host already declares `ACCESS_NETWORK_STATE`, Android may return all active transport types,
+DNS server addresses, Private DNS state/strict hostname, non-default MTU, system Internet validation,
+and captive-portal capability. No DNS lookup, socket, or other network request is performed. If the
+permission or a platform read is unavailable, the associated fields are omitted. `isConnected: false`
+and `connectionType: "none"` are emitted only after a successful read that observed no active network.
+
+`media_bluetooth_apps` exposes Android `displayCount` and `presentationDisplayCount`. On iOS,
+`connectedScreenCount` includes the main screen, while `mirroredScreenCount` counts screens whose
+public `mirroredScreen` property is non-null. `isScreenMirrored` is derived from that exact raw count;
+an attached extended display is no longer mislabeled as mirroring.
 
 `geolocation.locationServicesEnabled` is the system-wide location-services state and is independent
 from the host application's authorization. On iOS 15 and newer, a cached location may include
@@ -89,6 +116,10 @@ environment presence. Broad observations such as `test-keys`, an `unknown`
 manufacturer, or an x86 ABI are retained as raw build markers but do not set `isEmulator` by
 themselves. Device-farm markers also do not set `isEmulator`, because a farm may provide a physical
 device. Environment-variable and simulator-environment values are deliberately not returned.
+
+`usbDebuggingEnabled` is retained as an optional compatibility field but is **not populated**.
+Modern Android does not expose a trustworthy third-party read of the ADB-enabled setting; returning
+the ordinary-app fallback `0` as `false` would incorrectly claim that USB debugging was observed off.
 
 Recognized Android emulator-family markers currently include `genymotion`, `bluestacks`, `nox`,
 `memu`, `ldplayer`, `andy`, `droid4x`, and `koplayer`. Firebase Test Lab is detected through its

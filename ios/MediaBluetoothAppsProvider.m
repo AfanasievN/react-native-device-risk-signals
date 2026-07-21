@@ -29,7 +29,16 @@ static NSString *const kAppAuditSchemes[] = {
   // run off it, so hop over (guarded against the already-on-main case to avoid a dispatch_sync deadlock).
   void (^work)(void) = ^{
     result[@"isScreenCaptured"] = @(UIScreen.mainScreen.isCaptured);
-    result[@"isScreenMirrored"] = @(UIScreen.screens.count > 1);
+    NSArray<UIScreen *> *screens = UIScreen.screens;
+    NSUInteger mirroredCount = 0;
+    for (UIScreen *screen in screens) {
+      if (screen.mirroredScreen != nil) {
+        mirroredCount += 1;
+      }
+    }
+    result[@"connectedScreenCount"] = @(screens.count);
+    result[@"mirroredScreenCount"] = @(mirroredCount);
+    result[@"isScreenMirrored"] = @(mirroredCount > 0);
 
     NSMutableArray<NSString *> *features = [NSMutableArray array];
     BOOL voiceOver = UIAccessibilityIsVoiceOverRunning();
