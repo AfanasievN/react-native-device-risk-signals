@@ -29,11 +29,9 @@ describe("npm package contract", () => {
     expect(Object.prototype.hasOwnProperty.call(packageJson.exports ?? {}, ".")).toBe(true);
   });
 
-  it("points package metadata at the public GitHub repository", () => {
+  it("points package metadata at the public documentation and GitHub repository", () => {
     expect(packageJson.author).toBe("AfanasievN (https://github.com/AfanasievN)");
-    expect(packageJson.homepage).toBe(
-      "https://github.com/AfanasievN/react-native-device-risk-signals#readme",
-    );
+    expect(packageJson.homepage).toBe("https://afanasievn.github.io/react-native-device-risk-signals/");
     expect(packageJson.repository?.url).toBe(
       "git+https://github.com/AfanasievN/react-native-device-risk-signals.git",
     );

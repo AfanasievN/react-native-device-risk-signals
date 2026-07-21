@@ -1,0 +1,85 @@
+name: Device compatibility report
+description: Share a sanitized result from a physical Android or iOS device
+title: "[Device]: "
+labels:
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for improving the physical-device compatibility matrix. Do not paste a complete production event or include credentials, personal data, precise location, local addresses, or stable identifiers.
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: 0.5.0
+    validations:
+      required: true
+
+  - type: input
+    id: react-native-version
+    attributes:
+      label: React Native version
+      placeholder: 0.86.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android physical device
+        - iOS physical device
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: OS and device
+      description: Provide the OS version and a coarse public model name only.
+      placeholder: Android 16, Pixel 9 Pro
+    validations:
+      required: true
+
+  - type: dropdown
+    id: build
+    attributes:
+      label: Application build
+      options:
+        - Debug
+        - Release or store-equivalent
+        - Both
+    validations:
+      required: true
+
+  - type: textarea
+    id: probes
+    attributes:
+      label: Probes exercised
+      description: List probe IDs and whether collection completed, skipped, timed out, or failed.
+      placeholder: "device_identity: success; os_integrity: success; network: skipped"
+    validations:
+      required: true
+
+  - type: textarea
+    id: observations
+    attributes:
+      label: Sanitized observations
+      description: Include only the smallest excerpt needed to document compatibility or an unexpected result.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Privacy checklist
+      options:
+        - label: This report comes from a physical device, not an emulator or simulator.
+          required: true
+        - label: I removed credentials, personal data, location, addresses, and stable identifiers.
+          required: true
+        - label: I understand that this report does not certify detection effectiveness.
+          required: true
+        - label: I agree to follow the project's Code of Conduct.
+          required: true

@@ -61,6 +61,16 @@ if (fs.existsSync(riskGuidePath)) {
   assert(/never (?:block|decline)[^<]{0,80}(?:single|one) signal/i.test(riskGuide), "Risk guide must prohibit single-signal decisions");
 }
 
+const homePath = path.join(siteRoot, "index.html");
+if (fs.existsSync(homePath)) {
+  const home = fs.readFileSync(homePath, "utf8");
+  assert(home.includes("/discussions/categories/q-a"), "Homepage must link to integration Q&A");
+  assert(
+    home.includes("issues/new?template=03-device-compatibility.yml"),
+    "Homepage must link to the physical-device compatibility form",
+  );
+}
+
 const workflowPath = path.join(root, ".github/workflows/pages.yml");
 assert(fs.existsSync(workflowPath), "Missing .github/workflows/pages.yml");
 if (fs.existsSync(workflowPath)) {

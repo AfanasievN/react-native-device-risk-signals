@@ -16,6 +16,21 @@ By participating, you agree to follow the project [Code of Conduct](CODE_OF_COND
 
 Open an issue before introducing a new sensitive signal category or a breaking public API change.
 
+## Good first contributions
+
+- Pick a scoped task from the
+  [`good first issue` list](https://github.com/AfanasievN/react-native-device-risk-signals/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22).
+- Submit a sanitized result from a physical device through the
+  [compatibility form](https://github.com/AfanasievN/react-native-device-risk-signals/issues/new?template=03-device-compatibility.yml).
+- Discuss an integration question before changing code in
+  [GitHub Discussions](https://github.com/AfanasievN/react-native-device-risk-signals/discussions).
+- Use the dedicated
+  [signal proposal form](https://github.com/AfanasievN/react-native-device-risk-signals/issues/new?template=04-signal-proposal.yml)
+  for a new native observation.
+
+Physical-device reports are useful contributions even when no source code changes are required. See
+the [device compatibility matrix](docs/DEVICE_COMPATIBILITY.md) for reporting and privacy guidance.
+
 ## Local verification
 
 Install the root dependencies and run the library checks:

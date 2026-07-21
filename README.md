@@ -1,9 +1,3 @@
-<p align="center">
-  <strong>Available for React Native consulting and mobile product development.</strong><br />
-  I can help with architecture, native SDK integrations, performance, security, CI/CD, and release
-  engineering. <a href="https://github.com/AfanasievN">Discuss a project or collaboration through my GitHub profile.</a>
-</p>
-
 # React Native Device Risk Signals
 
 Open-source React Native TurboModule for collecting raw device intelligence and fraud-prevention
@@ -16,6 +10,7 @@ application owns transport, authentication, storage, scoring, and policy.
 
 <p align="center">
   <a href="https://www.npmjs.com/package/react-native-device-risk-signals"><img alt="npm version" src="https://img.shields.io/npm/v/react-native-device-risk-signals?color=C95736" /></a>
+  <a href="https://www.npmjs.com/package/react-native-device-risk-signals"><img alt="npm downloads" src="https://img.shields.io/npm/dw/react-native-device-risk-signals?color=16784A" /></a>
   <a href="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
   <a href="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/codeql.yml"><img alt="CodeQL status" src="https://github.com/AfanasievN/react-native-device-risk-signals/actions/workflows/codeql.yml/badge.svg?branch=main" /></a>
   <img alt="React Native TurboModule" src="https://img.shields.io/badge/React%20Native-TurboModule-20232A?logo=react&logoColor=61DAFB" />
@@ -25,8 +20,11 @@ application owns transport, authentication, storage, scoring, and policy.
 
 [Documentation](https://afanasievn.github.io/react-native-device-risk-signals/) · [Quick start](#quick-start) · [What it detects](#what-it-detects) ·
 [AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
-[Probe Catalog](#probe-catalog) · [Privacy](#privacy-and-responsible-use) ·
-[FAQ](#frequently-asked-questions)
+[Probe Catalog](#probe-catalog) · [Compatibility reports](docs/DEVICE_COMPATIBILITY.md) ·
+[Ask a question](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/q-a) ·
+[Share your integration](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/show-and-tell)
+
+**Zero runtime dependencies. No vendor backend. No persistent device ID. No client-side risk score.**
 
 ## Quick start
 
@@ -129,6 +127,9 @@ for consequential decisions.
 | Expo | Not available in Expo Go; requires a native prebuild or custom development build |
 | TypeScript | Typed public API and generated declaration files |
 | Data transport | Not included; applications use their existing API client or transport layer |
+
+See the [device compatibility matrix](docs/DEVICE_COMPATIBILITY.md) for automated build coverage,
+physical-device reports, and instructions for contributing a sanitized compatibility result.
 
 ## Installation
 
@@ -723,8 +724,25 @@ and should be reviewed before adopting the library in a production application. 
 ## Maintainer
 
 The project is maintained by [AfanasievN](https://github.com/AfanasievN). For React Native consulting,
-native integrations, architecture, performance, security, or release engineering, see the
-availability note at the top of this README.
+native integrations, architecture, performance, security, or release engineering, start a
+conversation through the maintainer's GitHub profile.
+
+## Adoption and feedback
+
+Evaluating the package or already using it in an application?
+
+- Ask integration and architecture questions in
+  [Q&A](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/q-a).
+- Share a public or anonymized adoption story in
+  [Show and tell](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/show-and-tell).
+- Submit a sanitized Android or iOS result through the
+  [device compatibility form](https://github.com/AfanasievN/react-native-device-risk-signals/issues/new?template=03-device-compatibility.yml).
+- Propose a new raw observation through the
+  [signal proposal form](https://github.com/AfanasievN/react-native-device-risk-signals/issues/new?template=04-signal-proposal.yml).
+
+Please do not post collected event payloads without reviewing them for sensitive fields. Package
+telemetry is intentionally not included, so community reports are the only source of public adoption
+and physical-device compatibility evidence.
 
 ## Security
 

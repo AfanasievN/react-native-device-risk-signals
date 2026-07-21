@@ -4,6 +4,35 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-07-21
+
+### Improved
+
+- Made the documentation site the canonical package and repository homepage, clarified the
+  zero-runtime-dependency/no-vendor-backend positioning, and added direct paths from the README to
+  integration Q&A, adoption stories, and compatibility reporting.
+- Added a transparent physical-device compatibility matrix that separates automated build coverage
+  from community and maintainer hardware reports.
+- Added dedicated GitHub issue forms for sanitized physical-device reports and raw signal proposals,
+  plus scoped contributor guidance and starter issues.
+- Added community calls to action to the documentation landing page and removed decorative patterns
+  that competed with the product screenshot and primary integration action.
+- Extended documentation verification to protect the new Q&A and compatibility-report entry points.
+
+### Fixed
+
+- Restructured Android active-network reads so permission-aware lint recognizes the existing
+  `ACCESS_NETWORK_STATE` gate without changing observation semantics or requesting a permission.
+
+### Compatibility and privacy
+
+- No public signal API, event schema, default probe set, or minimum platform version changed.
+- No runtime dependencies, permissions, network requests, telemetry, persistent identifiers,
+  `QUERY_ALL_PACKAGES`, or Apple Required-Reason API declarations were added.
+
+See the [v0.5.1 release notes](docs/releases/0.5.1.md) for the complete community and documentation
+updates.
+
 ## [0.5.0] - 2026-07-21
 
 ### Added
@@ -134,7 +163,8 @@ overview.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.2.0...v0.3.0

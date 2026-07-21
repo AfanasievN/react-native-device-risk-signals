@@ -1,0 +1,75 @@
+name: Raw signal proposal
+description: Propose a new explainable device or runtime observation
+title: "[Signal]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This SDK collects raw observations only. It does not add client-side scores, trusted or untrusted verdicts, persistent identifiers, vendor transport, or automatic blocking decisions.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Concrete use case
+      description: Explain the investigation, consistency, security, or fraud-prevention question this observation helps answer.
+    validations:
+      required: true
+
+  - type: textarea
+    id: raw-output
+    attributes:
+      label: Proposed raw output
+      description: Describe field names, types, unavailable-value behavior, and platform differences. Do not propose a score or verdict.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android and iOS
+        - Android
+        - iOS
+    validations:
+      required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: Public system API or artifact source
+      description: Link to official platform documentation or describe the local artifact being observed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy, permission, and store-policy impact
+      description: Cover entropy, permissions, prompts, app visibility, Apple Required-Reason APIs, and possible misuse.
+    validations:
+      required: true
+
+  - type: textarea
+    id: availability
+    attributes:
+      label: Availability and failure semantics
+      description: Explain when the field must be omitted instead of returning false, zero, or an empty value.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Product boundaries
+      options:
+        - label: The proposal returns a raw observation, not a score or trusted/untrusted verdict.
+          required: true
+        - label: The proposal does not require a persistent identifier or vendor network request.
+          required: true
+        - label: I searched the Probe Catalog and existing issues for duplicates.
+          required: true
+        - label: I agree to follow the project's Code of Conduct.
+          required: true
