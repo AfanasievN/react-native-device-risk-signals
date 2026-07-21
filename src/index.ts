@@ -20,3 +20,6 @@ export type {ProbeDescriptor, ProbeId, ProbePlatform, ProbeSensitivity} from "./
 export {getProbeDescriptor, PROBE_CATALOG} from "./probeCatalog";
 export {deriveConsistencySignals} from "./consistencySignals";
 export type {ConsistencyExpectations, ConsistencySignals} from "./consistencySignals";
+export {deriveObservationMetrics} from "./observationMetrics";
+export type {ObservationMetrics} from "./observationMetrics";
+export type {GpuBenchmarkSignals, NumericConsistencySignals, RuntimeTimingSignals} from "./NativeDeviceIntel";

@@ -8,8 +8,10 @@ import {hardwareProbes} from "./hardwareProbe";
 import {localeProbes} from "./localeProbe";
 import {mediaBluetoothAppsProbes} from "./mediaBluetoothAppsProbe";
 import {networkProbes} from "./networkProbe";
+import {numericConsistencyProbes} from "./numericConsistencyProbe";
 import {osIntegrityProbes} from "./osProbe";
 import {runtimeProbes} from "./runtimeProbe";
+import {runtimeTimingProbes} from "./runtimeTimingProbe";
 import {securityPostureProbes} from "./securityPostureProbe";
 import {telephonyProbes} from "./telephonyProbe";
 import type {Probe} from "./types";
@@ -31,4 +33,6 @@ export const allProbes: Probe[] = [
   ...applicationProbes,
   ...securityPostureProbes,
   ...runtimeProbes,
+  ...runtimeTimingProbes,
+  ...numericConsistencyProbes,
 ];

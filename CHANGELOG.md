@@ -4,6 +4,27 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-21
+
+### Added
+
+- Added `deriveObservationMetrics()` for explainable ratios, consistency checks, and probe outcome
+  counts derived entirely from an already-collected event, without scoring or verdicts.
+- Added the calibration-gated, default-off `runtime_timing` probe with JavaScript event-loop,
+  bridge round-trip, and native monotonic-clock aggregates on Android and iOS.
+- Added the calibration-gated, default-off `numeric_consistency` probe for deterministic integer and
+  floating-point observations across JavaScript and native runtimes.
+- Added robust GPU timing aggregates: median, p95, median absolute deviation, coefficient of
+  variation, and warm-up slope.
+- Added Android native unit tests to CI for emulator classification and computation helpers.
+
+### Improved
+
+- Expanded Android emulator evidence for Genymotion, BlueStacks, Nox, MEmu, LDPlayer, Andy,
+  Droid4X, and KoPlayer, plus Firebase Test Lab and Android test-harness markers.
+- Expanded iOS simulator and device-farm evidence with simulator-environment and XCTest markers.
+- Exposed explainable emulator evidence arrays and the list of checks performed instead of reducing
+  observations to a single opaque flag.
 - Expanded application provenance with Android SDK/signing observations and iOS receipt/build
   metadata.
 - Strengthened OS-integrity observations for tracing, test keys, suspicious mounts, Zygisk,
@@ -12,6 +33,8 @@ All notable public changes will be documented in this file.
   default-off `transaction_safety` probe without adding permission prompts.
 - Added `deriveConsistencySignals()` for raw country, timezone, bundle, and version equality
   observations without scoring or verdicts.
+- Updated the Probe Catalog, Data Dictionary, benchmark guidance, README examples, and GitHub Pages
+  documentation for the new fields and probes.
 
 ## [0.2.0] - 2026-07-16
 
@@ -43,7 +66,8 @@ All notable public changes will be documented in this file.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/AfanasievN/react-native-device-risk-signals/releases/tag/v0.1.1
 [0.1.0]: https://github.com/AfanasievN/react-native-device-risk-signals/releases/tag/v0.1.0

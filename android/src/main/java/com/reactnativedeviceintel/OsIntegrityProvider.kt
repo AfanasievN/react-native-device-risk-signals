@@ -1,5 +1,6 @@
 package com.reactnativedeviceintel
 
+import android.app.ActivityManager
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
@@ -10,6 +11,19 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import java.io.File
+
+private data class SensorEvidence(
+  val count: Int,
+  val hasAccelerometer: Boolean,
+  val hasGyroscope: Boolean,
+  val hasMagnetometer: Boolean,
+  val hasProximitySensor: Boolean,
+)
+
+private data class SystemPropertySnapshot(
+  val available: Boolean,
+  val values: Map<String, String>,
+)
 
 /**
  * Multi-method root / hook / emulator detection — the FAST, synchronous, permission-free bundle.
@@ -25,8 +39,27 @@ class OsIntegrityProvider(private val context: Context) {
   fun getOsIntegrity(): WritableMap {
     val map = Arguments.createMap()
 
+    val emulatorFiles = EMULATOR_FILE_PATHS.filter { safeExists(it) }
+    val emulatorProperties = emulatorSystemProperties()
+    val cpuInfo = safeString { File("/proc/cpuinfo").readText() }
+    val emulatorEvidence = EmulatorEvidenceClassifier.classify(
+      build = EmulatorBuildSnapshot(
+        fingerprint = Build.FINGERPRINT ?: "",
+        model = Build.MODEL ?: "",
+        manufacturer = Build.MANUFACTURER ?: "",
+        brand = Build.BRAND ?: "",
+        device = Build.DEVICE ?: "",
+        product = Build.PRODUCT ?: "",
+        hardware = Build.HARDWARE ?: "",
+        supportedAbis = Build.SUPPORTED_ABIS?.toList().orEmpty(),
+      ),
+      emulatorFilePaths = emulatorFiles,
+      systemProperties = emulatorProperties.values,
+      cpuInfo = cpuInfo,
+    )
+
     // ── Baseline (kept required for backward-compat with the skeleton contract) ──────────────────
-    map.putBoolean("isEmulator", emulatorFingerprintMatch() || emulatorFilesFound())
+    map.putBoolean("isEmulator", emulatorEvidence.isStrongEmulatorEvidence)
     map.putBoolean("isDebuggerAttached", safeBool { Debug.isDebuggerConnected() })
     // developerModeEnabled = the Developer-Options master toggle; usbDebuggingEnabled = the (distinct)
     // USB-debugging switch. A device can have Developer Options on with ADB off — they are separate
@@ -79,9 +112,34 @@ class OsIntegrityProvider(private val context: Context) {
     hiddenApiPolicy()?.let { map.putString("hiddenApiPolicy", it) }
 
     // ── Emulator / device-farm heuristics ─────────────────────────────────────────────────────────
-    map.putBoolean("emulatorFingerprintMatch", emulatorFingerprintMatch())
-    map.putBoolean("emulatorFilesFound", emulatorFilesFound())
-    map.putInt("sensorCount", sensorCount())
+    map.putBoolean("emulatorFingerprintMatch", emulatorEvidence.hasStrongBuildEvidence)
+    map.putBoolean("emulatorFilesFound", emulatorEvidence.filePaths.isNotEmpty())
+    map.putArray("emulatorBuildMarkers", toStringArray(emulatorEvidence.buildMarkers))
+    map.putArray("emulatorFilePaths", toStringArray(emulatorEvidence.filePaths))
+    map.putArray("emulatorSystemPropertyMarkers", toStringArray(emulatorEvidence.systemPropertyMarkers))
+    map.putArray("emulatorCpuMarkers", toStringArray(emulatorEvidence.cpuMarkers))
+    map.putArray("emulatorVendorMarkers", toStringArray(emulatorEvidence.emulatorVendorMarkers))
+    val deviceFarmMarkers = emulatorEvidence.deviceFarmMarkers.toMutableList()
+    val emulatorChecksPerformed = mutableListOf("build", "file_paths")
+    if (emulatorProperties.available) emulatorChecksPerformed.add("system_properties")
+    if (cpuInfo != null) emulatorChecksPerformed.add("cpu_info")
+    val sensors = sensorEvidence()
+    if (sensors != null) {
+      emulatorChecksPerformed.add("sensors")
+      map.putInt("sensorCount", sensors.count)
+      map.putBoolean("hasAccelerometer", sensors.hasAccelerometer)
+      map.putBoolean("hasGyroscope", sensors.hasGyroscope)
+      map.putBoolean("hasMagnetometer", sensors.hasMagnetometer)
+      map.putBoolean("hasProximitySensor", sensors.hasProximitySensor)
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      emulatorChecksPerformed.add("test_harness")
+      val isRunningInUserTestHarness = safeBool { ActivityManager.isRunningInUserTestHarness() }
+      map.putBoolean("isRunningInUserTestHarness", isRunningInUserTestHarness)
+      if (isRunningInUserTestHarness) deviceFarmMarkers.add("android_test_harness")
+    }
+    map.putArray("deviceFarmMarkers", toStringArray(deviceFarmMarkers.distinct()))
+    map.putArray("emulatorChecksPerformed", toStringArray(emulatorChecksPerformed))
     (Build.SUPPORTED_ABIS?.firstOrNull())?.let { map.putString("abi", it) }
 
     return map
@@ -222,38 +280,32 @@ class OsIntegrityProvider(private val context: Context) {
     Settings.Global.getString(context.contentResolver, "hidden_api_policy")
   }
 
-  private fun emulatorFingerprintMatch(): Boolean {
-    val fp = Build.FINGERPRINT ?: ""
-    val model = Build.MODEL ?: ""
-    val manufacturer = Build.MANUFACTURER ?: ""
-    val brand = Build.BRAND ?: ""
-    val device = Build.DEVICE ?: ""
-    val product = Build.PRODUCT ?: ""
-    val hardware = Build.HARDWARE ?: ""
-    return fp.contains("generic", true) ||
-      fp.contains("unknown", true) ||
-      fp.contains("emulator", true) ||
-      fp.contains("vbox", true) ||
-      fp.contains("test-keys", true) ||
-      model.contains("google_sdk", true) ||
-      model.contains("emulator", true) ||
-      model.contains("android sdk built for", true) ||
-      manufacturer.contains("genymotion", true) ||
-      manufacturer.contains("unknown", true) ||
-      product.contains("sdk", true) ||
-      product.contains("vbox", true) ||
-      product.contains("emulator", true) ||
-      hardware.contains("goldfish", true) ||
-      hardware.contains("ranchu", true) ||
-      hardware.contains("vbox", true) ||
-      (brand.startsWith("generic", true) && device.startsWith("generic", true))
+  private fun sensorEvidence(): SensorEvidence? = try {
+    val sm = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+      ?: return null
+    SensorEvidence(
+      count = sm.getSensorList(Sensor.TYPE_ALL).size,
+      hasAccelerometer = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null,
+      hasGyroscope = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null,
+      hasMagnetometer = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null,
+      hasProximitySensor = sm.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null,
+    )
+  } catch (e: Throwable) {
+    null
   }
 
-  private fun emulatorFilesFound(): Boolean = EMULATOR_FILE_PATHS.any { safeExists(it) }
-
-  private fun sensorCount(): Int = safeInt(-1) {
-    val sm = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
-    sm?.getSensorList(Sensor.TYPE_ALL)?.size ?: -1
+  private fun emulatorSystemProperties(): SystemPropertySnapshot {
+    return try {
+      val clazz = Class.forName("android.os.SystemProperties")
+      val getter = clazz.getMethod("get", String::class.java)
+      val values = EMULATOR_SYSTEM_PROPERTIES.mapNotNull { key ->
+        val value = getter.invoke(null, key) as? String
+        if (value.isNullOrEmpty()) null else key to value
+      }.toMap()
+      SystemPropertySnapshot(available = true, values = values)
+    } catch (e: Throwable) {
+      SystemPropertySnapshot(available = false, values = emptyMap())
+    }
   }
 
   private fun getSystemProperty(key: String): String? {
@@ -285,12 +337,6 @@ class OsIntegrityProvider(private val context: Context) {
     block()
   } catch (e: Throwable) {
     null
-  }
-
-  private inline fun safeInt(fallback: Int, block: () -> Int): Int = try {
-    block()
-  } catch (e: Throwable) {
-    fallback
   }
 
   companion object {
@@ -362,6 +408,29 @@ class OsIntegrityProvider(private val context: Context) {
       "/dev/goldfish_pipe",
       "/dev/vboxguest",
       "/dev/vboxuser",
+      "/system/bin/nox-prop",
+      "/system/bin/nox-vbox-sf",
+      "/system/bin/microvirtd",
+      "/system/bin/memud",
+      "/system/bin/ldinit",
+      "/system/bin/ldmountsf",
+      "/system/bin/droid4x-prop",
+      "/system/bin/bstfolder",
+      "/system/bin/androVM-prop",
+    )
+
+    private val EMULATOR_SYSTEM_PROPERTIES = listOf(
+      "ro.kernel.qemu",
+      "ro.boot.qemu",
+      "ro.hardware",
+      "ro.boot.hardware",
+      "ro.genymotion.version",
+      "ro.nox.version",
+      "ro.bluestacks.version",
+      "ro.microvirt.version",
+      "ro.ld.player.version",
+      "firebase.test.lab",
+      "ro.boot.test_harness",
     )
 
     private val MOUNT_INFO_PATHS = listOf(

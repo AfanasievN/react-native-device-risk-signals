@@ -94,7 +94,7 @@ jobs:
       - run: npm ci --prefix example
       - name: Compile Android example and native module
         working-directory: example/android
-        run: ./gradlew :app:assembleDebug lintDebug --no-daemon
+        run: ./gradlew :react-native-device-risk-signals:testDebugUnitTest :app:assembleDebug lintDebug --no-daemon
 
   ios-native:
     name: iOS native build

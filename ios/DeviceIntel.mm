@@ -9,6 +9,8 @@
 #import "LocaleInfoProvider.h"
 #import "MediaBluetoothAppsProvider.h"
 #import "NetworkInfoProvider.h"
+#import "NumericConsistencyProvider.h"
+#import "RuntimeTimingProvider.h"
 #import "SecurityPostureProvider.h"
 #import "TelephonyInfoProvider.h"
 #import <React/RCTBridgeModule.h>
@@ -26,6 +28,8 @@
   HardwareInfoProvider *_hardware;
   ApplicationInfoProvider *_application;
   SecurityPostureProvider *_securityPosture;
+  RuntimeTimingProvider *_runtimeTiming;
+  NumericConsistencyProvider *_numericConsistency;
 }
 
 RCT_EXPORT_MODULE(DeviceIntel)
@@ -51,6 +55,8 @@ RCT_EXPORT_MODULE(DeviceIntel)
     _hardware = [HardwareInfoProvider new];
     _application = [ApplicationInfoProvider new];
     _securityPosture = [SecurityPostureProvider new];
+    _runtimeTiming = [RuntimeTimingProvider new];
+    _numericConsistency = [NumericConsistencyProvider new];
   }
   return self;
 }
@@ -141,6 +147,16 @@ RCT_EXPORT_MODULE(DeviceIntel)
 - (void)getTransactionSafetySignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
   resolve([_securityPosture transactionSafetySignals]);
+}
+
+- (void)getRuntimeTimingSignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  resolve([_runtimeTiming runtimeTimingSignals]);
+}
+
+- (void)getNumericConsistencySignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  resolve([_numericConsistency numericConsistencySignals]);
 }
 
 @end

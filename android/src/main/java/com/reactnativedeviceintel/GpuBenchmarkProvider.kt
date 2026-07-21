@@ -23,6 +23,12 @@ import java.nio.FloatBuffer
  */
 class GpuBenchmarkProvider {
 
+  private data class BenchmarkResult(
+    val drawCalls: Int,
+    val durationMs: Int,
+    val operationTimesMs: List<Double>,
+  )
+
   fun getGpuBenchmark(): WritableMap {
     val map = Arguments.createMap()
 
@@ -76,10 +82,20 @@ class GpuBenchmarkProvider {
       program = buildProgram()
       if (program == 0) return skipped(map, "unsupported")
 
-      val (drawCalls, durationMs) = runBenchmark(program)
+      val benchmark = runBenchmark(program)
       map.putBoolean("benchmarkPerformed", true)
-      map.putInt("drawCallsCompleted", drawCalls)
-      map.putInt("durationMs", durationMs)
+      map.putInt("drawCallsCompleted", benchmark.drawCalls)
+      map.putInt("durationMs", benchmark.durationMs)
+      val summary = SignalStatistics.summarize(benchmark.operationTimesMs)
+      if (summary != null) {
+        map.putDouble("operationTimeP50Ms", summary.median)
+        map.putDouble("operationTimeP95Ms", summary.p95)
+        map.putDouble("operationTimeMadMs", summary.mad)
+        summary.coefficientOfVariation?.let {
+          map.putDouble("operationTimeCoefficientOfVariation", it)
+        }
+      }
+      SignalStatistics.warmupSlope(benchmark.operationTimesMs)?.let { map.putDouble("warmupSlope", it) }
     } catch (e: Throwable) {
       return skipped(map, "error")
     } finally {
@@ -121,7 +137,7 @@ class GpuBenchmarkProvider {
     return configs[0]
   }
 
-  private fun runBenchmark(program: Int): Pair<Int, Int> {
+  private fun runBenchmark(program: Int): BenchmarkResult {
     GLES20.glViewport(0, 0, PBUFFER_SIZE, PBUFFER_SIZE)
     GLES20.glUseProgram(program)
 
@@ -137,16 +153,19 @@ class GpuBenchmarkProvider {
     GLES20.glVertexAttribPointer(posHandle, 2, GLES20.GL_FLOAT, false, 0, buffer)
 
     var drawCalls = 0
+    val operationTimesMs = mutableListOf<Double>()
     val start = System.nanoTime()
     val budgetNs = BUDGET_MS * 1_000_000L
     while (System.nanoTime() - start < budgetNs) {
+      val operationStart = System.nanoTime()
       GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
       GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3)
       GLES20.glFinish()
+      operationTimesMs.add((System.nanoTime() - operationStart) / 1_000_000.0)
       drawCalls++
     }
     val durationMs = ((System.nanoTime() - start) / 1_000_000L).toInt()
-    return Pair(drawCalls, durationMs)
+    return BenchmarkResult(drawCalls, durationMs, operationTimesMs)
   }
 
   private fun buildProgram(): Int {

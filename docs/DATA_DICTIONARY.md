@@ -28,6 +28,8 @@ or `error` outcome.
 | `device_security_posture` | Android, iOS | On | Moderate | Lock capability, biometrics availability, trusted time, OS security update | None; never displays an authentication prompt |
 | `transaction_safety` | Android, iOS | Off | High | Lock/interactive state, screen capture, accessibility, call/audio state, finite known-app list | None; disabled pending physical-device calibration |
 | `runtime` | Android, iOS | On | Low | React Native runtime, software version | None |
+| `runtime_timing` | Android, iOS | Off | High | Runtime and performance timing | None; bounded active workload |
+| `numeric_consistency` | Android, iOS | Off | High | Cross-runtime numerical behavior | None; bounded active workload |
 
 ## Field inventory
 
@@ -55,7 +57,19 @@ the host application's public signing certificates; no private key or device ide
 
 `os_integrity` includes independent raw observations for tracing, test-key builds, suspicious
 mounts, Zygisk indicators, executable mappings, suspicious environment-variable names, and evidence
-counts. Environment-variable values are deliberately not returned.
+counts. Emulator observations now include matched build markers, discovered emulator file paths,
+QEMU or virtual-hardware property markers, CPU markers, recognized emulator-family markers, sensor
+availability, Android Test Harness Mode, Firebase Test Lab presence, and iOS simulator or XCTest
+environment presence. Broad observations such as `test-keys`, an `unknown`
+manufacturer, or an x86 ABI are retained as raw build markers but do not set `isEmulator` by
+themselves. Device-farm markers also do not set `isEmulator`, because a farm may provide a physical
+device. Environment-variable and simulator-environment values are deliberately not returned.
+
+Recognized Android emulator-family markers currently include `genymotion`, `bluestacks`, `nox`,
+`memu`, `ldplayer`, `andy`, `droid4x`, and `koplayer`. Firebase Test Lab is detected through its
+documented system property. Other cloud providers are not named unless they expose a stable,
+application-visible signal; provider attribution must not be inferred from ordinary physical-device
+build values.
 
 `device_security_posture` reports coarse security capabilities and settings. A positive biometric
 capability does not authenticate the current user. `transaction_safety` is intended for collection
@@ -68,6 +82,23 @@ known remote-access-app observations require product-specific calibration and fa
 country, timezone, bundle id, and app version values. It performs no additional native collection and
 returns only boolean equality observations when both values exist. It intentionally produces no
 weight, score, or fraud verdict.
+
+`deriveObservationMetrics(event)` performs local arithmetic over an existing event. It can return
+screen aspect ratio, memory/storage pressure, a CPU capacity index, outcome/field counts, and
+independent consistency booleans for screen geometry, resource bounds, process uptime, ABI, and
+emulator evidence. Invalid or missing operands cause that metric to be omitted rather than converted
+to zero. The helper performs no additional native read and creates no identifier.
+
+### Active computation profiles
+
+`runtime_timing` measures bounded JavaScript timer/event-loop distributions, native clock-call
+distributions, and JS-to-native call duration. `numeric_consistency` compares a fixed integer vector
+and a small floating-point vector across JavaScript and native runtimes, returning only agreement and
+difference aggregates. Both probes ship disabled because runtime load, thermal state, operating-system
+versions, and hardware class require representative physical-device calibration.
+
+`gpu_benchmark` additionally returns per-operation p50, p95, median absolute deviation, coefficient
+of variation, and warm-up slope. It remains disabled and must not be interpreted from one run.
 
 ## Data minimization guidance
 

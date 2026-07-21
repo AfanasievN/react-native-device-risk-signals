@@ -17,8 +17,8 @@ import type {Probe} from "./types";
  *  - `os_integrity_fork_test`  — fork()-based jailbreak check. SHIPS DISABLED (enabled: () => false)
  *                                until QA clears the crash/zombie risk on real devices. iOS-only.
  *
- * Every method returns raw fields; the server fuses them into a score — there is no on-device
- * verdict here (see NativeDeviceIntel.ts contract notes).
+ * Every method returns raw fields; the host application decides how to interpret or transport them.
+ * There is no on-device score or verdict here (see NativeDeviceIntel.ts contract notes).
  */
 export const osIntegrityProbes: Probe[] = [
   {

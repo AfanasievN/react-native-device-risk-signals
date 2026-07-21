@@ -9,10 +9,9 @@ import {type TurboModule, TurboModuleRegistry} from "react-native";
 // keys each native side puts into its result map MUST match the property names below verbatim.
 //
 // Every signal below is RAW: a native method returns an observation, never a verdict. There is no
-// on-device "isRooted"/"isFraud" boolean — the risk backend fuses these into a score. This is a
-// deliberate design choice: shipping a verdict client-side hands an attacker the exact boolean to
-// patch out and throws away the entropy
-// of the individual signals.
+// on-device "isRooted"/"isFraud" boolean. The host application decides how observations are used.
+// Shipping a verdict client-side would hand an attacker the exact boolean to patch out and discard
+// the explainability of the individual signals.
 //
 // Optional (`?:`) fields mean "may be genuinely unavailable on this OS/device/permission state" —
 // codegen makes them nullable, and the native side OMITS the key rather than inventing a value. A
@@ -208,7 +207,20 @@ export type OsIntegritySignals = {
   // Emulator / device-farm heuristics (Android-oriented; iOS reports isEmulator via simulator only).
   emulatorFingerprintMatch?: boolean; // Build.FINGERPRINT/MODEL/etc. matches a known emulator sig.
   emulatorFilesFound?: boolean; // /dev/qemu_pipe, /dev/socket/qemud, genyd, etc.
+  emulatorBuildMarkers?: string[]; // Explainable Build-field matches; weak markers do not set isEmulator alone.
+  emulatorFilePaths?: string[]; // Specific known emulator artifacts that were readable.
+  emulatorSystemPropertyMarkers?: string[]; // QEMU / virtual-hardware property key-value observations.
+  emulatorCpuMarkers?: string[]; // Emulator tokens found in /proc/cpuinfo.
+  emulatorVendorMarkers?: string[]; // Recognized emulator family names, not a score.
+  deviceFarmMarkers?: string[]; // Test-farm observations; do not imply that the device is virtual.
+  emulatorChecksPerformed?: string[]; // Evidence families that were available during this collection.
   sensorCount?: number; // Very low / zero sensor count is a strong emulator tell.
+  hasAccelerometer?: boolean;
+  hasGyroscope?: boolean;
+  hasMagnetometer?: boolean;
+  hasProximitySensor?: boolean;
+  isRunningInUserTestHarness?: boolean; // Android 10+: system Test Harness Mode.
+  simulatorEnvironmentPresent?: boolean; // iOS: simulator environment keys exist; values are not returned.
   abi?: string; // Primary ABI; x86/x86_64 on a physical phone can be suspicious.
 
   // iOS misc raw.
@@ -416,6 +428,48 @@ export type GpuBenchmarkSignals = {
   drawCallsCompleted?: number; // draw calls finished within the fixed time budget.
   durationMs?: number; // actual wall time of the benchmark loop.
   gpuTimeMs?: number; // iOS: MTLCommandBuffer GPUEndTime − GPUStartTime for the workload.
+  operationTimeP50Ms?: number;
+  operationTimeP95Ms?: number;
+  operationTimeMadMs?: number;
+  operationTimeCoefficientOfVariation?: number;
+  warmupSlope?: number; // Relative change from the first half of samples to the second half.
+};
+
+export type NativeRuntimeTimingSignals = {
+  nativeClockSource: string;
+  nativeSampleCount: number;
+  nativeTimerResolutionNs: number;
+  nativeIntervalMedianNs: number;
+  nativeIntervalP95Ns: number;
+  nativeIntervalMadNs: number;
+};
+
+export type RuntimeTimingSignals = NativeRuntimeTimingSignals & {
+  jsClockSource: string;
+  jsTimerSampleCount: number;
+  jsTimerResolutionMs: number;
+  eventLoopSampleCount: number;
+  eventLoopP50Ms: number;
+  eventLoopP95Ms: number;
+  eventLoopMadMs: number;
+  bridgeRoundTripMs: number;
+};
+
+export type NativeNumericConsistencySignals = {
+  integerVectorResult: number;
+  floatVector: number[];
+  signedZeroPreserved: boolean;
+  subnormalPreserved: boolean;
+};
+
+export type NumericConsistencySignals = {
+  integerVectorMatches: boolean;
+  integerMismatchCount: number;
+  floatSampleCount: number;
+  floatMismatchCount: number;
+  floatMaxAbsoluteDifference?: number;
+  signedZeroPreserved: boolean;
+  subnormalPreserved: boolean;
 };
 
 /**
@@ -468,6 +522,10 @@ export interface Spec extends TurboModule {
   getApplicationSignals: () => Promise<ApplicationSignals>;
   getDeviceSecurityPosture: () => Promise<DeviceSecurityPostureSignals>;
   getTransactionSafetySignals: () => Promise<TransactionSafetySignals>;
+  // runtime_timing (active bounded workload; ships disabled)
+  getRuntimeTimingSignals: () => Promise<NativeRuntimeTimingSignals>;
+  // numeric_consistency (cross-runtime deterministic computation; ships disabled)
+  getNumericConsistencySignals: () => Promise<NativeNumericConsistencySignals>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>("DeviceIntel");

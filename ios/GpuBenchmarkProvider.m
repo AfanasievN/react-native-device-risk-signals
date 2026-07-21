@@ -1,4 +1,5 @@
 #import "GpuBenchmarkProvider.h"
+#import "SignalStatistics.h"
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 
@@ -39,8 +40,10 @@ static const double kBudgetMs = 50.0;
 
     NSInteger drawCalls = 0;
     double gpuTimeMs = 0;
+    NSMutableArray<NSNumber *> *operationTimesMs = [NSMutableArray array];
     CFTimeInterval start = CFAbsoluteTimeGetCurrent();
     while ((CFAbsoluteTimeGetCurrent() - start) * 1000.0 < kBudgetMs) {
+      CFTimeInterval operationStart = CFAbsoluteTimeGetCurrent();
       id<MTLCommandBuffer> cmd = [queue commandBuffer];
       id<MTLBlitCommandEncoder> blit = [cmd blitCommandEncoder];
       [blit fillBuffer:buffer range:NSMakeRange(0, kBufferBytes) value:(uint8_t)(drawCalls & 0xFF)];
@@ -50,6 +53,7 @@ static const double kBudgetMs = 50.0;
       if (cmd.GPUEndTime > cmd.GPUStartTime) {
         gpuTimeMs = (cmd.GPUEndTime - cmd.GPUStartTime) * 1000.0; // last buffer's GPU time
       }
+      [operationTimesMs addObject:@((CFAbsoluteTimeGetCurrent() - operationStart) * 1000.0)];
       drawCalls++;
     }
     double durationMs = (CFAbsoluteTimeGetCurrent() - start) * 1000.0;
@@ -60,6 +64,17 @@ static const double kBudgetMs = 50.0;
     if (gpuTimeMs > 0) {
       result[@"gpuTimeMs"] = @(gpuTimeMs);
     }
+    NSDictionary<NSString *, NSNumber *> *summary = RNDISummarize(operationTimesMs);
+    if (summary != nil) {
+      result[@"operationTimeP50Ms"] = summary[@"median"];
+      result[@"operationTimeP95Ms"] = summary[@"p95"];
+      result[@"operationTimeMadMs"] = summary[@"mad"];
+      if (summary[@"coefficientOfVariation"] != nil) {
+        result[@"operationTimeCoefficientOfVariation"] = summary[@"coefficientOfVariation"];
+      }
+    }
+    NSNumber *warmupSlope = RNDIWarmupSlope(operationTimesMs);
+    if (warmupSlope != nil) result[@"warmupSlope"] = warmupSlope;
   } @catch (NSException *exception) {
     result[@"benchmarkPerformed"] = @NO;
     result[@"skippedReason"] = @"error";

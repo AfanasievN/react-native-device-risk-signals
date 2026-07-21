@@ -22,6 +22,8 @@ jest.mock("../NativeDeviceIntel", () => ({
     getApplicationSignals: jest.fn(),
     getDeviceSecurityPosture: jest.fn(),
     getTransactionSafetySignals: jest.fn(),
+    getRuntimeTimingSignals: jest.fn(),
+    getNumericConsistencySignals: jest.fn(),
   },
 }));
 
@@ -48,6 +50,8 @@ describe("allProbes registry", () => {
         "device_security_posture",
         "transaction_safety",
         "runtime",
+        "runtime_timing",
+        "numeric_consistency",
       ]),
     );
   });

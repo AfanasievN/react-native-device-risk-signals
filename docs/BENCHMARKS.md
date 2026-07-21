@@ -34,6 +34,11 @@ For a publishable device result:
 5. Test Android and iOS separately and distinguish physical devices from emulator/simulator results.
 6. Measure higher-risk disabled probes in a separate cohort; never blend them into the default profile.
 
+For `runtime_timing`, `numeric_consistency`, and `gpu_benchmark`, also retain the probe's sample count,
+median, p95, median absolute deviation, and variation fields. Compare release builds within the same
+platform and hardware cohort. Timing values from different clock sources are separate observations;
+do not subtract or merge them as if they shared an origin.
+
 No physical-device baseline is checked in yet because the current environment has no connected test
 device. This explicit status prevents fabricated or simulator-only numbers from being presented as
 production evidence. Contributions with reproducible physical-device results are welcome.

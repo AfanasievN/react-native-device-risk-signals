@@ -74,6 +74,7 @@ android {
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:${getExtOrDefault('kotlinVersion')}"
+  testImplementation "junit:junit:4.13.2"
 }
 
 react {

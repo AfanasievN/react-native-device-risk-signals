@@ -32,6 +32,8 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   private val gpuBenchmark = GpuBenchmarkProvider()
   private val audioLatency = AudioLatencyProvider(reactContext)
   private val securityPosture = SecurityPostureProvider(reactContext)
+  private val runtimeTiming = RuntimeTimingProvider()
+  private val numericConsistency = NumericConsistencyProvider()
 
   override fun getDeviceIdentity(promise: Promise) {
     resolveOrReject(promise, "getDeviceIdentity") { deviceInfo.getDeviceIdentity() }
@@ -99,6 +101,14 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
 
   override fun getTransactionSafetySignals(promise: Promise) {
     resolveOrReject(promise, "getTransactionSafetySignals") { securityPosture.getTransactionSafetySignals() }
+  }
+
+  override fun getRuntimeTimingSignals(promise: Promise) {
+    resolveOrReject(promise, "getRuntimeTimingSignals") { runtimeTiming.getRuntimeTimingSignals() }
+  }
+
+  override fun getNumericConsistencySignals(promise: Promise) {
+    resolveOrReject(promise, "getNumericConsistencySignals") { numericConsistency.getNumericConsistencySignals() }
   }
 
   // Each probe runs on its own background thread so the probes the JS framework fires in parallel

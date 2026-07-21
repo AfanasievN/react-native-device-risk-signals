@@ -301,6 +301,16 @@ session id, timestamp, and local IP addresses were replaced with safe example va
         "canOpenJailbreakScheme": false,
         "isDebuggerAttached": false,
         "isEmulator": true,
+        "emulatorFingerprintMatch": true,
+        "emulatorFilesFound": false,
+        "emulatorBuildMarkers": ["target_os_simulator"],
+        "emulatorFilePaths": [],
+        "emulatorSystemPropertyMarkers": [],
+        "emulatorCpuMarkers": [],
+        "emulatorVendorMarkers": [],
+        "deviceFarmMarkers": ["xctest_environment"],
+        "emulatorChecksPerformed": ["build_target", "simulator_environment", "xctest_environment"],
+        "simulatorEnvironmentPresent": true,
         "rootManagementAppFound": false
       }
     },
@@ -389,6 +399,14 @@ session id, timestamp, and local IP addresses were replaced with safe example va
       "reason": "disabled"
     },
     "audio_latency": {
+      "status": "skipped",
+      "reason": "disabled"
+    },
+    "runtime_timing": {
+      "status": "skipped",
+      "reason": "disabled"
+    },
+    "numeric_consistency": {
       "status": "skipped",
       "reason": "disabled"
     },
@@ -489,7 +507,7 @@ an event should be sent and how delivery failures are handled.
 | Device and app | `device_identity`, `application`, `device_security_posture`         | Device/OS identity, app provenance, and security posture     |
 | Hardware       | `hardware`, `gpu_benchmark`, `audio_latency`                        | GPU and audio benchmarks ship disabled                      |
 | Integrity      | `os_integrity`, `os_integrity_frida_scan`, `os_integrity_fork_test` | The fork test is iOS-only and ships disabled                |
-| Runtime        | `runtime`, `fonts`                                                  | JavaScript runtime and installed-font observations          |
+| Runtime        | `runtime`, `fonts`, `runtime_timing`, `numeric_consistency`          | Active computation probes ship disabled                     |
 | Connectivity   | `network`, `telephony`                                              | Availability depends on platform and OS restrictions        |
 | Context        | `locale`, `geolocation`                                             | Geolocation uses only information available to the host app |
 | Media and apps | `media_bluetooth_apps`                                              | Media route, Bluetooth, and finite known-app observations   |
@@ -519,9 +537,10 @@ Compare raw values that were already collected without performing extra device r
 risk score:
 
 ```ts
-import {collect, deriveConsistencySignals} from "react-native-device-risk-signals";
+import {DeviceIntel, deriveConsistencySignals} from "react-native-device-risk-signals";
 
-const event = await collect(config);
+const deviceIntel = new DeviceIntel();
+const event = await deviceIntel.collect();
 const consistency = deriveConsistencySignals(event, {
   claimedCountry: customerProfile.country,
   expectedTimezoneId: checkoutContext.timezone,
@@ -532,6 +551,24 @@ const consistency = deriveConsistencySignals(event, {
 // Example: {localeCountryMatchesClaimed: true, localeMatchesSimCountry: false}
 // Missing source values are omitted rather than interpreted as safe or suspicious.
 ```
+
+Derive explainable arithmetic metrics from the same event without another device read:
+
+```ts
+import {deriveObservationMetrics} from "react-native-device-risk-signals";
+
+const metrics = deriveObservationMetrics(event);
+// {
+//   screenAspectRatio: 2.2222,
+//   memoryPressureRatio: 0.75,
+//   processUptimeConsistent: true,
+//   abiArchitectureConsistent: true,
+//   timeoutProbeCount: 0
+// }
+```
+
+`runtime_timing`, `numeric_consistency`, and `gpu_benchmark` are active, high-entropy probes. They
+ship disabled and should be enabled only for calibrated cohorts using per-probe configuration.
 
 ## Data flow
 

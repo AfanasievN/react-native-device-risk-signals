@@ -55,11 +55,27 @@ static NSString *const kSuspiciousEnvironmentVariables[] = {
 - (NSDictionary *)osIntegrity
 {
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
+  BOOL simulator = [self isSimulator];
+  NSDictionary<NSString *, NSString *> *environment = NSProcessInfo.processInfo.environment;
+  BOOL simulatorEnvironmentPresent = environment[@"SIMULATOR_DEVICE_NAME"].length > 0 ||
+    environment[@"SIMULATOR_RUNTIME_VERSION"].length > 0;
+  BOOL xctestEnvironmentPresent = environment[@"XCTestConfigurationFilePath"].length > 0 ||
+    environment[@"XCTestBundlePath"].length > 0;
 
   // Baseline (required by the contract on both platforms).
-  result[@"isEmulator"] = @([self isSimulator]);
+  result[@"isEmulator"] = @(simulator);
   result[@"isDebuggerAttached"] = @([self isDebuggerAttached]);
   result[@"developerModeEnabled"] = @NO; // No public API on iOS; kept for cross-platform contract.
+  result[@"emulatorFingerprintMatch"] = @(simulator);
+  result[@"emulatorFilesFound"] = @NO;
+  result[@"emulatorBuildMarkers"] = simulator ? @[@"target_os_simulator"] : @[];
+  result[@"emulatorFilePaths"] = @[];
+  result[@"emulatorSystemPropertyMarkers"] = @[];
+  result[@"emulatorCpuMarkers"] = @[];
+  result[@"emulatorVendorMarkers"] = @[];
+  result[@"deviceFarmMarkers"] = xctestEnvironmentPresent ? @[@"xctest_environment"] : @[];
+  result[@"simulatorEnvironmentPresent"] = @(simulatorEnvironmentPresent);
+  result[@"emulatorChecksPerformed"] = @[@"build_target", @"simulator_environment", @"xctest_environment"];
 
   // Files / binaries.
   NSArray<NSString *> *suspiciousPaths = [self foundSuspiciousPaths];
@@ -85,7 +101,6 @@ static NSString *const kSuspiciousEnvironmentVariables[] = {
   result[@"hookFrameworkFound"] = @(injected.count > 0);
   result[@"dyldImageCount"] = @((NSInteger)_dyld_image_count());
   NSMutableArray<NSString *> *environmentNames = [NSMutableArray array];
-  NSDictionary<NSString *, NSString *> *environment = NSProcessInfo.processInfo.environment;
   for (NSUInteger i = 0; i < sizeof(kSuspiciousEnvironmentVariables) / sizeof(kSuspiciousEnvironmentVariables[0]); i++) {
     NSString *name = kSuspiciousEnvironmentVariables[i];
     if (environment[name].length > 0) [environmentNames addObject:name];
