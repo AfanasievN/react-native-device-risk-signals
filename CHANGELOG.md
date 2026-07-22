@@ -4,6 +4,30 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-22
+
+### Added
+
+- Added Android own-package install provenance: explicit installing and initiating package names,
+  initiating-installer signing-certificate digests, Android 13+ package-source class, Android 14+
+  update owner, and system/updated-system application flags. `installerPackage` remains as a
+  backward-compatible alias.
+- Added opt-in Android transaction observations for Android 15 screen-recording visibility, Android
+  14 screenshot events, and direct obscured/partially-obscured touch flags with monotonic event times.
+
+### Compatibility and privacy
+
+- All fields are optional and unavailable platform/API/permission reads are omitted. Install-source
+  values remain installer-supplied observations rather than Play Integrity verdicts.
+- `transaction_safety` remains disabled by default and begins UI observation only after its first
+  enabled collection. The Android library manifest still declares no permissions; capture callbacks
+  run only when the host application explicitly declares the corresponding install-time permission.
+- No dependencies, network requests, persistent identifiers, `QUERY_ALL_PACKAGES`, runtime permission
+  prompts, or Apple Required-Reason API declarations were added.
+
+See the [v0.6.0 release notes](docs/releases/0.6.0.md) for field-level availability, integration
+guidance, and the complete verification record.
+
 ## [0.5.1] - 2026-07-21
 
 ### Improved

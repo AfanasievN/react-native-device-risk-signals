@@ -35,6 +35,8 @@
 
 - (NSDictionary *)transactionSafetySignals
 {
+  // Android-only screenshot-event, screen-recording, and obscured-touch observation fields are
+  // intentionally omitted here. iOS continues to expose its supported point-in-time UIKit state.
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
   void (^work)(void) = ^{
     UIApplication *app = [UIApplication sharedApplication];

@@ -4,8 +4,10 @@ This document describes what each probe can collect and why. The machine-readabl
 the exported `PROBE_CATALOG` constant in `src/probeCatalog.ts`. Applications can use it to build
 configuration, consent, disclosure, and data-minimization interfaces.
 
-The SDK performs no upload and requests no permissions. A probe may opportunistically use information
-that is already available to the host application, as noted below. Every successful result is nested
+The SDK performs no upload, its Android library manifest declares no permissions, and it never shows
+a permission prompt. A probe may opportunistically use information that is already available to the
+host application, including optional install-time permissions explicitly declared by that host, as
+noted below. Every successful result is nested
 under `RawSignalEvent.probes[probeId].data`; unavailable probes return an explicit `skipped`, `timeout`,
 or `error` outcome.
 
@@ -31,7 +33,7 @@ the exported TypeScript contract.
 | `audio_latency` | Android, iOS | Off | High | Audio hardware, performance | None; disabled pending calibration |
 | `application` | Android, iOS | On | Moderate | App identity, install provenance, granted permissions | Reads the host application only |
 | `device_security_posture` | Android, iOS | On | Moderate | Lock capability, biometrics availability, trusted time, OS security update | None; never displays an authentication prompt |
-| `transaction_safety` | Android, iOS | Off | High | Lock/interactive state, screen capture, accessibility, call/audio state, finite known-app list | None; disabled pending physical-device calibration |
+| `transaction_safety` | Android, iOS | Off | High | Lock/interactive state, screen capture/recording, obscured touch, accessibility, call/audio state, finite known-app list | Android capture fields require host-declared `DETECT_SCREEN_CAPTURE` (14+) or `DETECT_SCREEN_RECORDING` (15+); no runtime prompt |
 | `runtime` | Android, iOS | On | Low | React Native runtime, software version | None |
 | `runtime_timing` | Android, iOS | Off | High | Runtime and performance timing | None; bounded active workload |
 | `numeric_consistency` | Android, iOS | Off | High | Cross-runtime numerical behavior | None; bounded active workload |
@@ -58,8 +60,18 @@ certificate observations and signing history, plus iOS receipt presence/environm
 version, executable name, extension state, simulator-build state, and
 `embeddedProvisioningProfilePresent`. Certificate values describe
 the host application's public signing certificates; no private key or device identifier is read.
-Android additionally reports `isInstalledOnExternalStorage` from the host application's own
-`ApplicationInfo` flags. It never inspects another application to produce this field.
+Android additionally reports `isInstalledOnExternalStorage`, `isSystemApp`, and
+`isUpdatedSystemApp` from the host application's own `ApplicationInfo` flags. It never inspects
+another application to produce these fields.
+
+On Android 11+, install provenance can include `installingPackageName`, `initiatingPackageName`, and
+`initiatingPackageSigningCertificateSha256`. `installerPackage` remains a backward-compatible alias
+of `installingPackageName`. Android 13+ can add `installPackageSource` as one of `unspecified`,
+`store`, `local_file`, `downloaded_file`, or `other`; Android 14+ can add
+`updateOwnerPackageName`. These values are supplied by the package installer and are attacker-
+influenced raw context, not a Google Play recognition or licensing verdict. Unavailable values are
+omitted. `originatingPackageName` is deliberately not collected because ordinary applications cannot
+receive it without the privileged `INSTALL_PACKAGES` permission.
 
 `getTaskAllowEntitlement` is reserved in the optional contract but is **not populated**. Although
 Apple documents `SecTask` entitlement lookup, the current iPhoneOS SDK does not declare those symbols
@@ -141,6 +153,23 @@ capability does not authenticate the current user. `transaction_safety` is inten
 immediately before a protected action and ships disabled because accessibility, capture, call, and
 known remote-access-app observations require product-specific calibration and false-positive review.
 
+On Android, UI observation begins lazily on the first enabled `transaction_safety` collection. That
+first call returns `transactionObservationStartedElapsedMs` and `observedTouchCount`; collect again
+immediately before the protected action to obtain observations accumulated inside that window.
+`obscuredTouchObserved` and `partiallyObscuredTouchObserved` come directly from Android
+`MotionEvent` flags and remain omitted until at least one `ACTION_DOWN` event has been observed.
+Their `last*ElapsedMs` values use the monotonic `SystemClock.elapsedRealtime` time base, not epoch
+time. The observer does not enumerate overlay-capable applications and is removed when the native
+module is invalidated.
+
+Android 14 screenshot observation is active only if the host declares `DETECT_SCREEN_CAPTURE`; the
+OS displays its standard screenshot-detection notice. Android 15 screen-recording visibility is
+available only with host-declared `DETECT_SCREEN_RECORDING`. Neither is declared by this library and
+neither produces a runtime prompt. `screenshotDetectedSinceObservationStart: false` is emitted only
+after the callback was successfully registered. `isVisibleInScreenRecording` is the direct Android
+state; `isScreenCaptured` aliases it on Android 15 for cross-platform compatibility. Older Android
+versions and missing permissions omit these fields.
+
 ### Consistency observations
 
 `deriveConsistencySignals(event, expectations)` compares already collected locale, network/SIM
@@ -175,6 +204,8 @@ of variation, and warm-up slope. It remains disabled and must not be interpreted
 - Do not combine these observations into a covert, persistent cross-install device identifier.
 - Keep `transaction_safety` disabled until its fields have been validated on representative physical
   devices and accepted by the application's privacy and accessibility review.
+- Declare Android capture permissions only in applications that enable the corresponding fields,
+  disclose the observation, and have tested the OS-visible screenshot notification.
 
 The host application remains responsible for legal basis, disclosure, consent, access control,
 retention, transport security, and responding to user rights requests.

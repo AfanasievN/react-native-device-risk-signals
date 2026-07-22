@@ -68,6 +68,8 @@ class ApplicationInfoProvider(private val context: Context) {
     map.putInt("targetSdkVersion", appInfo.targetSdkVersion)
     map.putInt("minSdkVersion", appInfo.minSdkVersion)
     map.putBoolean("isDebuggable", (appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0)
+    map.putBoolean("isSystemApp", (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0)
+    map.putBoolean("isUpdatedSystemApp", (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0)
     @Suppress("DEPRECATION")
     map.putBoolean(
       "isInstalledOnExternalStorage",
@@ -131,19 +133,40 @@ class ApplicationInfoProvider(private val context: Context) {
     map.putArray("splitNames", names)
   }
 
-  // Install source: "com.android.vending" = Play Store; a null / unknown / sideload installer is a
-  // strong fraud tell.
+  // Own-package install provenance only. These are raw, installer-supplied observations rather than
+  // trusted attestation. `installerPackage` remains an alias for compatibility.
   private fun addInstaller(map: WritableMap, pm: PackageManager, packageName: String) {
-    val installer =
-      safe {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-          pm.getInstallSourceInfo(packageName).installingPackageName
-        } else {
-          @Suppress("DEPRECATION")
-          pm.getInstallerPackageName(packageName)
-        }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val source = safe { pm.getInstallSourceInfo(packageName) } ?: return
+      source.installingPackageName?.takeIf(String::isNotEmpty)?.let {
+        map.putString("installerPackage", it)
+        map.putString("installingPackageName", it)
       }
-    installer?.let { if (it.isNotEmpty()) map.putString("installerPackage", it) }
+      source.initiatingPackageName?.takeIf(String::isNotEmpty)
+        ?.let { map.putString("initiatingPackageName", it) }
+      source.initiatingPackageSigningInfo?.apkContentsSigners
+        ?.map { it.toByteArray() }
+        ?.takeIf(List<ByteArray>::isNotEmpty)
+        ?.let { map.putArray("initiatingPackageSigningCertificateSha256", toDigestArray(it)) }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        InstallSourceSignalMapper.packageSource(source.packageSource)
+          ?.let { map.putString("installPackageSource", it) }
+      }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        source.updateOwnerPackageName?.takeIf(String::isNotEmpty)
+          ?.let { map.putString("updateOwnerPackageName", it) }
+      }
+      return
+    }
+
+    val installer = safe {
+      @Suppress("DEPRECATION")
+      pm.getInstallerPackageName(packageName)
+    }
+    installer?.takeIf(String::isNotEmpty)?.let {
+      map.putString("installerPackage", it)
+      map.putString("installingPackageName", it)
+    }
   }
 
   // On modern Android runningAppProcesses returns only our OWN process (privacy) — exactly what we

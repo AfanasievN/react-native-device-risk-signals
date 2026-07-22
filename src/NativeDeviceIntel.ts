@@ -81,9 +81,14 @@ export type ApplicationSignals = {
   appBuild?: string; // versionCode / CFBundleVersion.
   bundleId?: string; // packageName / CFBundleIdentifier.
   appName?: string; // application label / CFBundleDisplayName.
-  // Android install source: "com.android.vending" = Play Store; a null / unknown / sideload installer
-  // is a strong risk signal. iOS omitted (no equivalent API).
-  installerPackage?: string;
+  // Android install source for the host package only. These values are installer-supplied raw
+  // observations, not Play Integrity attestation. iOS omits them.
+  installerPackage?: string; // Backward-compatible alias of installingPackageName.
+  installingPackageName?: string; // Installer of record; it can be reassigned by the system/API.
+  initiatingPackageName?: string; // API 30+: package that actually initiated install/update.
+  initiatingPackageSigningCertificateSha256?: string[]; // API 30+: initiator signing digests.
+  installPackageSource?: string; // API 33+: unspecified/store/local_file/downloaded_file/other.
+  updateOwnerPackageName?: string; // API 34+: package with enforced update ownership.
   isForeground?: boolean; // app currently in the foreground (Android RunningAppProcessInfo importance).
   processUptimeMs?: number; // ms since this app process started (Android) — a launched-for-automation tell.
   // The host app's OWN requested permissions that are currently granted (Android; reads only our own
@@ -113,6 +118,8 @@ export type ApplicationSignals = {
   isAppExtension?: boolean;
   isSimulatorBuild?: boolean;
   isInstalledOnExternalStorage?: boolean; // Android-only: ApplicationInfo.FLAG_EXTERNAL_STORAGE.
+  isSystemApp?: boolean; // Android-only: ApplicationInfo.FLAG_SYSTEM.
+  isUpdatedSystemApp?: boolean; // Android-only: ApplicationInfo.FLAG_UPDATED_SYSTEM_APP.
   embeddedProvisioningProfilePresent?: boolean; // iOS: embedded.mobileprovision exists in this bundle.
   getTaskAllowEntitlement?: boolean; // Reserved; not populated without a supported public iOS API.
 };
@@ -281,8 +288,18 @@ export type DeviceSecurityPostureSignals = {
 export type TransactionSafetySignals = {
   isDeviceLocked?: boolean;
   isInteractive?: boolean;
-  isScreenCaptured?: boolean;
+  isScreenCaptured?: boolean; // iOS snapshot; Android 15+ aliases isVisibleInScreenRecording.
   isScreenMirrored?: boolean;
+  isVisibleInScreenRecording?: boolean; // Android 15+, when host declares DETECT_SCREEN_RECORDING.
+  screenshotObservationActive?: boolean; // Android 14+, callback registered by host opt-in.
+  screenshotDetectedSinceObservationStart?: boolean; // False only while observation is active.
+  lastScreenshotDetectedElapsedMs?: number; // Android elapsedRealtime time base, not wall-clock time.
+  transactionObservationStartedElapsedMs?: number; // Android elapsedRealtime when lazy observation began.
+  observedTouchCount?: number; // ACTION_DOWN events observed after transaction observation began.
+  obscuredTouchObserved?: boolean; // Direct FLAG_WINDOW_IS_OBSCURED observation; omitted before a touch.
+  partiallyObscuredTouchObserved?: boolean; // Direct FLAG_WINDOW_IS_PARTIALLY_OBSCURED observation.
+  lastObscuredTouchElapsedMs?: number;
+  lastPartiallyObscuredTouchElapsedMs?: number;
   accessibilityRunning?: boolean;
   accessibilityFeatureCount?: number;
   enabledAccessibilityServiceCount?: number;

@@ -517,6 +517,11 @@ an event should be sent and how delivery failures are handled.
 Some values are opportunistic by design. Unsupported or unavailable information should appear as a
 skipped probe or an unavailable value, not be treated as evidence of low risk.
 
+Android application provenance includes the backward-compatible `installerPackage` plus the more
+precise `installingPackageName`, `initiatingPackageName`, initiating-installer certificate digests,
+Android 13+ package-source class, and Android 14+ update owner when the OS exposes them. These are
+installer-supplied observations, not Play Integrity verdicts. Missing values are omitted.
+
 In particular, `mockLocationAppsFound` remains optional for compatibility but is not populated:
 enumerating arbitrary mock-location apps would violate the package-visibility boundary. Android
 uses `Location.isMock`/`isFromMockProvider` for an available cached fix, while iOS 15+ exposes the
@@ -618,6 +623,37 @@ production rollout. Higher-risk probes such as GPU benchmarking, audio latency m
 iOS fork test intentionally ship disabled. `transaction_safety` is also disabled until calibrated on
 representative physical devices and reviewed for accessibility-related false positives.
 
+### Android transaction observation
+
+Android obscured-touch observation needs no permission. It starts lazily with the first enabled
+`transaction_safety` collection, so collect once when the protected UI opens and again immediately
+before committing the action:
+
+```ts
+const transactionConfig = {
+  probes: {transaction_safety: {enabled: true, timeoutMs: 900}},
+};
+
+await deviceIntel.collect({config: transactionConfig}); // Starts the observation window.
+// ...the user reviews and confirms the protected action...
+const actionContext = await deviceIntel.collect({config: transactionConfig});
+```
+
+`obscuredTouchObserved` and `partiallyObscuredTouchObserved` are omitted until a real `ACTION_DOWN`
+has been observed. `observedTouchCount: 0` is therefore different from a clean observed touch.
+
+For Android 14 screenshot events or Android 15 screen-recording visibility, the host application may
+opt in with install-time permissions in its own manifest:
+
+```xml
+<uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
+<uses-permission android:name="android.permission.DETECT_SCREEN_RECORDING" />
+```
+
+The library does not declare these permissions and never prompts. Android shows a system notice when
+the screenshot callback detects a capture. Enable only the permission and field needed by the host's
+documented protected flow.
+
 ## Frequently asked questions
 
 ### What does React Native Device Risk Signals do?
@@ -664,8 +700,10 @@ React Native version.
 ### What permissions does it require?
 
 The Android library manifest declares no permissions. Signal availability can still depend on the
-host application's existing permissions, platform restrictions, and OS version. Audit each enabled
-probe against your privacy policy and store requirements.
+host application's existing permissions, platform restrictions, and OS version. Android 14+
+screenshot and Android 15+ recording observations require the host to declare their optional
+install-time detection permissions; the SDK never displays a runtime prompt. Audit each enabled probe
+against your privacy policy and store requirements.
 
 ### What happens when a probe is unsupported or fails?
 

@@ -486,6 +486,11 @@
         "bundleId",
         "appName",
         "installerPackage",
+        "installingPackageName",
+        "initiatingPackageName",
+        "initiatingPackageSigningCertificateSha256",
+        "installPackageSource",
+        "updateOwnerPackageName",
         "isForeground",
         "processUptimeMs",
         "grantedPermissions",
@@ -507,10 +512,12 @@
         "isAppExtension",
         "isSimulatorBuild",
         "isInstalledOnExternalStorage",
+        "isSystemApp",
+        "isUpdatedSystemApp",
         "embeddedProvisioningProfilePresent",
         "getTaskAllowEntitlement"
       ],
-      "notes": "getTaskAllowEntitlement is reserved but not populated because the public iPhoneOS headers do not expose a supported entitlement lookup API."
+      "notes": "Android install-source values describe the host package only and remain untrusted installer-supplied observations. getTaskAllowEntitlement is reserved but not populated because the public iPhoneOS headers do not expose a supported entitlement lookup API."
     },
     {
       "id": "device_security_posture",
@@ -555,7 +562,10 @@
       ],
       "enabledByDefault": false,
       "sensitivity": "high",
-      "permissions": [],
+      "permissions": [
+        "Android 14 screenshot observation requires host-declared DETECT_SCREEN_CAPTURE",
+        "Android 15 screen-recording visibility requires host-declared DETECT_SCREEN_RECORDING"
+      ],
       "dataCategories": [
         "runtime_security",
         "accessibility",
@@ -567,6 +577,16 @@
         "isInteractive",
         "isScreenCaptured",
         "isScreenMirrored",
+        "isVisibleInScreenRecording",
+        "screenshotObservationActive",
+        "screenshotDetectedSinceObservationStart",
+        "lastScreenshotDetectedElapsedMs",
+        "transactionObservationStartedElapsedMs",
+        "observedTouchCount",
+        "obscuredTouchObserved",
+        "partiallyObscuredTouchObserved",
+        "lastObscuredTouchElapsedMs",
+        "lastPartiallyObscuredTouchElapsedMs",
         "accessibilityRunning",
         "accessibilityFeatureCount",
         "enabledAccessibilityServiceCount",
@@ -575,7 +595,7 @@
         "audioMode",
         "isCallActive"
       ],
-      "notes": "Ships disabled until physical-device calibration; collect immediately before a protected action."
+      "notes": "Ships disabled until physical-device calibration. Android UI observation starts lazily on the first collection; collect once when the protected flow starts and again immediately before its action. The library declares neither capture permission and never prompts."
     },
     {
       "id": "runtime",

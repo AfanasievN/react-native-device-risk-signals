@@ -43,11 +43,17 @@ await api.post("/mobile-risk-observations", {
   accountActionId,
   observations: event,
 });</code></pre></div><p>The example endpoint is owned by the host application. It is not part of this package.</p></section>
-      <section id="transaction"><h2>Collect protected-action context separately</h2><p><code>transaction_safety</code> is disabled by default. If your physical-device calibration and privacy review support it, collect immediately before a protected action rather than during every app launch.</p><div class="code-block"><button class="copy-button" type="button" data-copy="transaction-code">Copy</button><pre id="transaction-code"><code>const protectedActionEvent = await deviceIntel.collect({
+      <section id="transaction"><h2>Collect protected-action context separately</h2><p><code>transaction_safety</code> is disabled by default. On Android, the first enabled collection starts lazy screenshot and obscured-touch observation. Collect once when the protected UI opens, then collect again immediately before its action.</p><div class="code-block"><button class="copy-button" type="button" data-copy="transaction-code">Copy</button><pre id="transaction-code"><code>const transactionConfig = {
   probes: {
     transaction_safety: { enabled: true, timeoutMs: 900 },
   },
-});</code></pre></div><p>Accessibility or screen-sharing state can be legitimate. Use it as review context, not an automatic accusation.</p></section>
+};
+
+await deviceIntel.collect({ config: transactionConfig });
+// Later, immediately before the protected action:
+const protectedActionEvent = await deviceIntel.collect({
+  config: transactionConfig,
+});</code></pre></div><p>Obscured-touch flags need no permission. Android 14 screenshot detection and Android 15 recording visibility require the host application to declare <code>DETECT_SCREEN_CAPTURE</code> or <code>DETECT_SCREEN_RECORDING</code> respectively. The library declares neither and never prompts. Android displays its standard notice when a screenshot is detected.</p><p>Accessibility, screen-sharing, and overlays can be legitimate. Use them as review context, not an automatic accusation.</p></section>
       <section id="backend"><h2>Backend contract</h2><ol><li>Authenticate the mobile request using your normal session controls.</li><li>Validate event schema, SDK version, collection timestamp, and action binding.</li><li>Preserve probe outcome semantics. Missing, skipped, timeout, and error are distinct.</li><li>Compute derived features and policy on a trusted backend.</li><li>Apply retention, access controls, monitoring, and deletion requirements.</li></ol><div class="notice">Treat all client telemetry as attacker-influenced. Device observations add context but never replace server-side controls or platform attestation.</div></section>
     </article>
   </main>

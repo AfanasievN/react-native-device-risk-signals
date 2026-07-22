@@ -73,6 +73,32 @@ describe("PROBE_CATALOG", () => {
     expect(fieldsFor("geolocation")).toEqual(
       expect.arrayContaining(["locationServicesEnabled", "isSimulatedBySoftware", "isProducedByAccessory"]),
     );
-    expect(fieldsFor("application")).toEqual(expect.arrayContaining(["isInstalledOnExternalStorage"]));
+    expect(fieldsFor("application")).toEqual(
+      expect.arrayContaining([
+        "isInstalledOnExternalStorage",
+        "installerPackage",
+        "installingPackageName",
+        "initiatingPackageName",
+        "initiatingPackageSigningCertificateSha256",
+        "installPackageSource",
+        "updateOwnerPackageName",
+        "isSystemApp",
+        "isUpdatedSystemApp",
+      ]),
+    );
+    expect(fieldsFor("transaction_safety")).toEqual(
+      expect.arrayContaining([
+        "isVisibleInScreenRecording",
+        "screenshotObservationActive",
+        "screenshotDetectedSinceObservationStart",
+        "lastScreenshotDetectedElapsedMs",
+        "transactionObservationStartedElapsedMs",
+        "observedTouchCount",
+        "obscuredTouchObserved",
+        "partiallyObscuredTouchObserved",
+        "lastObscuredTouchElapsedMs",
+        "lastPartiallyObscuredTouchElapsedMs",
+      ]),
+    );
   });
 });

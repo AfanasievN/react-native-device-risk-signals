@@ -111,6 +111,12 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
     resolveOrReject(promise, "getNumericConsistencySignals") { numericConsistency.getNumericConsistencySignals() }
   }
 
+  override fun invalidate() {
+    securityPosture.dispose()
+    probeExecutor.shutdownNow()
+    super.invalidate()
+  }
+
   // Each probe runs on its own background thread so the probes the JS framework fires in parallel
   // actually execute concurrently. RN dispatches native-module methods serially on a single thread,
   // so without this every probe queued behind a slow one (frida socket connect, package audit,

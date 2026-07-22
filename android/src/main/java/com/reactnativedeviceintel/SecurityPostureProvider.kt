@@ -9,9 +9,12 @@ import android.os.PowerManager
 import android.os.UserManager
 import android.provider.Settings
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 
-class SecurityPostureProvider(private val context: Context) {
+class SecurityPostureProvider(private val context: ReactApplicationContext) {
+  private val transactionObserver = TransactionSafetyObserver(context)
+
   fun getDeviceSecurityPosture(): WritableMap = Arguments.createMap().apply {
     val keyguard = context.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
     safe { keyguard?.isDeviceSecure }?.let { putBoolean("hasSecureLockScreen", it) }
@@ -62,6 +65,31 @@ class SecurityPostureProvider(private val context: Context) {
     if (mode != null) {
       putString("audioMode", audioMode(mode))
       putBoolean("isCallActive", mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION)
+    }
+
+    transactionObserver.attachAndSnapshot()?.let { addTransactionObservation(it) }
+  }
+
+  fun dispose() = transactionObserver.dispose()
+
+  private fun WritableMap.addTransactionObservation(snapshot: TransactionObservationSnapshot) {
+    putDouble("transactionObservationStartedElapsedMs", snapshot.startedElapsedMs.toDouble())
+    putInt("observedTouchCount", snapshot.observedTouchCount)
+    snapshot.obscuredTouchObserved?.let { putBoolean("obscuredTouchObserved", it) }
+    snapshot.partiallyObscuredTouchObserved?.let { putBoolean("partiallyObscuredTouchObserved", it) }
+    snapshot.lastObscuredTouchElapsedMs?.let { putDouble("lastObscuredTouchElapsedMs", it.toDouble()) }
+    snapshot.lastPartiallyObscuredTouchElapsedMs
+      ?.let { putDouble("lastPartiallyObscuredTouchElapsedMs", it.toDouble()) }
+    if (snapshot.screenshotObservationActive) {
+      putBoolean("screenshotObservationActive", true)
+    }
+    snapshot.screenshotDetectedSinceObservationStart
+      ?.let { putBoolean("screenshotDetectedSinceObservationStart", it) }
+    snapshot.lastScreenshotDetectedElapsedMs
+      ?.let { putDouble("lastScreenshotDetectedElapsedMs", it.toDouble()) }
+    snapshot.isVisibleInScreenRecording?.let {
+      putBoolean("isVisibleInScreenRecording", it)
+      putBoolean("isScreenCaptured", it)
     }
   }
 
