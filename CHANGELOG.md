@@ -4,6 +4,12 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+
+- Added copy-paste Android capture-permission guidance to the hosted integration guide, made the
+  exact permission names discoverable from FAQ and privacy pages, and documented the example app's
+  disabled-by-default two-stage transaction observation flow.
+
 ## [0.6.0] - 2026-07-22
 
 ### Added

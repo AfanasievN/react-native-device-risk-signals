@@ -51,9 +51,30 @@ npm run ios
 Press **Collect device signals**. The summary separates observed, skipped, and failed probes, while
 the result panel exposes the complete event payload.
 
-The demo does not request optional runtime permissions. Signals that require unavailable hardware,
-permissions, or platform support can legitimately appear as skipped or failed. Rebuild the native
+The demo does not request optional runtime permissions and does not declare the optional Android
+capture-detection permissions. Signals that require unavailable hardware, permissions, platform
+support, or an enabled probe can legitimately be omitted, skipped, or failed. Rebuild the native
 application after changing the library's Android or iOS implementation.
+
+## Optional Android transaction observations
+
+`transaction_safety` ships disabled. Obscured-touch flags need no permission, but Android 14
+screenshot events and Android 15 screen-recording visibility require the host application to add
+the corresponding install-time permission to `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
+<uses-permission android:name="android.permission.DETECT_SCREEN_RECORDING" />
+```
+
+The library does not merge either permission and never displays a runtime permission prompt. Android
+shows its standard notice when a screenshot is detected. Declare only the permission required by the
+protected flow, then enable `transaction_safety` in that flow's collection configuration.
+
+Android UI observation begins on the first enabled collection. Collect once when the protected UI
+opens and again immediately before its action; the second event contains observations accumulated
+inside that window. Missing capture fields mean the API, host permission, callback, or observation
+was unavailable and must not be interpreted as `false`.
 
 ## Verify
 
