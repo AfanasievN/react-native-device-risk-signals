@@ -51,6 +51,7 @@ class OsIntegrityProvider(private val context: Context) {
         device = Build.DEVICE ?: "",
         product = Build.PRODUCT ?: "",
         hardware = Build.HARDWARE ?: "",
+        host = Build.HOST ?: "",
         supportedAbis = Build.SUPPORTED_ABIS?.toList().orEmpty(),
       ),
       emulatorFilePaths = emulatorFiles,
@@ -68,11 +69,14 @@ class OsIntegrityProvider(private val context: Context) {
     map.putBoolean("developerModeEnabled", isGlobalSettingEnabled(Settings.Global.DEVELOPMENT_SETTINGS_ENABLED))
 
     // ── Root: files / binaries / packages ────────────────────────────────────────────────────────
-    val suFound = SU_BINARY_PATHS.filter { safeExists(it) }
+    val suFound = suPathCandidates().filter { safeExists(it) }
     val rootFilesFound = ROOT_FILE_PATHS.filter { safeExists(it) }
     val allSuspiciousPaths = (suFound + rootFilesFound).distinct()
     map.putBoolean("suBinaryFound", suFound.isNotEmpty())
+    map.putBoolean("suOnPath", suExistsOnPath())
     map.putBoolean("rootManagementAppFound", anyPackageInstalled(KnownAppLists.rootManagementPackages))
+    map.putBoolean("dangerousAppFound", anyPackageInstalled(KnownAppLists.potentiallyDangerousAppPackages))
+    map.putBoolean("rootCloakingAppFound", anyPackageInstalled(KnownAppLists.rootCloakingPackages))
     map.putBoolean("suspiciousFilePathsFound", allSuspiciousPaths.isNotEmpty())
     map.putArray("suspiciousFilePaths", toStringArray(allSuspiciousPaths))
     map.putInt("suspiciousPathCount", allSuspiciousPaths.size)
@@ -87,13 +91,17 @@ class OsIntegrityProvider(private val context: Context) {
     // ── Hooks / injection ────────────────────────────────────────────────────────────────────────
     val injected = suspiciousMappedLibraries()
     val loadedHookClasses = loadedHookClassNames()
+    val hookStackFrames = hookStackFrameEvidence()
     map.putBoolean("injectedLibrariesFound", injected.isNotEmpty())
     map.putArray("injectedLibraryNames", toStringArray(injected))
     map.putInt("injectedLibraryCount", injected.size)
     map.putArray("loadedHookClassNames", toStringArray(loadedHookClasses))
+    map.putBoolean("hookStackFrameFound", hookStackFrames.isNotEmpty())
+    map.putArray("hookStackFrames", toStringArray(hookStackFrames))
     map.putBoolean(
       "hookFrameworkFound",
-      injected.isNotEmpty() || loadedHookClasses.isNotEmpty() || anyPackageInstalled(KnownAppLists.hookFrameworkPackages),
+      injected.isNotEmpty() || loadedHookClasses.isNotEmpty() || hookStackFrames.isNotEmpty() ||
+        anyPackageInstalled(KnownAppLists.hookFrameworkPackages),
     )
 
     // ── Android integrity properties ────────────────────────────────────────────────────────────
@@ -209,6 +217,34 @@ class OsIntegrityProvider(private val context: Context) {
         false
       }
     }
+
+  // su-binary candidates: the static list PLUS the process $PATH directories (each normalized to
+  // ".../su") — catches an `su` installed on a non-standard mount a fixed list would miss.
+  private fun suPathCandidates(): List<String> {
+    val fromEnv = safeString { System.getenv("PATH") }
+      ?.split(':')
+      ?.filter { it.isNotEmpty() }
+      ?.map { "${it.trimEnd('/')}/su" }
+      ?: emptyList()
+    return (SU_BINARY_PATHS + EXTRA_SU_BINARY_PATHS + fromEnv).distinct()
+  }
+
+  // `which su` — orthogonal to file-existence: it resolves `su` via the process PATH. Best-effort;
+  // absent `which` / SELinux denial ⇒ false (unknown, not "clean").
+  private fun suExistsOnPath(): Boolean = safeBool {
+    val process = Runtime.getRuntime().exec(arrayOf("which", "su"))
+    val line = process.inputStream.bufferedReader().use { it.readLine() }
+    process.destroy()
+    !line.isNullOrBlank()
+  }
+
+  // Stack-probe for hook frameworks: capture the current stack and match Xposed/LSPosed/Substrate
+  // bridge frames (+ a re-injected-Zygote tell). Orthogonal to loaded-class and /proc/self/maps scans.
+  private fun hookStackFrameEvidence(): List<String> = try {
+    throw Exception("device-intel stack probe")
+  } catch (e: Exception) {
+    IntegrityEvidenceClassifier.hookStackFrameMatches(e.stackTrace.toList())
+  }
 
   private fun magiskMountsFound(): Boolean {
     for (path in MOUNT_INFO_PATHS) {
@@ -396,6 +432,12 @@ class OsIntegrityProvider(private val context: Context) {
       "/magisk/.core/bin/su",
     )
 
+    // Extra su directories beyond SU_BINARY_PATHS (borrowed from RootBeer's path set).
+    private val EXTRA_SU_BINARY_PATHS = listOf(
+      "/system_ext/bin/su",
+      "/cache/su",
+    )
+
     private val ROOT_FILE_PATHS = listOf(
       "/system/app/Superuser.apk",
       "/sbin/magisk",
@@ -412,6 +454,13 @@ class OsIntegrityProvider(private val context: Context) {
       "/system/xbin/busybox",
       "/data/local/tmp/frida-server",
       "/data/local/tmp/frida-gadget.so",
+      "/data/local/tmp/re.frida.server",
+      "/data/adb/magisk.db",
+      "/sbin/.magisk",
+      "/cache/.disable_magisk",
+      "/system/framework/XposedBridge.jar",
+      "/system/app/SuperSU.apk",
+      "/system/app/Kinguser.apk",
     )
 
     private val WRITABLE_PROBE_PATHS = listOf(

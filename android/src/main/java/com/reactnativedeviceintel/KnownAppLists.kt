@@ -57,7 +57,33 @@ object KnownAppLists {
     "org.torproject.torbrowser",
   )
 
+  /**
+   * Potentially-dangerous apps — patchers / ROM managers / in-app-purchase spoofers that usually
+   * imply a rooted or tampered device (subset of RootBeer's `knownDangerousAppsPackages`, curated).
+   */
+  val potentiallyDangerousAppPackages: List<String> = listOf(
+    "com.dimonvideo.luckypatcher",
+    "com.chelpus.luckypatcher",
+    "com.chelpus.lackypatch",
+    "com.koushikdutta.rommanager",
+    "com.ramdroid.appquarantine",
+    "cc.madkite.freedom",
+  )
+
+  /** Root-cloaking / root-hiding apps — presence itself is a strong tampering tell. */
+  val rootCloakingPackages: List<String> = listOf(
+    "com.devadvance.rootcloak",
+    "com.devadvance.rootcloakplus",
+    "com.zachspong.temprootremovejb",
+    "com.amphoras.hidemyroot",
+    "com.amphoras.hidemyrootadfree",
+    "com.formyhm.hideroot",
+  )
+
   /** Every package the SDK queries — the exact set that must be mirrored into `<queries>`. */
   val allQueriedPackages: List<String>
-    get() = (rootManagementPackages + hookFrameworkPackages + ratRemoteAccessPackages).distinct()
+    get() = (
+      rootManagementPackages + hookFrameworkPackages + ratRemoteAccessPackages +
+        potentiallyDangerousAppPackages + rootCloakingPackages
+    ).distinct()
 }

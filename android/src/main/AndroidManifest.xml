@@ -47,5 +47,19 @@
     <package android:name="com.carriez.flutter_hbb" />
     <package android:name="org.torproject.android" />
     <package android:name="org.torproject.torbrowser" />
+    <!-- Potentially-dangerous apps (KnownAppLists.potentiallyDangerousAppPackages) -->
+    <package android:name="com.dimonvideo.luckypatcher" />
+    <package android:name="com.chelpus.luckypatcher" />
+    <package android:name="com.chelpus.lackypatch" />
+    <package android:name="com.koushikdutta.rommanager" />
+    <package android:name="com.ramdroid.appquarantine" />
+    <package android:name="cc.madkite.freedom" />
+    <!-- Root-cloaking / root-hiding apps (KnownAppLists.rootCloakingPackages) -->
+    <package android:name="com.devadvance.rootcloak" />
+    <package android:name="com.devadvance.rootcloakplus" />
+    <package android:name="com.zachspong.temprootremovejb" />
+    <package android:name="com.amphoras.hidemyroot" />
+    <package android:name="com.amphoras.hidemyrootadfree" />
+    <package android:name="com.formyhm.hideroot" />
   </queries>
 </manifest>

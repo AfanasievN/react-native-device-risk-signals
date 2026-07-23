@@ -50,4 +50,41 @@ class IntegrityEvidenceClassifierTest {
       found,
     )
   }
+
+  @Test
+  fun `stack frame scan matches hook framework frames`() {
+    val frames = listOf(
+      StackTraceElement("com.example.app.MainActivity", "onCreate", "MainActivity.kt", 12),
+      StackTraceElement("de.robv.android.xposed.XposedBridge", "handleHookedMethod", "XposedBridge.java", 1),
+      StackTraceElement("org.lsposed.lspd.core.Main", "forkAndSpecialize", null, 2),
+      StackTraceElement("com.saurik.substrate.MS\$2", "invoked", null, 3),
+    )
+
+    assertEquals(
+      listOf(
+        "de.robv.android.xposed.XposedBridge.handleHookedMethod",
+        "org.lsposed.lspd.core.Main.forkAndSpecialize",
+        "com.saurik.substrate.MS\$2.invoked",
+      ),
+      IntegrityEvidenceClassifier.hookStackFrameMatches(frames),
+    )
+  }
+
+  @Test
+  fun `stack frame scan flags a doubly injected zygote and stays clean otherwise`() {
+    val doubled = listOf(
+      StackTraceElement("com.android.internal.os.ZygoteInit", "main", null, 1),
+      StackTraceElement("com.android.internal.os.ZygoteInit", "main", null, 1),
+    )
+    assertEquals(
+      listOf("com.android.internal.os.ZygoteInit(x2)"),
+      IntegrityEvidenceClassifier.hookStackFrameMatches(doubled),
+    )
+
+    val clean = listOf(
+      StackTraceElement("com.android.internal.os.ZygoteInit", "main", null, 1),
+      StackTraceElement("com.facebook.react.bridge.JavaMethodWrapper", "invoke", null, 2),
+    )
+    assertTrue(IntegrityEvidenceClassifier.hookStackFrameMatches(clean).isEmpty())
+  }
 }
