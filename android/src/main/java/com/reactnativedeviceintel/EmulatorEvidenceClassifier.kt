@@ -9,6 +9,7 @@ internal data class EmulatorBuildSnapshot(
   val product: String,
   val hardware: String,
   val supportedAbis: List<String>,
+  val host: String = "",
 )
 
 internal data class EmulatorEvidence(
@@ -73,6 +74,9 @@ internal object EmulatorEvidenceClassifier {
     STRONG_HARDWARE_TOKENS.firstOrNull { hardware.contains(it) }
       ?.let { addBuildMarker("hardware:$it") }
 
+    val host = build.host.lowercase()
+    if (host.contains("qemu")) addBuildMarker("host:qemu")
+
     if (build.brand.startsWith("generic", ignoreCase = true) &&
       build.device.startsWith("generic", ignoreCase = true)
     ) {
@@ -104,6 +108,7 @@ internal object EmulatorEvidenceClassifier {
       build.device,
       build.product,
       build.hardware,
+      build.host,
     ).map { it.lowercase() }
     val searchableProperties = systemProperties.entries.map { "${it.key}=${it.value}".lowercase() }
     val searchableFiles = files.map { it.lowercase() }
@@ -118,6 +123,7 @@ internal object EmulatorEvidenceClassifier {
     val deviceFarmMarkers = buildList {
       if (systemProperties["firebase.test.lab"].isTruthy()) add("firebase_test_lab")
       if (systemProperties["ro.boot.test_harness"].isTruthy()) add("android_test_harness")
+      if (build.host.lowercase().contains("buildbot")) add("buildbot_host")
     }
     val strong = hasStrongBuildEvidence || files.isNotEmpty() ||
       propertyMarkers.isNotEmpty() || cpuMarkers.isNotEmpty() || vendorMarkers.isNotEmpty()
@@ -147,6 +153,7 @@ internal object EmulatorEvidenceClassifier {
     "andy" to listOf("andyroid", "androvm"),
     "droid4x" to listOf("droid4x"),
     "koplayer" to listOf("koplayer"),
+    "mumu" to listOf("mumu"),
   )
 
   private fun String?.isTruthy(): Boolean = this == "1" || this.equals("true", ignoreCase = true)

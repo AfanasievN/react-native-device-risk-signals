@@ -4,11 +4,39 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-23
+
+### Added
+
+- Strengthened the `os_integrity` probe with a stack-trace hook probe (`hookStackFrameFound` /
+  `hookStackFrames`) that matches Xposed/LSPosed/EdXposed/Substrate bridge frames and a
+  doubly-injected Zygote — a third method independent of the loaded-class and `/proc/self/maps`
+  scans.
+- Broadened Android root evidence: `suOnPath` (`which su`), a `su`-binary scan across the process
+  `PATH` plus `/system_ext/bin` and `/cache`, additional known root/injection artifact paths, and
+  new installed-package categories `dangerousAppFound` (patchers/ROM managers/IAP spoofers) and
+  `rootCloakingAppFound` (root-hiding apps).
+- Expanded emulator coverage to recognize the MuMu family and the `Build.HOST` value
+  (`host:qemu` build marker, `buildbot_host` device-farm marker).
+- Extended the iOS dyld-injection and jailbreak-symlink coverage (SSLKillSwitch2, 0Shadow, FlyJB,
+  Cephei, Electra, AppSyncUnified, WeeLoader, libsparkapplist, and more `/var`/`/usr` symlinks).
+
+### Compatibility and privacy
+
+- All new fields are optional and unavailable reads are omitted; missing stays distinct from
+  `false`. The new Android-only fields are omitted on iOS.
+- The new package categories are queried only through the finite `<queries>` allow-list. No
+  dependencies, JNI/NDK, network requests, persistent identifiers, `QUERY_ALL_PACKAGES`, runtime
+  permission prompts, or Apple Required-Reason API declarations were added.
+
 ### Documentation
 
 - Added copy-paste Android capture-permission guidance to the hosted integration guide, made the
   exact permission names discoverable from FAQ and privacy pages, and documented the example app's
   disabled-by-default two-stage transaction observation flow.
+
+See the [v0.7.0 release notes](docs/releases/0.7.0.md) for field-level availability and the complete
+verification record.
 
 ## [0.6.0] - 2026-07-22
 
@@ -193,7 +221,9 @@ overview.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.3.0...v0.4.0

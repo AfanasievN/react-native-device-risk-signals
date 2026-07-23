@@ -210,7 +210,10 @@ export type OsIntegritySignals = {
 
   // Root / jailbreak — file, binary and package/app evidence.
   suBinaryFound?: boolean; // Android: `su` on any PATH dir. iOS: jailbreak shells (bash/sh/ssh) present.
+  suOnPath?: boolean; // Android: `which su` resolved a binary on the process PATH. iOS: n/a (omitted).
   rootManagementAppFound?: boolean; // Android: Magisk/SuperSU pkg. iOS: Cydia/Sileo/etc. openable.
+  dangerousAppFound?: boolean; // Android: a patcher/ROM-manager/IAP-spoofer package is installed. iOS: n/a.
+  rootCloakingAppFound?: boolean; // Android: a root-cloaking/hiding package is installed. iOS: n/a.
   suspiciousFilePathsFound?: boolean; // Known root/jb file paths readable via access().
   suspiciousFilePaths?: string[]; // The specific paths that were found (raw, for server triage).
   writableSystemPathFound?: boolean; // Android: /system et al writable. iOS: wrote a file outside sandbox.
@@ -223,6 +226,8 @@ export type OsIntegritySignals = {
   injectedLibrariesFound?: boolean; // Android: /proc/self/maps has an unexpected .so. iOS: dyld injected image.
   injectedLibraryNames?: string[]; // Raw names of the suspicious mapped libraries / dyld images.
   loadedHookClassNames?: string[]; // Android: loadable Xposed/Substrate/LSPosed class names.
+  hookStackFrameFound?: boolean; // Android: a captured stack trace holds Xposed/LSPosed/Substrate frames.
+  hookStackFrames?: string[]; // Android: the raw matched `class.method` stack frames (for triage).
   hookFrameworkFound?: boolean; // Aggregate: any of the above name-matched a known hook framework.
 
   // Android integrity properties (all omitted on iOS).

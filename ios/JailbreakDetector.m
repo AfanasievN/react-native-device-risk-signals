@@ -48,14 +48,17 @@ static NSString *const kJailbreakShells[] = { @"/bin/bash", @"/bin/sh", @"/usr/b
 
 // Paths that become symlinks on many jailbreaks.
 static NSString *const kSymlinkPaths[] = {
-  @"/Applications", @"/var/stash", @"/Library/Ringtones", @"/Library/Wallpaper", @"/usr/libexec"
+  @"/Applications", @"/var/stash", @"/Library/Ringtones", @"/Library/Wallpaper", @"/usr/libexec",
+  @"/var/lib/undecimus/apt", @"/usr/arm-apple-darwin9", @"/usr/include", @"/usr/share"
 };
 
 // dyld image path fragments that indicate an injected hook framework.
 static const char *kInjectionSignatures[] = {
   "MobileSubstrate", "substrate", "SubstrateLoader", "TweakInject", "libsubstitute",
   "substitute", "libhooker", "ellekit", "frida", "FridaGadget", "cynject", "cycript",
-  "RocketBootstrap", "PreferenceLoader", "SSLKillSwitch", "systemhook.dylib"
+  "RocketBootstrap", "PreferenceLoader", "SSLKillSwitch", "systemhook.dylib",
+  "SSLKillSwitch2", "0Shadow", "FlyJB", "Cephei", "Electra", "AppSyncUnified",
+  "WeeLoader", "libsparkapplist"
 };
 
 static NSString *const kSuspiciousEnvironmentVariables[] = {
