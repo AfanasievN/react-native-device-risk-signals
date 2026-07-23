@@ -126,7 +126,12 @@ builds, suspicious mounts, Zygisk indicators, executable mappings, suspicious en
 names, matched dangerous Android system properties, loadable hook class names, and evidence counts.
 The dangerous-property field returns only observed `key=value` matches; when system properties are
 unreadable, both the raw list and its optional aggregate are omitted. Hook classes are looked up
-without class initialization. Emulator observations include matched build markers, discovered emulator file paths,
+without class initialization. Hooks are also observed through an independent stack-trace probe
+(`hookStackFrameFound` with raw `hookStackFrames`) that matches Xposed/LSPosed/EdXposed/Substrate
+bridge frames and a doubly-injected Zygote. Root evidence additionally covers `su` on the process
+`PATH` (`suOnPath` plus a `PATH`-derived binary scan), installed patcher/ROM-manager packages
+(`dangerousAppFound`), and root-hiding packages (`rootCloakingAppFound`); the package categories are
+queried only through the finite `<queries>` allow-list. Emulator observations include matched build markers, discovered emulator file paths,
 QEMU or virtual-hardware property markers, CPU markers, recognized emulator-family markers, sensor
 availability, Android Test Harness Mode, Firebase Test Lab presence, and iOS simulator or XCTest
 environment presence. Broad observations such as `test-keys`, an `unknown`
