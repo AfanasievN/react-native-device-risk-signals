@@ -798,6 +798,25 @@ vulnerability-free. Report suspected vulnerabilities privately as described in
 Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 Participation in this project is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
+## Support this project
+
+This library is free and open source, maintained in spare time. If it helped you — or saved you an
+expensive commercial anti-fraud SDK — a small donation keeps the fixes, releases, and new signals
+coming. 🙏
+
+Use the **Sponsor** button at the top of this repository, or donate directly in **TON** (Telegram
+wallet): scan the QR with any TON wallet, or open the link.
+
+[![Donate TON](https://img.shields.io/badge/Donate-TON-0098EA)](https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK)
+
+<img src="docs/images/donate-ton-qr.png" alt="Donate TON — scan with any TON wallet" width="200" />
+
+```
+UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK
+```
+
+Thank you for supporting open source!
+
 ## License
 
 [MIT](LICENSE) © React Native Device Risk Signals contributors.
