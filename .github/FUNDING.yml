@@ -1,9 +1,9 @@
 # Support this project ☕
-# Telegram DeFi wallet (TON) — donate in TON to the address below.
-# Any TON wallet works; this link opens a pre-filled transfer.
+thanks_dev: u/gh/afanasievn        # https://thanks.dev
+# Telegram DeFi wallet (TON) — any TON wallet can send to this address;
+# the link opens a pre-filled transfer.
 custom:
   - "https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK"
 
-# Add later, once each is set up:
-# github: [AfanasievN]           # after GitHub Sponsors is approved (bank/tax configured)
-# thanks_dev: u/gh/AfanasievN    # after thanks.dev signup — copy the exact id from its settings
+# Enable once approved:
+# github: [AfanasievN]             # after GitHub Sponsors is set up (bank/tax configured)
