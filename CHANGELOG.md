@@ -4,6 +4,33 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-23
+
+### Added
+
+- Added Magisk-hide-resistant Android tells: `magiskAbstractSocketFound` (32+ char random abstract
+  socket in `/proc/net/unix`) and `magicMountModulesFound` (a `/system` file sharing the `/data`
+  device number — a magic-mount module, observable even under DenyList).
+- Broadened Android Frida evidence: `fridaThreadNamesFound` (worker-thread names), `fridaInjectorPipeFound`
+  (`linjector` fd), `fridaListenerPortFound` (`/proc/net/tcp` LISTEN on 27042/27043), and
+  `fridaHandshakeReject` (the D-Bus/Frida `AUTH` handshake on 27042 answers `REJECT`).
+- Widened Android emulator coverage (Andy/Nox/VirtualBox/x86 artifact files, BlueStacks shared folder,
+  `/proc/tty/drivers` goldfish) and added more Magisk artifact paths.
+- Added iOS `parentPidUnexpected` (`getppid()!=1`), `jailbreakBypassDetected` (the "Shadow" tweak),
+  `mainExecutableEncrypted` (Mach-O `LC_ENCRYPTION_INFO` cryptid), `openReverseEngineeringPorts`
+  (27042/4444/22/44 loopback), and more injected-dylib names.
+- Added iOS `lockdownModeEnabled` (Lockdown Mode, iOS 16+) to `device_security_posture`.
+
+### Compatibility and privacy
+
+- All new fields are optional and unavailable reads are omitted; missing stays distinct from `false`.
+  New Android fields are Android-only and new iOS fields are iOS-only.
+- No dependencies, JNI/NDK, network requests, persistent identifiers, `QUERY_ALL_PACKAGES`, runtime
+  permission prompts, or Apple Required-Reason API declarations were added.
+
+See the [v0.8.0 release notes](docs/releases/0.8.0.md) for field-level availability and the complete
+verification record.
+
 ## [0.7.0] - 2026-07-23
 
 ### Added
@@ -221,7 +248,8 @@ overview.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.0...v0.5.1
