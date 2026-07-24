@@ -131,7 +131,14 @@ without class initialization. Hooks are also observed through an independent sta
 bridge frames and a doubly-injected Zygote. Root evidence additionally covers `su` on the process
 `PATH` (`suOnPath` plus a `PATH`-derived binary scan), installed patcher/ROM-manager packages
 (`dangerousAppFound`), and root-hiding packages (`rootCloakingAppFound`); the package categories are
-queried only through the finite `<queries>` allow-list. Emulator observations include matched build markers, discovered emulator file paths,
+queried only through the finite `<queries>` allow-list. Magisk-hide-resistant tells add a
+random abstract control socket in `/proc/net/unix` (`magiskAbstractSocketFound`) and a magic-mount
+cross-check comparing the `/data` device number against `/system`-mapped files (`magicMountModulesFound`).
+Frida evidence beyond the port connect covers worker-thread names (`fridaThreadNamesFound`), the
+`linjector` fd (`fridaInjectorPipeFound`), a `/proc/net/tcp` listener on 27042/27043
+(`fridaListenerPortFound`), and the D-Bus `AUTH` handshake reply (`fridaHandshakeReject`). On iOS,
+`parentPidUnexpected`, `jailbreakBypassDetected` (the Shadow tweak), `mainExecutableEncrypted` (Mach-O
+cryptid), and `openReverseEngineeringPorts` are additional raw observations. Emulator observations include matched build markers, discovered emulator file paths,
 QEMU or virtual-hardware property markers, CPU markers, recognized emulator-family markers, sensor
 availability, Android Test Harness Mode, Firebase Test Lab presence, and iOS simulator or XCTest
 environment presence. Broad observations such as `test-keys`, an `unknown`

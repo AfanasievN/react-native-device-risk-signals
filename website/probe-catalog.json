@@ -149,6 +149,11 @@
         "hookStackFrames",
         "hookFrameworkFound",
         "magiskMountsFound",
+        "magiskAbstractSocketFound",
+        "magicMountModulesFound",
+        "fridaThreadNamesFound",
+        "fridaInjectorPipeFound",
+        "fridaListenerPortFound",
         "verifiedBootState",
         "bootloaderLocked",
         "selinuxEnforcing",
@@ -173,6 +178,10 @@
         "simulatorEnvironmentPresent",
         "abi",
         "dyldImageCount",
+        "parentPidUnexpected",
+        "jailbreakBypassDetected",
+        "mainExecutableEncrypted",
+        "openReverseEngineeringPorts",
         "tracerPid",
         "tracedByOtherProcess",
         "testKeysBuild",
@@ -202,7 +211,8 @@
       "fields": [
         "scanPerformed",
         "defaultPortOpen",
-        "scannedPort"
+        "scannedPort",
+        "fridaHandshakeReject"
       ]
     },
     {
@@ -553,7 +563,8 @@
         "automaticTimeEnabled",
         "automaticTimeZoneEnabled",
         "deviceProvisioned",
-        "securityPatch"
+        "securityPatch",
+        "lockdownModeEnabled"
       ],
       "notes": "Reports capability/state only and never displays an authentication prompt or reads biometric material."
     },

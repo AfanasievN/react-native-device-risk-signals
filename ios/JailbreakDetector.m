@@ -1,6 +1,11 @@
 #import "JailbreakDetector.h"
 #import <UIKit/UIKit.h>
+#import <arpa/inet.h>
 #import <mach-o/dyld.h>
+#import <mach-o/loader.h>
+#import <netinet/in.h>
+#import <objc/runtime.h>
+#import <sys/socket.h>
 #import <sys/stat.h>
 #import <sys/sysctl.h>
 #import <sys/wait.h>
@@ -58,7 +63,7 @@ static const char *kInjectionSignatures[] = {
   "substitute", "libhooker", "ellekit", "frida", "FridaGadget", "cynject", "cycript",
   "RocketBootstrap", "PreferenceLoader", "SSLKillSwitch", "systemhook.dylib",
   "SSLKillSwitch2", "0Shadow", "FlyJB", "Cephei", "Electra", "AppSyncUnified",
-  "WeeLoader", "libsparkapplist"
+  "WeeLoader", "libsparkapplist", "roothideinit", "CustomWidgetIcons", "ABypass"
 };
 
 static NSString *const kSuspiciousEnvironmentVariables[] = {
@@ -123,6 +128,12 @@ static NSString *const kSuspiciousEnvironmentVariables[] = {
   }
   result[@"suspiciousEnvironmentVariablesFound"] = @(environmentNames.count > 0);
   result[@"suspiciousEnvironmentVariableNames"] = environmentNames;
+
+  // Borrowed from IOSSecuritySuite: debugger/RE-tool/anti-anti-jailbreak/repackaging tells.
+  result[@"parentPidUnexpected"] = @([self parentPidUnexpected]);
+  result[@"jailbreakBypassDetected"] = @([self jailbreakBypassDetected]);
+  result[@"mainExecutableEncrypted"] = @([self mainExecutableEncrypted]);
+  result[@"openReverseEngineeringPorts"] = [self openReverseEngineeringPorts];
 
   return result;
 }
@@ -264,6 +275,80 @@ static NSString *const kSuspiciousEnvironmentVariables[] = {
     }
   }
   return hits;
+}
+
+// A normally-launched app is reparented to launchd (pid 1). A different parent means the process was
+// spawned by a debugger / debugserver. Simulator reparents to launchd_sim, so it is not meaningful there.
+- (BOOL)parentPidUnexpected
+{
+#if TARGET_OS_SIMULATOR
+  return NO;
+#else
+  return getppid() != 1;
+#endif
+}
+
+// "Shadow" is a popular tweak that HIDES jailbreaks from detectors; its presence is itself a tell.
+- (BOOL)jailbreakBypassDetected
+{
+  Class shadow = objc_getClass("ShadowRuleset");
+  if (shadow == nil) {
+    return NO;
+  }
+  return class_getInstanceMethod(shadow, NSSelectorFromString(@"internalDictionary")) != NULL;
+}
+
+// The main executable's LC_ENCRYPTION_INFO cryptid is non-zero for a FairPlay-encrypted App Store
+// binary and zero once decrypted (cracked/repackaged) — a raw anti-piracy/repackaging observation.
+- (BOOL)mainExecutableEncrypted
+{
+  const struct mach_header *header = _dyld_get_image_header(0);
+  if (header == NULL) {
+    return NO;
+  }
+  BOOL is64 = header->magic == MH_MAGIC_64 || header->magic == MH_CIGAM_64;
+  uintptr_t cursor = (uintptr_t)header + (is64 ? sizeof(struct mach_header_64) : sizeof(struct mach_header));
+  for (uint32_t i = 0; i < header->ncmds; i++) {
+    const struct load_command *lc = (const struct load_command *)cursor;
+    if (lc->cmd == LC_ENCRYPTION_INFO_64) {
+      return ((const struct encryption_info_command_64 *)lc)->cryptid != 0;
+    }
+    if (lc->cmd == LC_ENCRYPTION_INFO) {
+      return ((const struct encryption_info_command *)lc)->cryptid != 0;
+    }
+    cursor += lc->cmdsize;
+  }
+  return NO;
+}
+
+// Reverse-engineering tools bind well-known loopback ports; a successful connect = tool present.
+- (NSArray<NSNumber *> *)openReverseEngineeringPorts
+{
+  const uint16_t ports[] = {27042 /*frida*/, 4444 /*Needle*/, 22 /*OpenSSH*/, 44 /*checkra1n*/};
+  NSMutableArray<NSNumber *> *open = [NSMutableArray array];
+  for (size_t i = 0; i < sizeof(ports) / sizeof(ports[0]); i++) {
+    if ([self isLocalPortOpen:ports[i]]) {
+      [open addObject:@(ports[i])];
+    }
+  }
+  return open;
+}
+
+- (BOOL)isLocalPortOpen:(uint16_t)port
+{
+  int sock = socket(AF_INET, SOCK_STREAM, 0);
+  if (sock < 0) {
+    return NO;
+  }
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(port);
+  addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  // Loopback refuses a closed port immediately (ECONNREFUSED), so a plain connect is bounded.
+  BOOL isOpen = connect(sock, (const struct sockaddr *)&addr, sizeof(addr)) == 0;
+  close(sock);
+  return isOpen;
 }
 
 @end
