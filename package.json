@@ -1,6 +1,6 @@
 {
   "name": "react-native-device-risk-signals",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "React Native device risk signals for root, jailbreak, emulator, tampering, Frida, VPN, and proxy detection",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
