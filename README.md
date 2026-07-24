@@ -22,9 +22,27 @@ application owns transport, authentication, storage, scoring, and policy.
 [AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
 [Probe Catalog](https://afanasievn.github.io/react-native-device-risk-signals/signals/) · [Compatibility reports](docs/DEVICE_COMPATIBILITY.md) ·
 [Ask a question](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/q-a) ·
-[Share your integration](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/show-and-tell)
+[Share your integration](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/show-and-tell) ·
+[Support ☕](#support-this-project)
 
 **Zero runtime dependencies. No vendor backend. No persistent device ID. No client-side risk score.**
+
+## Support this project
+
+Free and open source, maintained in spare time — a donation keeps the fixes, releases, and new
+signals coming. 🙏 Use the **Sponsor** button at the top of the repo, or donate in **TON** (Telegram
+wallet): [![Donate TON](https://img.shields.io/badge/Donate-TON-0098EA)](https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK)
+
+<details>
+<summary>Donate via QR / address</summary>
+
+<img src="docs/images/donate-ton-qr.png" alt="Donate TON — scan with any TON wallet" width="200" />
+
+```
+UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK
+```
+
+</details>
 
 ## Quick start
 
@@ -797,25 +815,6 @@ vulnerability-free. Report suspected vulnerabilities privately as described in
 
 Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 Participation in this project is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## Support this project
-
-This library is free and open source, maintained in spare time. If it helped you — or saved you an
-expensive commercial anti-fraud SDK — a small donation keeps the fixes, releases, and new signals
-coming. 🙏
-
-Use the **Sponsor** button at the top of this repository, or donate directly in **TON** (Telegram
-wallet): scan the QR with any TON wallet, or open the link.
-
-[![Donate TON](https://img.shields.io/badge/Donate-TON-0098EA)](https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK)
-
-<img src="docs/images/donate-ton-qr.png" alt="Donate TON — scan with any TON wallet" width="200" />
-
-```
-UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK
-```
-
-Thank you for supporting open source!
 
 ## License
 
