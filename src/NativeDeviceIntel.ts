@@ -232,6 +232,11 @@ export type OsIntegritySignals = {
 
   // Android integrity properties (all omitted on iOS).
   magiskMountsFound?: boolean; // /proc/self/mountinfo shows a Magisk-style bind mount.
+  magiskAbstractSocketFound?: boolean; // Android: /proc/net/unix has a 32+ char random abstract socket (Magisk).
+  magicMountModulesFound?: boolean; // Android: a /system file shares the /data device number (magic-mount module).
+  fridaThreadNamesFound?: string[]; // Android: frida worker-thread names in /proc/self/task (gum-js-loop, pool-frida, …).
+  fridaInjectorPipeFound?: boolean; // Android: a /proc/self/fd entry points at a Frida "linjector" pipe.
+  fridaListenerPortFound?: boolean; // Android: /proc/net/tcp shows a LISTEN socket on 27042/27043.
   verifiedBootState?: string; // ro.boot.verifiedbootstate: "green" | "yellow" | "orange" | ...
   bootloaderLocked?: boolean; // ro.boot.flash.locked == "1".
   selinuxEnforcing?: boolean; // getenforce / ro.boot.selinux.
@@ -260,6 +265,10 @@ export type OsIntegritySignals = {
 
   // iOS misc raw.
   dyldImageCount?: number; // Total loaded dyld images (raw; abnormal counts correlate with tweaks).
+  parentPidUnexpected?: boolean; // iOS: getppid() != 1 (launchd) ⇒ spawned by a debugger. Android omitted.
+  jailbreakBypassDetected?: boolean; // iOS: the "Shadow" jailbreak-hider tweak is present. Android omitted.
+  mainExecutableEncrypted?: boolean; // iOS: main Mach-O LC_ENCRYPTION_INFO cryptid != 0 (false ⇒ decrypted/cracked).
+  openReverseEngineeringPorts?: number[]; // iOS: open loopback ports among 27042/4444/22/44 (frida/Needle/SSH/checkra1n).
   tracerPid?: number;
   tracedByOtherProcess?: boolean;
   testKeysBuild?: boolean;
@@ -287,6 +296,7 @@ export type DeviceSecurityPostureSignals = {
   automaticTimeZoneEnabled?: boolean;
   deviceProvisioned?: boolean;
   securityPatch?: string;
+  lockdownModeEnabled?: boolean; // iOS 16+: Lockdown Mode is on (UserDefaults LDMGlobalEnabled). Android omitted.
 };
 
 /** Point-in-time observations relevant to remote-control and high-value transaction protection. */
@@ -323,6 +333,7 @@ export type TransactionSafetySignals = {
 export type FridaScanSignals = {
   scanPerformed: boolean; // false on iOS (stub) or when the probe was skipped.
   defaultPortOpen?: boolean; // TCP connect to 127.0.0.1:27042 (frida-server default) succeeded.
+  fridaHandshakeReject?: boolean; // Android: the D-Bus/frida AUTH handshake on 27042 answered "REJECT" (genuine frida).
   scannedPort?: number; // The port that was probed (27042), echoed for traceability.
 };
 

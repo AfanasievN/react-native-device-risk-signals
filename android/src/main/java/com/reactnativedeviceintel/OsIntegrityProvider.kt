@@ -6,6 +6,7 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Debug
+import android.os.Environment
 import android.provider.Settings
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableArray
@@ -39,9 +40,16 @@ class OsIntegrityProvider(private val context: Context) {
   fun getOsIntegrity(): WritableMap {
     val map = Arguments.createMap()
 
-    val emulatorFiles = EMULATOR_FILE_PATHS.filter { safeExists(it) }
+    val bstSharedFolder = safeString {
+      "${Environment.getExternalStorageDirectory()?.absolutePath}/windows/BstSharedFolder"
+    }
+    val emulatorFiles = (EMULATOR_FILE_PATHS + listOfNotNull(bstSharedFolder)).filter { safeExists(it) }
     val emulatorProperties = emulatorSystemProperties()
-    val cpuInfo = safeString { File("/proc/cpuinfo").readText() }
+    // /proc/tty/drivers carries "goldfish" on the Android emulator; fold it into the CPU-token scan.
+    val cpuInfo = listOfNotNull(
+      safeString { File("/proc/cpuinfo").readText() },
+      safeString { File("/proc/tty/drivers").readText() },
+    ).joinToString("\n").ifEmpty { null }
     val emulatorEvidence = EmulatorEvidenceClassifier.classify(
       build = EmulatorBuildSnapshot(
         fingerprint = Build.FINGERPRINT ?: "",
@@ -108,6 +116,15 @@ class OsIntegrityProvider(private val context: Context) {
     map.putBoolean("magiskMountsFound", magiskMountsFound())
     map.putBoolean("suspiciousMountsFound", suspiciousMountsFound())
     map.putBoolean("zygiskIndicatorsFound", zygiskIndicatorsFound())
+    // Magisk DenyList/Shamiko-resistant tells (still read from the app process — a future isolated-process
+    // re-check would harden these further; see docs/native-security-borrowed-signals.md).
+    map.putBoolean("magiskAbstractSocketFound", magiskAbstractSocketFound())
+    map.putBoolean("magicMountModulesFound", magicMountModuleCount() > 0)
+    // Frida evidence beyond the port connect + maps-basename scan.
+    val fridaThreads = fridaThreadNames()
+    map.putArray("fridaThreadNamesFound", toStringArray(fridaThreads))
+    map.putBoolean("fridaInjectorPipeFound", fridaInjectorPipeFound())
+    map.putBoolean("fridaListenerPortFound", fridaListenerFound())
     map.putBoolean("suspiciousExecutableMappingsFound", suspiciousExecutableMappingsFound())
     val tracerPid = tracerPid()
     if (tracerPid != null) {
@@ -244,6 +261,46 @@ class OsIntegrityProvider(private val context: Context) {
     throw Exception("device-intel stack probe")
   } catch (e: Exception) {
     IntegrityEvidenceClassifier.hookStackFrameMatches(e.stackTrace.toList())
+  }
+
+  private fun magiskAbstractSocketFound(): Boolean = safeBool {
+    IntegrityEvidenceClassifier.magiskAbstractSocketPresent(File("/proc/net/unix").readText())
+  }
+
+  private fun magicMountModuleCount(): Int = try {
+    IntegrityEvidenceClassifier.magicMountModuleCount(
+      File("/proc/self/mountinfo").readText(),
+      File("/proc/self/maps").readText(),
+    )
+  } catch (e: Throwable) {
+    0
+  }
+
+  private fun fridaListenerFound(): Boolean = safeBool {
+    val tcp = listOfNotNull(
+      safeString { File("/proc/net/tcp").readText() },
+      safeString { File("/proc/net/tcp6").readText() },
+    ).joinToString("\n")
+    IntegrityEvidenceClassifier.fridaListenerPresent(tcp)
+  }
+
+  // Frida injects worker threads with recognizable names; enumerate /proc/self/task/<tid>/comm.
+  private fun fridaThreadNames(): List<String> = try {
+    val names = File("/proc/self/task").listFiles()
+      ?.mapNotNull { taskDir -> safeString { File(taskDir, "comm").readText().trim() } }
+      .orEmpty()
+    IntegrityEvidenceClassifier.fridaThreadNamesFound(names)
+  } catch (e: Throwable) {
+    emptyList()
+  }
+
+  // Frida's injector opens a pipe whose fd symlink target contains "linjector".
+  private fun fridaInjectorPipeFound(): Boolean = try {
+    File("/proc/self/fd").listFiles()
+      ?.any { fd -> safeString { fd.canonicalPath }?.contains("linjector") == true }
+      ?: false
+  } catch (e: Throwable) {
+    false
   }
 
   private fun magiskMountsFound(): Boolean {
@@ -461,6 +518,13 @@ class OsIntegrityProvider(private val context: Context) {
       "/system/framework/XposedBridge.jar",
       "/system/app/SuperSU.apk",
       "/system/app/Kinguser.apk",
+      "/sbin/magiskinit",
+      "/data/adb/magisk.img",
+      "/data/adb/.boot_count",
+      "/data/adb/magisk_simple",
+      "/cache/magisk.log",
+      "/init.magisk.rc",
+      "/dev/.magisk.unblock",
     )
 
     private val WRITABLE_PROBE_PATHS = listOf(
@@ -496,6 +560,19 @@ class OsIntegrityProvider(private val context: Context) {
       "/system/bin/droid4x-prop",
       "/system/bin/bstfolder",
       "/system/bin/androVM-prop",
+      "/fstab.andy",
+      "/ueventd.andy.rc",
+      "/fstab.nox",
+      "/init.nox.rc",
+      "/ueventd.nox.rc",
+      "/ueventd.android_x86.rc",
+      "/x86.prop",
+      "/ueventd.ttVM_x86.rc",
+      "/init.ttVM_x86.rc",
+      "/fstab.ttVM_x86",
+      "/fstab.vbox86",
+      "/init.vbox86.rc",
+      "/ueventd.vbox86.rc",
     )
 
     private val EMULATOR_SYSTEM_PROPERTIES = listOf(

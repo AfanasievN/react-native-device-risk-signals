@@ -1,6 +1,7 @@
 package com.reactnativedeviceintel
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -86,5 +87,49 @@ class IntegrityEvidenceClassifierTest {
       StackTraceElement("com.facebook.react.bridge.JavaMethodWrapper", "invoke", null, 2),
     )
     assertTrue(IntegrityEvidenceClassifier.hookStackFrameMatches(clean).isEmpty())
+  }
+
+  @Test
+  fun `frida thread-name scan keeps only frida-specific names`() {
+    assertEquals(
+      listOf("gum-js-loop", "pool-frida"),
+      IntegrityEvidenceClassifier.fridaThreadNamesFound(
+        listOf("main", "gmain", "gum-js-loop", "Binder:1", "pool-frida", "RenderThread"),
+      ),
+    )
+    assertTrue(IntegrityEvidenceClassifier.fridaThreadNamesFound(listOf("main", "gmain", "gdbus")).isEmpty())
+  }
+
+  @Test
+  fun `magisk abstract socket heuristic flags a 32-plus char random name only`() {
+    val header = "Num RefCount Protocol Flags Type St Inode Path\n"
+    val magisk = header +
+      "0000: 00000002 00000000 00010000 0001 01 12345 @A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6\n"
+    val clean = header +
+      "0000: 00000002 00000000 00010000 0001 01 12345 @android:something\n" +
+      "0000: 00000002 00000000 00010000 0001 01 12346 /dev/socket/logd\n"
+    assertTrue(IntegrityEvidenceClassifier.magiskAbstractSocketPresent(magisk))
+    assertFalse(IntegrityEvidenceClassifier.magiskAbstractSocketPresent(clean))
+  }
+
+  @Test
+  fun `frida listener detected on default ports in LISTEN state`() {
+    val header = "  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid\n"
+    val listening = header + "   0: 0100007F:69A2 00000000:0000 0A 00000000:00000000 00:00000000 00000000     0\n"
+    val established = header + "   0: 0100007F:69A2 0100007F:ABCD 01 00000000:00000000 00:00000000 00000000  10000\n"
+    assertTrue(IntegrityEvidenceClassifier.fridaListenerPresent(listening))
+    assertFalse(IntegrityEvidenceClassifier.fridaListenerPresent(established))
+  }
+
+  @Test
+  fun `magic mount cross-check matches a system file living on the data device`() {
+    // /data on device 253:0 (decimal); maps dev is hex (fd:00 == 253:0).
+    val mountinfo = "35 24 253:0 / /data rw,nosuid,nodev,noatime - ext4 /dev/block/dm-5 rw\n" +
+      "22 24 254:1 / /system ro,noatime - ext4 /dev/block/dm-0 ro\n"
+    val magicMounted = "700000000-700010000 r-xp 00000000 fd:00 5001 /system/app/Injected/base.apk\n"
+    val clean = "700000000-700010000 r-xp 00000000 fe:01 5001 /system/framework/framework.jar\n"
+    assertEquals(1, IntegrityEvidenceClassifier.magicMountModuleCount(mountinfo, magicMounted))
+    assertEquals(0, IntegrityEvidenceClassifier.magicMountModuleCount(mountinfo, clean))
+    assertEquals(0, IntegrityEvidenceClassifier.magicMountModuleCount("", magicMounted))
   }
 }

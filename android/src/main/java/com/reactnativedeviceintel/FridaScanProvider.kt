@@ -19,18 +19,37 @@ class FridaScanProvider {
     val map = Arguments.createMap()
     map.putBoolean("scanPerformed", true)
     map.putInt("scannedPort", FRIDA_DEFAULT_PORT)
-    map.putBoolean("defaultPortOpen", isPortOpen("127.0.0.1", FRIDA_DEFAULT_PORT, CONNECT_TIMEOUT_MS))
+    val probe = probePort("127.0.0.1", FRIDA_DEFAULT_PORT, CONNECT_TIMEOUT_MS)
+    map.putBoolean("defaultPortOpen", probe.open)
+    // A plain connect only says "something listens on 27042"; the D-Bus/frida AUTH handshake below
+    // confirms it is actually frida-server (it answers "REJECT"), distinguishing it from any other
+    // service that happens to bind that port.
+    map.putBoolean("fridaHandshakeReject", probe.handshakeReject)
     return map
   }
 
-  private fun isPortOpen(host: String, port: Int, timeoutMs: Int): Boolean {
+  private data class PortProbe(val open: Boolean, val handshakeReject: Boolean)
+
+  private fun probePort(host: String, port: Int, timeoutMs: Int): PortProbe {
     return try {
       Socket().use { socket ->
         socket.connect(InetSocketAddress(host, port), timeoutMs)
-        true
+        val reject = try {
+          socket.soTimeout = timeoutMs
+          val out = socket.getOutputStream()
+          out.write(0x00)
+          out.write("AUTH\r\n".toByteArray(Charsets.US_ASCII))
+          out.flush()
+          val buf = ByteArray(6)
+          val read = socket.getInputStream().read(buf)
+          read > 0 && String(buf, 0, read, Charsets.US_ASCII).startsWith("REJECT")
+        } catch (e: Exception) {
+          false
+        }
+        PortProbe(open = true, handshakeReject = reject)
       }
     } catch (e: Exception) {
-      false
+      PortProbe(open = false, handshakeReject = false)
     }
   }
 
