@@ -4,6 +4,27 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-07-24
+
+### Fixed
+
+- Android: `magiskAbstractSocketFound`, `magicMountModulesFound`, `fridaThreadNamesFound`,
+  `fridaInjectorPipeFound`, `fridaListenerPortFound` and `suOnPath` are now **omitted** when their
+  `/proc` source (or `which`) cannot be read, instead of reporting `false`. SELinux routinely denies
+  these reads on stock devices, so v0.8.0 could describe an unreadable — or genuinely compromised —
+  device as clean. Treat an absent field as unknown; do not default it to `false`.
+- iOS: removed `lockdownModeEnabled`. Its only read path is the `NSUserDefaults` key
+  `LDMGlobalEnabled`, and `NSUserDefaults` is an Apple Required-Reason API category while this module
+  ships an intentionally empty `NSPrivacyAccessedAPITypes`. Keeping it would have made the privacy
+  manifest untrue or forced a `CA92.1` declaration. Source-compatible removal of an optional field.
+
+### Compatibility and privacy
+
+- No new signals, dependencies, permissions, JNI/NDK, persistent identifiers, network requests, or
+  Apple Required-Reason API declarations.
+
+See the [v0.8.1 release notes](docs/releases/0.8.1.md) for the full rationale and backend guidance.
+
 ## [0.8.0] - 2026-07-23
 
 ### Added
@@ -248,7 +269,8 @@ overview.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.5.1...v0.6.0
