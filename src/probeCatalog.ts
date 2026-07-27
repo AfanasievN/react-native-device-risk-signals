@@ -469,9 +469,8 @@ export const PROBE_CATALOG = [
       "automaticTimeZoneEnabled",
       "deviceProvisioned",
       "securityPatch",
-      "lockdownModeEnabled",
     ],
-    notes: "Reports capability/state only and never displays an authentication prompt or reads biometric material.",
+    notes: "Reports capability/state only and never displays an authentication prompt or reads biometric material. iOS Lockdown Mode is not collected: its only read path (NSUserDefaults) is an Apple Required-Reason API category and this module declares none.",
   },
   {
     id: "transaction_safety",
