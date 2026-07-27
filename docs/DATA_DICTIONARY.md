@@ -136,9 +136,14 @@ random abstract control socket in `/proc/net/unix` (`magiskAbstractSocketFound`)
 cross-check comparing the `/data` device number against `/system`-mapped files (`magicMountModulesFound`).
 Frida evidence beyond the port connect covers worker-thread names (`fridaThreadNamesFound`), the
 `linjector` fd (`fridaInjectorPipeFound`), a `/proc/net/tcp` listener on 27042/27043
-(`fridaListenerPortFound`), and the D-Bus `AUTH` handshake reply (`fridaHandshakeReject`). On iOS,
+(`fridaListenerPortFound`), and the D-Bus `AUTH` handshake reply (`fridaHandshakeReject`). Every one of
+those `/proc`-derived fields — plus `suOnPath` — is **omitted when its source cannot be read**, because
+SELinux routinely denies these paths to third-party apps; an absent field means unknown and must not be
+defaulted to `false`. On iOS,
 `parentPidUnexpected`, `jailbreakBypassDetected` (the Shadow tweak), `mainExecutableEncrypted` (Mach-O
-cryptid), and `openReverseEngineeringPorts` are additional raw observations. Emulator observations include matched build markers, discovered emulator file paths,
+cryptid), and `openReverseEngineeringPorts` are additional raw observations. iOS Lockdown Mode is
+deliberately not collected: its only read path (`NSUserDefaults`) is an Apple Required-Reason API
+category and this module declares none. Emulator observations include matched build markers, discovered emulator file paths,
 QEMU or virtual-hardware property markers, CPU markers, recognized emulator-family markers, sensor
 availability, Android Test Harness Mode, Firebase Test Lab presence, and iOS simulator or XCTest
 environment presence. Broad observations such as `test-keys`, an `unknown`

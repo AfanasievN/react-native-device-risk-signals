@@ -296,7 +296,9 @@ export type DeviceSecurityPostureSignals = {
   automaticTimeZoneEnabled?: boolean;
   deviceProvisioned?: boolean;
   securityPatch?: string;
-  lockdownModeEnabled?: boolean; // iOS 16+: Lockdown Mode is on (UserDefaults LDMGlobalEnabled). Android omitted.
+  // iOS Lockdown Mode is intentionally NOT collected: the only way to read it is the NSUserDefaults
+  // key "LDMGlobalEnabled", and NSUserDefaults is an Apple Required-Reason API category while this
+  // module's PrivacyInfo.xcprivacy declares none. See ios/SecurityPostureProvider.m.
 };
 
 /** Point-in-time observations relevant to remote-control and high-value transaction protection. */

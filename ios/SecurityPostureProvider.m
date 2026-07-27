@@ -26,11 +26,11 @@
     }
   }
   result[@"biometryType"] = biometryType;
-  // Lockdown Mode (iOS 16+) is reflected by the undocumented NSUserDefaults key "LDMGlobalEnabled".
-  // A high-security-posture user; a raw observation for the backend (borrowed from IOSSecuritySuite).
-  if (@available(iOS 16.0, *)) {
-    result[@"lockdownModeEnabled"] = @([[NSUserDefaults standardUserDefaults] boolForKey:@"LDMGlobalEnabled"]);
-  }
+  // NOTE: Lockdown Mode (the undocumented NSUserDefaults key "LDMGlobalEnabled") is deliberately NOT
+  // read. NSUserDefaults is an Apple Required-Reason API category, and this module's
+  // PrivacyInfo.xcprivacy declares an EMPTY NSPrivacyAccessedAPITypes; reading it would either make
+  // that manifest untrue or force a CA92.1 declaration, breaking the "declares none" guarantee.
+  // One posture bit is not worth that trade.
   void (^work)(void) = ^{
     result[@"protectedDataAvailable"] = @([UIApplication sharedApplication].protectedDataAvailable);
   };

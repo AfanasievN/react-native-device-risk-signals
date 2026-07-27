@@ -81,7 +81,7 @@ class OsIntegrityProvider(private val context: Context) {
     val rootFilesFound = ROOT_FILE_PATHS.filter { safeExists(it) }
     val allSuspiciousPaths = (suFound + rootFilesFound).distinct()
     map.putBoolean("suBinaryFound", suFound.isNotEmpty())
-    map.putBoolean("suOnPath", suExistsOnPath())
+    suExistsOnPath()?.let { map.putBoolean("suOnPath", it) }
     map.putBoolean("rootManagementAppFound", anyPackageInstalled(KnownAppLists.rootManagementPackages))
     map.putBoolean("dangerousAppFound", anyPackageInstalled(KnownAppLists.potentiallyDangerousAppPackages))
     map.putBoolean("rootCloakingAppFound", anyPackageInstalled(KnownAppLists.rootCloakingPackages))
@@ -118,13 +118,15 @@ class OsIntegrityProvider(private val context: Context) {
     map.putBoolean("zygiskIndicatorsFound", zygiskIndicatorsFound())
     // Magisk DenyList/Shamiko-resistant tells (still read from the app process — a future isolated-process
     // re-check would harden these further; see docs/native-security-borrowed-signals.md).
-    map.putBoolean("magiskAbstractSocketFound", magiskAbstractSocketFound())
-    map.putBoolean("magicMountModulesFound", magicMountModuleCount() > 0)
+    // Every one of these reads can be denied by SELinux on a stock device. "Could not read" is a
+    // DIFFERENT observation from "read it and found nothing", so an unavailable read OMITS the field
+    // instead of reporting false — otherwise a denial would look like a clean device to the backend.
+    magiskAbstractSocketFound()?.let { map.putBoolean("magiskAbstractSocketFound", it) }
+    magicMountModuleCount()?.let { map.putBoolean("magicMountModulesFound", it > 0) }
     // Frida evidence beyond the port connect + maps-basename scan.
-    val fridaThreads = fridaThreadNames()
-    map.putArray("fridaThreadNamesFound", toStringArray(fridaThreads))
-    map.putBoolean("fridaInjectorPipeFound", fridaInjectorPipeFound())
-    map.putBoolean("fridaListenerPortFound", fridaListenerFound())
+    fridaThreadNames()?.let { map.putArray("fridaThreadNamesFound", toStringArray(it)) }
+    fridaInjectorPipeFound()?.let { map.putBoolean("fridaInjectorPipeFound", it) }
+    fridaListenerFound()?.let { map.putBoolean("fridaListenerPortFound", it) }
     map.putBoolean("suspiciousExecutableMappingsFound", suspiciousExecutableMappingsFound())
     val tracerPid = tracerPid()
     if (tracerPid != null) {
@@ -246,13 +248,16 @@ class OsIntegrityProvider(private val context: Context) {
     return (SU_BINARY_PATHS + EXTRA_SU_BINARY_PATHS + fromEnv).distinct()
   }
 
-  // `which su` — orthogonal to file-existence: it resolves `su` via the process PATH. Best-effort;
-  // absent `which` / SELinux denial ⇒ false (unknown, not "clean").
-  private fun suExistsOnPath(): Boolean = safeBool {
+  // `which su` — orthogonal to file-existence: it resolves `su` via the process PATH. Returns null
+  // when `which` cannot be executed at all (absent binary / SELinux denial): that is "unknown", and
+  // the caller OMITS the field rather than claiming the PATH is clean.
+  private fun suExistsOnPath(): Boolean? = try {
     val process = Runtime.getRuntime().exec(arrayOf("which", "su"))
     val line = process.inputStream.bufferedReader().use { it.readLine() }
     process.destroy()
     !line.isNullOrBlank()
+  } catch (e: Throwable) {
+    null
   }
 
   // Stack-probe for hook frameworks: capture the current stack and match Xposed/LSPosed/Substrate
@@ -263,44 +268,56 @@ class OsIntegrityProvider(private val context: Context) {
     IntegrityEvidenceClassifier.hookStackFrameMatches(e.stackTrace.toList())
   }
 
-  private fun magiskAbstractSocketFound(): Boolean = safeBool {
+  // /proc/net/unix is SELinux-restricted for third-party apps on modern Android: an unreadable file
+  // is "unknown", NOT "no Magisk socket". Returns null so the caller omits the field.
+  private fun magiskAbstractSocketFound(): Boolean? = try {
     IntegrityEvidenceClassifier.magiskAbstractSocketPresent(File("/proc/net/unix").readText())
+  } catch (e: Throwable) {
+    null
   }
 
-  private fun magicMountModuleCount(): Int = try {
+  // null ⇒ mountinfo/maps unreadable (unknown), 0 ⇒ read succeeded and found no magic-mounted module.
+  private fun magicMountModuleCount(): Int? = try {
     IntegrityEvidenceClassifier.magicMountModuleCount(
       File("/proc/self/mountinfo").readText(),
       File("/proc/self/maps").readText(),
     )
   } catch (e: Throwable) {
-    0
+    null
   }
 
-  private fun fridaListenerFound(): Boolean = safeBool {
+  // /proc/net/tcp(6) is SELinux-restricted since Android 10. If NEITHER file can be read we know
+  // nothing about listeners — return null (omit) instead of asserting no frida-server is listening.
+  private fun fridaListenerFound(): Boolean? {
     val tcp = listOfNotNull(
       safeString { File("/proc/net/tcp").readText() },
       safeString { File("/proc/net/tcp6").readText() },
-    ).joinToString("\n")
-    IntegrityEvidenceClassifier.fridaListenerPresent(tcp)
+    )
+    if (tcp.isEmpty()) return null
+    return try {
+      IntegrityEvidenceClassifier.fridaListenerPresent(tcp.joinToString("\n"))
+    } catch (e: Throwable) {
+      null
+    }
   }
 
   // Frida injects worker threads with recognizable names; enumerate /proc/self/task/<tid>/comm.
-  private fun fridaThreadNames(): List<String> = try {
-    val names = File("/proc/self/task").listFiles()
-      ?.mapNotNull { taskDir -> safeString { File(taskDir, "comm").readText().trim() } }
-      .orEmpty()
+  // null ⇒ the task directory could not be listed (unknown); an empty list ⇒ enumerated, none matched.
+  private fun fridaThreadNames(): List<String>? = try {
+    val taskDirs = File("/proc/self/task").listFiles() ?: return null
+    val names = taskDirs.mapNotNull { taskDir -> safeString { File(taskDir, "comm").readText().trim() } }
     IntegrityEvidenceClassifier.fridaThreadNamesFound(names)
   } catch (e: Throwable) {
-    emptyList()
+    null
   }
 
   // Frida's injector opens a pipe whose fd symlink target contains "linjector".
-  private fun fridaInjectorPipeFound(): Boolean = try {
-    File("/proc/self/fd").listFiles()
-      ?.any { fd -> safeString { fd.canonicalPath }?.contains("linjector") == true }
-      ?: false
+  // null ⇒ /proc/self/fd could not be listed (unknown), not "no injector pipe".
+  private fun fridaInjectorPipeFound(): Boolean? = try {
+    val fds = File("/proc/self/fd").listFiles() ?: return null
+    fds.any { fd -> safeString { fd.canonicalPath }?.contains("linjector") == true }
   } catch (e: Throwable) {
-    false
+    null
   }
 
   private fun magiskMountsFound(): Boolean {
@@ -425,6 +442,10 @@ class OsIntegrityProvider(private val context: Context) {
     }
   }
 
+  // NB: `File.exists()` maps to access(2), which returns false (it does NOT throw) when SELinux denies
+  // the path. So a false here means "not present OR not visible to this app" — an ambiguity inherent to
+  // the platform, not something the wrapper can recover. That is acceptable for the path LISTS
+  // (suspiciousFilePaths is evidence-by-presence), but never build an "everything is clean" claim on it.
   private fun safeExists(path: String): Boolean = safeBool { File(path).exists() }
 
   private fun toStringArray(values: List<String>): WritableArray {
@@ -433,6 +454,13 @@ class OsIntegrityProvider(private val context: Context) {
     return arr
   }
 
+  /**
+   * Collapses a throwing read to `false`. ONLY use this where `false` is a truthful observation on
+   * failure (e.g. a platform API that is simply absent on this API level). Do NOT use it for a read
+   * whose `false` asserts "checked and clean" — a denied /proc read would then be indistinguishable
+   * from a clean device. Those helpers return `Boolean?`/`List<String>?` and the caller omits the
+   * field instead (see magiskAbstractSocketFound, fridaListenerFound, suExistsOnPath).
+   */
   private inline fun safeBool(block: () -> Boolean): Boolean = try {
     block()
   } catch (e: Throwable) {
