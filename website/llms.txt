@@ -47,3 +47,4 @@ The SDK returns typed RawSignalEvent data. It does not calculate a risk score, r
 
 - [GitHub repository](https://github.com/AfanasievN/react-native-device-risk-signals): Source, tests, issues, releases, and contribution guidance.
 - [npm package](https://www.npmjs.com/package/react-native-device-risk-signals): Published package.
+- [Support the project](https://afanasievn.github.io/react-native-device-risk-signals/support/): GitHub Sponsors and TON donation details.

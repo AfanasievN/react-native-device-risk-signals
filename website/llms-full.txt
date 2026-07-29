@@ -132,3 +132,4 @@ verification and raw signals for additional context. Keep both bound to the same
 - Compatibility: https://afanasievn.github.io/react-native-device-risk-signals/compatibility/
 - Versions: https://afanasievn.github.io/react-native-device-risk-signals/versions/
 - Source: https://github.com/AfanasievN/react-native-device-risk-signals
+- Support: https://afanasievn.github.io/react-native-device-risk-signals/support/

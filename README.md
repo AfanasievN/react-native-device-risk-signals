@@ -36,8 +36,8 @@ application owns transport, authentication, storage, scoring, and policy.
 ## Support this project
 
 Free and open source, maintained in spare time — a donation keeps the fixes, releases, and new
-signals coming. 🙏 Use the **Sponsor** button at the top of the repo, or donate in **TON** (Telegram
-wallet): [![Donate TON](https://img.shields.io/badge/Donate-TON-0098EA)](https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK)
+signals coming. 🙏 [Sponsor AfanasievN on GitHub](https://github.com/sponsors/AfanasievN), or donate
+in **TON**: [![Donate TON](https://img.shields.io/badge/Donate-TON-0098EA)](https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK)
 
 <details>
 <summary>Donate via QR / address</summary>

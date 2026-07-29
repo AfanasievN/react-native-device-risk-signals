@@ -27,6 +27,7 @@ const expectedPages = [
   "privacy/index.html",
   "risk-teams/index.html",
   "faq/index.html",
+  "support/index.html",
   "404.html",
 ];
 
@@ -64,6 +65,10 @@ for (const relativePath of expectedPages) {
   assert(/<meta name="twitter:title" content="[^"]+"/.test(html), `${relativePath}: missing Twitter title`);
   assert(/<meta name="twitter:description" content="[^"]+"/.test(html), `${relativePath}: missing Twitter description`);
   assert(/<script type="application\/ld\+json">[\s\S]+?<\/script>/.test(html), `${relativePath}: missing JSON-LD`);
+  assert(
+    /href="\/react-native-device-risk-signals\/support\/"/.test(html),
+    `${relativePath}: footer must link to the support page`,
+  );
   for (const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]+?)<\/script>/g)) {
     try {
       JSON.parse(match[1]);
@@ -86,6 +91,7 @@ for (const asset of [
   "assets/styles.css",
   "assets/site.js",
   "assets/social-preview.png",
+  "assets/donate-ton-qr.png",
   "probe-catalog.json",
   "raw-signal-event.schema.json",
   "llms.txt",
@@ -328,6 +334,35 @@ if (fs.existsSync(homePath)) {
   assert(
     home.includes("issues/new?template=03-device-compatibility.yml"),
     "Homepage must link to the physical-device compatibility form",
+  );
+}
+
+const supportPath = path.join(siteRoot, "support/index.html");
+if (fs.existsSync(supportPath)) {
+  const support = fs.readFileSync(supportPath, "utf8");
+  for (const requiredTerm of [
+    "https://github.com/sponsors/AfanasievN",
+    "https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK",
+    "UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK",
+    "../assets/donate-ton-qr.png",
+  ]) {
+    assert(support.includes(requiredTerm), `Support page is missing ${requiredTerm}`);
+  }
+}
+
+const fundingPath = path.join(root, ".github/FUNDING.yml");
+assert(fs.existsSync(fundingPath), "Missing GitHub funding configuration");
+if (fs.existsSync(fundingPath)) {
+  const funding = fs.readFileSync(fundingPath, "utf8");
+  assert(/^github:\s*\[AfanasievN\]$/m.test(funding), "GitHub Sponsors must be enabled for AfanasievN");
+}
+
+const readmePath = path.join(root, "README.md");
+if (fs.existsSync(readmePath)) {
+  const readme = fs.readFileSync(readmePath, "utf8");
+  assert(
+    readme.includes("https://github.com/sponsors/AfanasievN"),
+    "README support section must link directly to GitHub Sponsors",
   );
 }
 

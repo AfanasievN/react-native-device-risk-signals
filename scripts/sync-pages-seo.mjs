@@ -7,6 +7,8 @@ const siteRoot = path.join(root, "website");
 const siteBase = "https://afanasievn.github.io/react-native-device-risk-signals/";
 const repository = "https://github.com/AfanasievN/react-native-device-risk-signals";
 const socialImage = `${siteBase}assets/social-preview.png`;
+const supportHref = "/react-native-device-risk-signals/support/";
+const supportLink = `<a class="support-link" href="${supportHref}">Support project</a>`;
 const markerStart = "<!-- SEO_DISCOVERY_METADATA_START -->";
 const markerEnd = "<!-- SEO_DISCOVERY_METADATA_END -->";
 
@@ -176,6 +178,9 @@ for (const pagePath of pages) {
       /<!-- SEO_DISCOVERY_METADATA_END -->\n(?:\s*\n)+(\s*<link rel="icon")/,
       `<!-- SEO_DISCOVERY_METADATA_END -->\n$1`,
     );
+  if (!html.includes(`href="${supportHref}"`)) {
+    html = html.replace('<div class="footer-links">', `<div class="footer-links">${supportLink}`);
+  }
   fs.writeFileSync(pagePath, html);
 }
 
