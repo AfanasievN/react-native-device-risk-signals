@@ -1,6 +1,11 @@
 const menuButton = document.querySelector("[data-menu-button]");
 const navigation = document.querySelector("[data-navigation]");
 
+for (const brandMark of document.querySelectorAll(".brand-mark")) {
+  brandMark.setAttribute("aria-hidden", "true");
+  brandMark.textContent = "";
+}
+
 menuButton?.addEventListener("click", () => {
   const isOpen = navigation?.dataset.open === "true";
   if (navigation) navigation.dataset.open = String(!isOpen);

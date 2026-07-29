@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
-  <title id="title">React Native Device Risk Signals</title>
+  <title id="title">Device Risk Signals mark</title>
   <desc id="description">Two open observation rings surrounding an independent raw signal.</desc>
-  <rect width="64" height="64" rx="14" fill="#111814"/>
   <path d="M43 9a24 24 0 1 0 0 46" fill="none" stroke="#f5f4ef" stroke-width="8" stroke-linecap="butt"/>
   <path d="M45 20a13 13 0 1 0 0 24" fill="none" stroke="#f5f4ef" stroke-width="8" stroke-linecap="butt"/>
   <rect x="34" y="29" width="7" height="7" fill="#ff5a2b"/>

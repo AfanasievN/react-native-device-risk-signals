@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./docs/images/readme-header.svg" width="100%" alt="React Native Device Risk Signals: raw device context for Android and iOS" />
+</p>
+
 # React Native Device Risk Signals
 
 Open-source React Native TurboModule for collecting raw device intelligence and fraud-prevention

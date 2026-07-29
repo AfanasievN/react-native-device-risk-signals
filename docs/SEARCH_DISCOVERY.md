@@ -12,6 +12,8 @@ description, canonical URL, Open Graph and Twitter metadata, JSON-LD, and a site
 - `website/llms-full.txt` is a consolidated source-grounded context document.
 - `website/probe-catalog.json` and `website/raw-signal-event.schema.json` are authoritative
   machine-readable contracts.
+- `website/assets/logo.svg` is the canonical square brand mark. Transparent light and dark variants
+  live beside it for documentation and external listings.
 - `website/assets/social-preview.png` is the shared 1200 by 630 social preview.
 - JSON-LD identifies the project, software package, documentation pages, articles, and breadcrumbs.
 

@@ -127,7 +127,7 @@ function metadataBlock({canonical, description, relativePath, title, type}) {
   const escapedDescription = description.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
   return `${markerStart}
   <meta property="og:image" content="${socialImage}">
-  <meta property="og:image:alt" content="Signal Bench displaying a structured React Native device signals event">
+  <meta property="og:image:alt" content="React Native Device Risk Signals logo with a structured raw Android and iOS event preview">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">

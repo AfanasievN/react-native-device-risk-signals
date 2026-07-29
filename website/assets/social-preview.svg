@@ -3,8 +3,12 @@
   <desc id="description">Raw Android and iOS device risk observations without a vendor backend or client-side verdict.</desc>
   <rect width="1200" height="630" fill="#f7f8f5"/>
   <rect x="64" y="64" width="1072" height="502" rx="14" fill="#ffffff" stroke="#d7ded8" stroke-width="2"/>
-  <rect x="104" y="104" width="58" height="58" rx="12" fill="#18211c"/>
-  <text x="133" y="141" fill="#d9fbe7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="21" font-weight="700" text-anchor="middle">RS</text>
+  <g transform="translate(104 104) scale(.90625)">
+    <rect width="64" height="64" rx="14" fill="#111814"/>
+    <path d="M43 9a24 24 0 1 0 0 46" fill="none" stroke="#f5f4ef" stroke-width="8"/>
+    <path d="M45 20a13 13 0 1 0 0 24" fill="none" stroke="#f5f4ef" stroke-width="8"/>
+    <rect x="34" y="29" width="7" height="7" fill="#ff5a2b"/>
+  </g>
   <text x="184" y="140" fill="#18211c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25" font-weight="700">React Native Device Risk Signals</text>
   <text x="104" y="250" fill="#18211c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="59" font-weight="760">
     <tspan x="104" dy="0">Raw device context.</tspan>

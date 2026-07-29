@@ -58,7 +58,10 @@ for (const relativePath of expectedPages) {
   assert(/<link rel="canonical" href="https:[\/]\/afanasievn\.github\.io\/react-native-device-risk-signals\//.test(html), `${relativePath}: missing canonical URL`);
   assert(/<meta property="og:title"/.test(html), `${relativePath}: missing Open Graph title`);
   assert(/<meta property="og:image" content="https:/.test(html), `${relativePath}: missing Open Graph image`);
-  assert(/<meta property="og:image:alt" content="[^"]+"/.test(html), `${relativePath}: missing Open Graph image alt`);
+  assert(
+    /<meta property="og:image:alt" content="React Native Device Risk Signals logo with a structured raw Android and iOS event preview"/.test(html),
+    `${relativePath}: missing current Open Graph image alt`,
+  );
   assert(/<meta property="og:image:width" content="1200"/.test(html), `${relativePath}: missing Open Graph image width`);
   assert(/<meta property="og:image:height" content="630"/.test(html), `${relativePath}: missing Open Graph image height`);
   assert(/<meta name="twitter:card" content="summary_large_image"/.test(html), `${relativePath}: missing Twitter card`);
@@ -90,6 +93,14 @@ for (const relativePath of expectedPages) {
 for (const asset of [
   "assets/styles.css",
   "assets/site.js",
+  "assets/favicon.svg",
+  "assets/logo.svg",
+  "assets/logo-512.png",
+  "assets/logo-mark-light.svg",
+  "assets/logo-mark-light-512.png",
+  "assets/logo-mark-dark.svg",
+  "assets/logo-mark-dark-512.png",
+  "assets/social-preview.svg",
   "assets/social-preview.png",
   "assets/donate-ton-qr.png",
   "probe-catalog.json",
