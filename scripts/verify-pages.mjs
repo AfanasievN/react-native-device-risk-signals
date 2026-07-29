@@ -10,6 +10,13 @@ const expectedPages = [
   "integration/index.html",
   "backend/index.html",
   "recipes/index.html",
+  "ai-prompts/index.html",
+  "use-cases/index.html",
+  "use-cases/authentication/index.html",
+  "use-cases/payments/index.html",
+  "use-cases/account-recovery/index.html",
+  "use-cases/promotions/index.html",
+  "use-cases/protected-actions/index.html",
   "compatibility/index.html",
   "versions/index.html",
   "privacy/index.html",
@@ -60,6 +67,7 @@ for (const asset of [
   "assets/site.js",
   "probe-catalog.json",
   "raw-signal-event.schema.json",
+  "llms.txt",
   "examples/android-event.json",
   "examples/ios-event.json",
   "examples/outcome-states.json",
@@ -136,16 +144,93 @@ if (fs.existsSync(siteScriptPath)) {
     /if \(disclosure\) disclosure\.open = true;\s+target\.scrollIntoView/.test(siteScript),
     "BUG-R1: catalog deep links must scroll synchronously after revealing a field",
   );
+  assert(/function activateBackendTab/.test(siteScript), "Backend framework tabs must have an activation controller");
+  assert(/ArrowLeft/.test(siteScript) && /ArrowRight/.test(siteScript), "Backend framework tabs must support arrow keys");
 }
 
 const backendPath = path.join(siteRoot, "backend/index.html");
 if (fs.existsSync(backendPath)) {
   const backend = fs.readFileSync(backendPath, "utf8");
   assert(/POST \/api\/v1\/device-signal-events/.test(backend), "Backend guide must define the ingestion endpoint");
+  assert(/role="tablist"[^>]*aria-label="Backend framework"/.test(backend), "Backend guide must expose accessible framework tabs");
+  for (const backendId of ["django", "fastapi", "express", "go"]) {
+    assert(backend.includes(`data-backend-tab="${backendId}"`), `Backend guide must include the ${backendId} tab`);
+    assert(backend.includes(`data-backend-panel="${backendId}"`), `Backend guide must include the ${backendId} panel`);
+  }
+  assert(/action_type = serializers\.CharField/.test(backend), "Backend guide must accept the use-case action_type");
+  assert(/"action_type": serializer\.validated_data/.test(backend), "Backend guide must persist the use-case action_type");
+  assert(/class DeviceSignalEventIn\(BaseModel\)/.test(backend), "Backend guide must include FastAPI validation");
+  assert(/app\.post\("\/api\/v1\/device-signal-events"/.test(backend), "Backend guide must include an Express endpoint");
+  assert(/http\.HandleFunc\("\/api\/v1\/device-signal-events"/.test(backend), "Backend guide must include a Go endpoint");
   assert(/models\.JSONField/.test(backend), "Backend guide must include a Django JSONField model");
   assert(/class DeviceSignalEventSerializer/.test(backend), "Backend guide must include a DRF serializer");
   assert(/idempotency/i.test(backend), "Backend guide must document idempotency");
   assert(/unknown probe/i.test(backend), "Backend guide must document unknown probe handling");
+}
+
+const useCaseRequirements = new Map([
+  ["use-cases/authentication/index.html", ["login_attempt", "consentFor", "clientId"]],
+  ["use-cases/payments/index.html", ["payment_attempt", "transaction_safety", "action_id"]],
+  ["use-cases/account-recovery/index.html", ["recovery_attempt", "recovery path", "action_id"]],
+  ["use-cases/promotions/index.html", ["promotion_redemption", "geolocation", "action_id"]],
+  ["use-cases/protected-actions/index.html", ["protected_action", "transaction_safety", "action_id"]],
+]);
+
+for (const [relativePath, requiredTerms] of useCaseRequirements) {
+  const useCasePath = path.join(siteRoot, relativePath);
+  if (!fs.existsSync(useCasePath)) continue;
+  const useCase = fs.readFileSync(useCasePath, "utf8");
+  assert(/data-use-case=/.test(useCase), `${relativePath}: missing machine-readable use-case id`);
+  assert(/does not calculate a risk score/i.test(useCase), `${relativePath}: missing raw-signal boundary`);
+  for (const term of requiredTerms) {
+    assert(useCase.includes(term), `${relativePath}: missing required guidance for ${term}`);
+  }
+}
+
+const useCasesHubPath = path.join(siteRoot, "use-cases/index.html");
+if (fs.existsSync(useCasesHubPath)) {
+  const useCasesHub = fs.readFileSync(useCasesHubPath, "utf8");
+  for (const slug of ["authentication", "payments", "account-recovery", "promotions", "protected-actions"]) {
+    assert(useCasesHub.includes(`./${slug}/`), `Use-case hub must link to ${slug}`);
+  }
+}
+
+const aiPromptsPath = path.join(siteRoot, "ai-prompts/index.html");
+if (fs.existsSync(aiPromptsPath)) {
+  const aiPrompts = fs.readFileSync(aiPromptsPath, "utf8");
+  for (const promptId of [
+    "explain-sdk-prompt",
+    "mobile-integration-prompt",
+    "backend-architecture-prompt",
+    "django-backend-prompt",
+    "fastapi-backend-prompt",
+    "express-backend-prompt",
+    "go-backend-prompt",
+    "privacy-review-prompt",
+  ]) {
+    assert(aiPrompts.includes(`id="${promptId}"`), `AI prompt library is missing ${promptId}`);
+  }
+  for (const requiredTerm of [
+    "{{BACKEND_STACK}}",
+    "{{DATABASE}}",
+    "{{AUTHENTICATION_MODEL}}",
+    "raw-signal-event.schema.json",
+    "probe-catalog.json",
+    "Do not invent probe IDs or fields",
+    "does not calculate a risk score",
+  ]) {
+    assert(aiPrompts.includes(requiredTerm), `AI prompt library is missing required context: ${requiredTerm}`);
+  }
+}
+
+const llmsPath = path.join(siteRoot, "llms.txt");
+if (fs.existsSync(llmsPath)) {
+  const llms = fs.readFileSync(llmsPath, "utf8");
+  assert(llms.startsWith("# React Native Device Risk Signals"), "llms.txt must start with the product heading");
+  for (const pathName of ["signals/", "backend/", "use-cases/", "ai-prompts/", "raw-signal-event.schema.json", "probe-catalog.json"]) {
+    assert(llms.includes(pathName), `llms.txt must link to ${pathName}`);
+  }
+  assert(/does not calculate a risk score/i.test(llms), "llms.txt must preserve the SDK decision boundary");
 }
 
 const integrationPath = path.join(siteRoot, "integration/index.html");
@@ -174,6 +259,8 @@ if (fs.existsSync(riskGuidePath)) {
 const homePath = path.join(siteRoot, "index.html");
 if (fs.existsSync(homePath)) {
   const home = fs.readFileSync(homePath, "utf8");
+  assert(home.includes("./use-cases/"), "Homepage must link to the use-case hub");
+  assert(home.includes("./ai-prompts/"), "Homepage must link to the AI prompt library");
   assert(home.includes("/discussions/categories/q-a"), "Homepage must link to integration Q&A");
   assert(
     home.includes("issues/new?template=03-device-compatibility.yml"),

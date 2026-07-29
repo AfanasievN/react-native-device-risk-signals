@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Authentication Use Case | Device Risk Signals</title>
+  <meta name="description" content="Add raw device context to a React Native login attempt with a server-issued action identifier, conservative probes, and a Django-ready transport payload.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/authentication/">
+  <meta property="og:title" content="Authentication with Device Risk Signals"><meta property="og:description" content="A complete login-attempt collection pattern for React Native and backend teams."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/authentication/">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../risk-teams/">Risk teams</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Authentication</strong><a href="#flow">Event flow</a><a href="#mobile">Mobile code</a><a href="#transport">Transport</a><a href="#backend">Backend use</a><a href="#boundaries">Boundaries</a></aside>
+    <article class="prose" data-use-case="login_attempt">
+      <details class="mobile-toc"><summary>Authentication guide</summary><nav aria-label="Page navigation"><a href="#flow">Event flow</a><a href="#mobile">Mobile code</a><a href="#transport">Transport</a><a href="#backend">Backend use</a><a href="#boundaries">Boundaries</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Use case</p><h1>Attach device context to a login attempt</h1><p class="lede">Collect immediately before credential submission or after an identity-provider callback, using an opaque <code>login_attempt</code> ID created by the backend.</p><div class="button-row"><a class="button" href="../payments/">Next: payments</a><a class="button secondary" href="../../signals/">Inspect fields</a></div></header>
+      <section id="flow"><h2>Event flow</h2><div class="pipeline"><div>1. Create login attempt</div><div>2. Return action ID</div><div>3. Collect locally</div><div>4. Submit through host API</div><div>5. Join server evidence</div></div><p>The action ID binds a short-lived collection to one authentication attempt. It is not a device identifier and should expire with the login flow.</p></section>
+      <section id="mobile"><h2>Mobile collection</h2><p>Before authentication, omit <code>clientId</code>. The backend already knows the attempted username or identity-provider subject and must not trust an account identifier supplied by the device as authentication.</p><div class="code-block"><button class="copy-button" type="button" data-copy="auth-code">Copy</button><pre id="auth-code"><code>import { consentFor, DeviceIntel } from "react-native-device-risk-signals";
+
+const loginIntel = new DeviceIntel({
+  consent: consentFor([
+    "device_identity",
+    "application",
+    "os_integrity",
+    "device_security_posture",
+    "network",
+    "locale",
+    "runtime",
+  ]),
+});
+
+const observations = await loginIntel.collect({
+  sessionId: loginAttempt.id,
+});
+
+await api.post("/api/v1/device-signal-events", {
+  action_id: loginAttempt.id,
+  action_type: "login_attempt",
+  sdk_version: SDK_VERSION,
+  platform: Platform.OS,
+  observations,
+});</code></pre></div><p>After authentication succeeds, applications may call <code>setClientId(accountId)</code> for later events. That value remains app-supplied correlation data, not identity proof.</p></section>
+      <section id="transport"><h2>Backend request</h2><div class="code-block"><button class="copy-button" type="button" data-copy="auth-request">Copy</button><pre id="auth-request"><code>POST /api/v1/device-signal-events
+Authorization: Bearer &lt;login-flow-token&gt;
+Idempotency-Key: &lt;unique-event-key&gt;
+
+{
+  "action_id": "login_01JEXAMPLE",
+  "action_type": "login_attempt",
+  "sdk_version": "0.8.1",
+  "platform": "ios",
+  "observations": { "...RawSignalEvent": "..." }
+}</code></pre></div><p>Validate ownership, expiry, timestamp freshness, request size, and idempotency. Store the unmodified event and derive adopted features separately.</p></section>
+      <section id="backend"><h2>How the backend can use it</h2><div class="decision-list">
+        <div class="decision-item"><h3>Join, do not replace</h3><p>Join raw observations with credential result, rate limits, account history, session history, and server-side network context.</p></div>
+        <div class="decision-item"><h3>Preserve missing states</h3><p>A timeout, unavailable permission, omitted field, and observed <code>false</code> mean different things.</p></div>
+        <div class="decision-item"><h3>Calibrate outcomes</h3><p>Measure false-positive and missing-data rates on representative physical devices before adopting a field in policy.</p></div>
+      </div></section>
+      <section id="boundaries"><h2>Decision boundaries</h2><div class="notice warning">The SDK does not calculate a risk score or authenticate the user. Never decline a login from one root, emulator, VPN, debugger, or locale observation. Keep step-up and account recovery paths available.</div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Authentication pattern for SDK v0.8.1.</div><div class="footer-links"><a href="../">All use cases</a><a href="../../backend/">Backend guides</a><a href="../../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

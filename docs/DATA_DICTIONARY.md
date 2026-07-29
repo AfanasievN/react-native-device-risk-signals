@@ -16,7 +16,7 @@ or download the synchronized [machine-readable catalog](https://afanasievn.githu
 The catalog includes exact field types and per-field JSON Schema fragments generated from the public
 TypeScript contract. The complete event envelope is published as
 [JSON Schema](https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json),
-and the [Django backend guide](https://afanasievn.github.io/react-native-device-risk-signals/backend/)
+and the [backend integration guides](https://afanasievn.github.io/react-native-device-risk-signals/backend/)
 shows ingestion, validation, storage, indexing, idempotency, and schema-evolution patterns.
 
 | Probe | Platforms | Default | Sensitivity | Data categories | Permission behavior |

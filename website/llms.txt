@@ -1,0 +1,46 @@
+# React Native Device Risk Signals
+
+> A zero-runtime-dependency React Native TurboModule that collects raw Android and iOS device, application, integrity, network, runtime, and transaction observations locally.
+
+The SDK returns typed RawSignalEvent data. It does not calculate a risk score, return a trusted or untrusted verdict, make a blocking decision, perform a network request, or create a persistent device identifier. Host applications own consent, action binding, authentication, transport, storage, retention, policy, review, and appeals.
+
+## Start here
+
+- [Documentation](https://afanasievn.github.io/react-native-device-risk-signals/): Product overview and navigation.
+- [Integration guide](https://afanasievn.github.io/react-native-device-risk-signals/integration/): Installation, configuration, collection, host permissions, and transport.
+- [Use cases](https://afanasievn.github.io/react-native-device-risk-signals/use-cases/): Authentication, payments, account recovery, promotions, and protected actions.
+- [Backend guides](https://afanasievn.github.io/react-native-device-risk-signals/backend/): Django/DRF, FastAPI, Express, and Go ingestion examples.
+- [AI prompts](https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/): Source-grounded prompts for explaining and integrating the SDK.
+
+## Machine-readable contracts
+
+- [Typed probe catalog](https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json): Probe IDs, fields, types, platforms, sensitivity, permissions, purpose, defaults, and notes.
+- [Raw event JSON Schema](https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json): JSON Schema 2020-12 for RawSignalEvent.
+- [Android event example](https://afanasievn.github.io/react-native-device-risk-signals/examples/android-event.json): Representative Android payload.
+- [iOS event example](https://afanasievn.github.io/react-native-device-risk-signals/examples/ios-event.json): Representative iOS payload.
+- [Outcome-state examples](https://afanasievn.github.io/react-native-device-risk-signals/examples/outcome-states.json): success, skipped, timeout, and error forms.
+
+## Governance and compatibility
+
+- [Privacy guide](https://afanasievn.github.io/react-native-device-risk-signals/privacy/): Purpose limitation, permissions, sensitive fields, retention, access, and deletion.
+- [Risk-team playbook](https://afanasievn.github.io/react-native-device-risk-signals/risk-teams/): Feature engineering and calibration boundaries outside the SDK.
+- [Compatibility](https://afanasievn.github.io/react-native-device-risk-signals/compatibility/): React Native, Android, iOS, architecture, and physical-device support.
+- [Version contract](https://afanasievn.github.io/react-native-device-risk-signals/versions/): SDK, event schema, and probe-catalog versioning.
+- [FAQ](https://afanasievn.github.io/react-native-device-risk-signals/faq/): Common integration and production questions.
+
+## Rules for generated integrations
+
+- Treat probe values as attacker-influenced observations, not identity proof.
+- Do not invent probe IDs or fields. Read probe-catalog.json.
+- Preserve success, skipped, timeout, error, omitted optional values, and observed false as distinct states.
+- Keep unknown additive probe IDs and fields when the stable event envelope remains valid.
+- Bind events to short-lived server-known action IDs.
+- Derive account identity from authenticated server context, never from client_id alone.
+- Keep scoring, policy, review, recovery, and appeals on trusted backend systems.
+- Never block or decline from one observation.
+- Do not add persistent device IDs, vendor endpoints, QUERY_ALL_PACKAGES, hidden uploads, or SDK permission prompts.
+
+## Source
+
+- [GitHub repository](https://github.com/AfanasievN/react-native-device-risk-signals): Source, tests, issues, releases, and contribution guidance.
+- [npm package](https://www.npmjs.com/package/react-native-device-risk-signals): Published package.

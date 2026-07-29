@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Promotion Abuse Use Case | Device Risk Signals</title>
+  <meta name="description" content="Collect purpose-limited raw device observations for promotion redemption while minimizing location, telephony, and application visibility data.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/promotions/">
+  <meta property="og:title" content="Promotion Redemption with Device Risk Signals"><meta property="og:description" content="A privacy-aware promotion-abuse implementation pattern."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/promotions/">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../risk-teams/">Risk teams</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Promotions</strong><a href="#flow">Event flow</a><a href="#profile">Minimal profile</a><a href="#conditional">Conditional data</a><a href="#backend">Backend use</a><a href="#boundaries">Boundaries</a></aside>
+    <article class="prose" data-use-case="promotion_redemption">
+      <details class="mobile-toc"><summary>Promotion guide</summary><nav aria-label="Page navigation"><a href="#flow">Event flow</a><a href="#profile">Minimal profile</a><a href="#conditional">Conditional data</a><a href="#backend">Backend use</a><a href="#boundaries">Boundaries</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Use case</p><h1>Correlate promotion redemption context</h1><p class="lede">Use device observations alongside campaign eligibility and account history. Start without precise location, telephony, accessibility, or installed-app visibility.</p></header>
+      <section id="flow"><h2>Redemption event flow</h2><div class="pipeline"><div>1. Validate campaign</div><div>2. Create redemption attempt</div><div>3. Collect minimal profile</div><div>4. Submit redemption</div><div>5. Join campaign history</div></div><p>Bind the raw event to a server-created <code>promotion_redemption</code> <code>action_id</code>, not to a persistent client-generated identifier.</p></section>
+      <section id="profile"><h2>Minimal starting profile</h2><div class="code-block"><button class="copy-button" type="button" data-copy="promo-code">Copy</button><pre id="promo-code"><code>const promotionIntel = new DeviceIntel({
+  consent: consentFor([
+    "device_identity",
+    "application",
+    "os_integrity",
+    "device_security_posture",
+    "locale",
+    "runtime",
+  ]),
+  config: {
+    probes: {
+      geolocation: { enabled: false },
+      telephony: { enabled: false },
+      media_bluetooth_apps: { enabled: false },
+      transaction_safety: { enabled: false },
+    },
+  },
+});
+
+const observations = await promotionIntel.collect({
+  sessionId: redemptionAttempt.id,
+  clientId: authenticatedAccountId,
+});</code></pre></div></section>
+      <section id="conditional"><h2>Add sensitive data only for a documented purpose</h2><div class="decision-list">
+        <div class="decision-item"><h3>Network</h3><p>Add VPN, proxy, transport, or country-adjacent context only after privacy review and measurement of legitimate usage.</p></div>
+        <div class="decision-item"><h3>Telephony</h3><p>Enable selected SIM or carrier fields only where eligibility rules and user expectations justify them. The SDK never requests phone permission.</p></div>
+        <div class="decision-item"><h3>Geolocation</h3><p>Keep <code>geolocation</code> off by default. If separately justified, use existing permission and project only necessary fields such as authorization, accuracy, source, or age. The SDK never shows a location prompt or starts updates.</p></div>
+      </div></section>
+      <section id="backend"><h2>Backend handling</h2><p>Join the event with campaign ID, account age, prior redemptions, household or business rules, server-side velocity, and the redemption outcome. Version any derived feature and monitor it by OS, app version, geography, and missing-data state.</p><div class="code-block"><button class="copy-button" type="button" data-copy="promo-request">Copy</button><pre id="promo-request"><code>{
+  "action_id": "promo_01JEXAMPLE",
+  "action_type": "promotion_redemption",
+  "campaign_id": "summer-referral-2026",
+  "sdk_version": "0.8.1",
+  "platform": "android",
+  "observations": { "...RawSignalEvent": "..." }
+}</code></pre></div></section>
+      <section id="boundaries"><h2>Decision boundaries</h2><div class="notice warning">The SDK does not calculate a risk score or determine promotion eligibility. A shared model, locale mismatch, VPN, emulator, or rooted device can have legitimate explanations. Never reject a redemption from one observation.</div><div class="button-row"><a class="button" href="../../privacy/">Review sensitive fields</a><a class="button secondary" href="../../signals/">Choose exact fields</a></div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Promotion pattern for SDK v0.8.1.</div><div class="footer-links"><a href="../">All use cases</a><a href="../../backend/">Backend guides</a><a href="../../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

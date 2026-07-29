@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account Recovery Use Case | Device Risk Signals</title>
+  <meta name="description" content="Add raw device context to account recovery while preserving usable fallback paths, missing-data semantics, and backend-owned identity verification.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/account-recovery/">
+  <meta property="og:title" content="Account Recovery with Device Risk Signals"><meta property="og:description" content="A safe collection pattern for high-impact recovery flows."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/account-recovery/">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../risk-teams/">Risk teams</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Account recovery</strong><a href="#flow">Event flow</a><a href="#mobile">Mobile code</a><a href="#backend">Backend use</a><a href="#missing">Missing data</a><a href="#fallback">Recovery path</a></aside>
+    <article class="prose" data-use-case="recovery_attempt">
+      <details class="mobile-toc"><summary>Account recovery guide</summary><nav aria-label="Page navigation"><a href="#flow">Event flow</a><a href="#mobile">Mobile code</a><a href="#backend">Backend use</a><a href="#missing">Missing data</a><a href="#fallback">Recovery path</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Use case</p><h1>Add context without locking out recovery</h1><p class="lede">Recovery is both high-impact and accessibility-critical. Device observations can support review, but the account must remain recoverable when telemetry is absent or unexpected.</p></header>
+      <section id="flow"><h2>Recovery event flow</h2><div class="pipeline"><div>1. Start recovery</div><div>2. Issue opaque action ID</div><div>3. Collect current context</div><div>4. Verify recovery factors</div><div>5. Record outcome</div></div><p>Use a short-lived <code>recovery_attempt</code> ID as <code>action_id</code>. Do not expose whether an account exists when creating the attempt.</p></section>
+      <section id="mobile"><h2>Mobile collection</h2><div class="code-block"><button class="copy-button" type="button" data-copy="recovery-code">Copy</button><pre id="recovery-code"><code>const recoveryIntel = new DeviceIntel({
+  consent: consentFor([
+    "device_identity",
+    "application",
+    "os_integrity",
+    "device_security_posture",
+    "network",
+    "locale",
+    "runtime",
+  ]),
+});
+
+const observations = await recoveryIntel.collect({
+  sessionId: recoveryAttempt.id,
+});
+
+await api.post("/api/v1/device-signal-events", {
+  action_id: recoveryAttempt.id,
+  action_type: "recovery_attempt",
+  sdk_version: SDK_VERSION,
+  platform: Platform.OS,
+  observations,
+});</code></pre></div><p>Do not attach <code>clientId</code> unless the application already has an authenticated account session. The server owns account lookup and challenge verification.</p></section>
+      <section id="backend"><h2>Backend use</h2><div class="decision-list">
+        <div class="decision-item"><h3>Primary evidence</h3><p>Recovery codes, passkeys, verified channels, support review, and authenticated server history remain primary.</p></div>
+        <div class="decision-item"><h3>Contextual evidence</h3><p>App provenance, integrity, device lock capability, network context, and locale can help explain an attempt.</p></div>
+        <div class="decision-item"><h3>Auditability</h3><p>Store feature versions and reason codes separately from the immutable raw event so decisions can be reconstructed.</p></div>
+      </div></section>
+      <section id="missing"><h2>Missing data is expected</h2><p>Permissions, OS versions, hardware, probe timeouts, privacy choices, and collection failures all affect availability. Preserve omission, <code>skipped</code>, <code>timeout</code>, <code>error</code>, and observed <code>false</code> as distinct states.</p></section>
+      <section id="fallback"><h2>Keep a recovery path</h2><div class="notice warning">The SDK does not calculate a risk score or prove account ownership. Never deny recovery from one emulator, jailbreak, VPN, accessibility, or remote-access observation. Provide step-up verification, support review, and accessible fallback paths.</div><div class="button-row"><a class="button" href="../../backend/">Implement storage</a><a class="button secondary" href="../../risk-teams/">Plan backend features</a></div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Recovery pattern for SDK v0.8.1.</div><div class="footer-links"><a href="../">All use cases</a><a href="../../backend/">Backend guides</a><a href="../../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

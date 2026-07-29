@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Protected Actions Use Case | Device Risk Signals</title>
+  <meta name="description" content="Collect transaction-time raw observations around password changes, payout updates, beneficiary creation, and other high-impact mobile actions.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/protected-actions/">
+  <meta property="og:title" content="Protected Actions with Device Risk Signals"><meta property="og:description" content="A two-stage collection pattern for high-impact mobile actions."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/protected-actions/">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../risk-teams/">Risk teams</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Protected actions</strong><a href="#examples">Applicable actions</a><a href="#flow">Two-stage flow</a><a href="#code">Mobile code</a><a href="#transport">Transport</a><a href="#backend">Backend use</a></aside>
+    <article class="prose" data-use-case="protected_action">
+      <details class="mobile-toc"><summary>Protected-action guide</summary><nav aria-label="Page navigation"><a href="#examples">Applicable actions</a><a href="#flow">Two-stage flow</a><a href="#code">Mobile code</a><a href="#transport">Transport</a><a href="#backend">Backend use</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Use case</p><h1>Observe the moment around a high-impact action</h1><p class="lede">Use the same pattern for a password change, new payout destination, beneficiary creation, security-setting change, or sensitive data export.</p></header>
+      <section id="examples"><h2>Actions that can justify a focused profile</h2><table><thead><tr><th>Action</th><th>Server binding</th><th>Primary server controls</th></tr></thead><tbody>
+        <tr><td>Change password or MFA</td><td>Security challenge ID</td><td>Recent authentication, factor verification, session rotation</td></tr>
+        <tr><td>Add payout destination</td><td>Payout setup ID</td><td>Account ownership, cooling period, beneficiary validation</td></tr>
+        <tr><td>Create beneficiary</td><td>Beneficiary draft ID</td><td>Step-up authentication, velocity, sanctions and business rules</td></tr>
+        <tr><td>Export sensitive data</td><td>Export request ID</td><td>Authorization, audit log, delayed delivery and notification</td></tr>
+      </tbody></table></section>
+      <section id="flow"><h2>Two-stage collection</h2><div class="pipeline"><div>1. Create protected_action</div><div>2. Enter protected UI</div><div>3. Start observation</div><div>4. Collect before commit</div><div>5. Verify and audit</div></div><p>Both collections use the same <code>action_id</code>. The first initializes Android UI observations; the second captures the final transaction context.</p></section>
+      <section id="code"><h2>Mobile code</h2><div class="code-block"><button class="copy-button" type="button" data-copy="protected-code">Copy</button><pre id="protected-code"><code>const protectedIntel = new DeviceIntel({
+  consent: consentFor([
+    "application",
+    "os_integrity",
+    "device_security_posture",
+    "transaction_safety",
+    "runtime",
+  ]),
+  config: {
+    probes: {
+      transaction_safety: { enabled: true, timeoutMs: 900 },
+    },
+  },
+});
+
+// Screen entry:
+await protectedIntel.collect({ sessionId: protectedAction.id });
+
+// Immediately before commit:
+const observations = await protectedIntel.collect({
+  sessionId: protectedAction.id,
+  clientId: authenticatedAccountId,
+});</code></pre></div><p>The transaction probe can observe capture state, obscured touches, accessibility state, remote-access app matches, lock state, and call or audio state when available. Availability varies by platform and permission.</p></section>
+      <section id="transport"><h2>Action-bound request</h2><div class="code-block"><button class="copy-button" type="button" data-copy="protected-request">Copy</button><pre id="protected-request"><code>{
+  "action_id": "protected_01JEXAMPLE",
+  "action_type": "protected_action",
+  "protected_action_type": "payout_destination_create",
+  "sdk_version": "0.8.1",
+  "platform": "android",
+  "observations": { "...RawSignalEvent": "..." }
+}</code></pre></div><p>Authenticate the request and ensure the action belongs to the current account. Do not trust <code>protected_action_type</code> from the client when the server can derive it from <code>action_id</code>.</p></section>
+      <section id="backend"><h2>Backend decision boundary</h2><div class="decision-list">
+        <div class="decision-item"><h3>Freshness</h3><p>Compare collection time, observation-window timestamps, server receipt time, and action expiry.</p></div>
+        <div class="decision-item"><h3>Independent controls</h3><p>Keep authorization, recent-auth checks, factor verification, transaction limits, and audit logging authoritative.</p></div>
+        <div class="decision-item"><h3>Graceful uncertainty</h3><p>Route unusual or missing context to an appropriate step-up or review path instead of silently treating it as safe or fraudulent.</p></div>
+      </div><div class="notice warning">The SDK does not calculate a risk score or make a blocking decision. Accessibility, screen sharing, calls, remote support, and rooted devices can be legitimate. Never block a protected action from one raw observation.</div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Protected-action pattern for SDK v0.8.1.</div><div class="footer-links"><a href="../">All use cases</a><a href="../../integration/#transaction">Transaction integration</a><a href="../../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

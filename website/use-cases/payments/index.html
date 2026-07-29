@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payments Use Case | Device Risk Signals</title>
+  <meta name="description" content="Bind raw mobile device observations to a payment attempt, collect transaction-time context, and submit a Django-ready event without client-side scoring.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/payments/">
+  <meta property="og:title" content="Payments with Device Risk Signals"><meta property="og:description" content="A complete React Native payment-attempt collection and backend handoff pattern."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/payments/">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../risk-teams/">Risk teams</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Payments</strong><a href="#flow">Event flow</a><a href="#profile">Probe profile</a><a href="#window">Transaction window</a><a href="#transport">Transport</a><a href="#backend">Backend use</a><a href="#permissions">Permissions</a></aside>
+    <article class="prose" data-use-case="payment_attempt">
+      <details class="mobile-toc"><summary>Payments guide</summary><nav aria-label="Page navigation"><a href="#flow">Event flow</a><a href="#profile">Probe profile</a><a href="#window">Transaction window</a><a href="#transport">Transport</a><a href="#backend">Backend use</a><a href="#permissions">Permissions</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Use case</p><h1>Bind observations to a payment attempt</h1><p class="lede">Use the order or payment attempt created by your backend as the correlation boundary. Collect close to confirmation so transaction-time observations remain fresh.</p><div class="button-row"><a class="button" href="../../backend/">Build ingestion endpoint</a><a class="button secondary" href="../../raw-signal-event.schema.json">Open JSON Schema</a></div></header>
+      <section id="flow"><h2>Payment event flow</h2><div class="pipeline"><div>1. Create payment attempt</div><div>2. Open confirmation UI</div><div>3. Start observation window</div><div>4. Collect before confirm</div><div>5. Send with action_id</div></div><p>Use one <code>payment_attempt</code> ID for both collections. Generate a separate idempotency key for the event upload.</p></section>
+      <section id="profile"><h2>Purpose-bound profile</h2><div class="code-block"><button class="copy-button" type="button" data-copy="payment-profile">Copy</button><pre id="payment-profile"><code>import { consentFor, DeviceIntel } from "react-native-device-risk-signals";
+
+const paymentIntel = new DeviceIntel({
+  consent: consentFor([
+    "device_identity",
+    "application",
+    "os_integrity",
+    "device_security_posture",
+    "network",
+    "runtime",
+    "transaction_safety",
+  ]),
+  config: {
+    probes: {
+      application: {
+        fields: {
+          include: [
+            "appVersion",
+            "appBuild",
+            "bundleId",
+            "installerPackage",
+            "signingCertificateSha256",
+            "isDebuggable",
+          ],
+        },
+      },
+      transaction_safety: { enabled: true, timeoutMs: 900 },
+    },
+  },
+});</code></pre></div><p>Field projection limits the returned event, but native data is collected before projection. Disable an entire probe when its collection itself is outside the approved purpose.</p></section>
+      <section id="window"><h2>Two-stage transaction window</h2><p>On Android, the first enabled <code>transaction_safety</code> collection starts lazy screenshot and obscured-touch observation. The second collection reads what happened during the protected screen.</p><div class="code-block"><button class="copy-button" type="button" data-copy="payment-window">Copy</button><pre id="payment-window"><code>// When the confirmation screen opens:
+await paymentIntel.collect({
+  sessionId: paymentAttempt.id,
+});
+
+// Immediately before the user confirms:
+const observations = await paymentIntel.collect({
+  sessionId: paymentAttempt.id,
+  clientId: authenticatedAccountId,
+});</code></pre></div><p>Keep this probe disabled until it has been calibrated on representative physical devices for the exact payment UI.</p></section>
+      <section id="transport"><h2>Transport through the host application</h2><div class="code-block"><button class="copy-button" type="button" data-copy="payment-request">Copy</button><pre id="payment-request"><code>await api.post(
+  "/api/v1/device-signal-events",
+  {
+    action_id: paymentAttempt.id,
+    action_type: "payment_attempt",
+    sdk_version: SDK_VERSION,
+    platform: Platform.OS,
+    observations,
+  },
+  { headers: { "Idempotency-Key": eventUploadId } },
+);</code></pre></div><p>The SDK performs no request. Use the application's authenticated API client, retry policy, certificate controls, and request-size limits.</p></section>
+      <section id="backend"><h2>Backend handling</h2><div class="decision-list">
+        <div class="decision-item"><h3>Validate binding</h3><p>Confirm that <code>action_id</code> belongs to the authenticated account, is open, and matches the payment attempt being confirmed.</p></div>
+        <div class="decision-item"><h3>Validate freshness</h3><p>Compare <code>collected_at</code>, server receipt time, payment creation time, and the allowed confirmation window.</p></div>
+        <div class="decision-item"><h3>Combine evidence</h3><p>Use raw observations alongside amount, currency, account history, payment instrument state, velocity, and server-side network evidence.</p></div>
+      </div><div class="notice warning">The SDK does not calculate a risk score or approve or decline a payment. Never make a payment decision from one device observation, and preserve a review or recovery path.</div></section>
+      <section id="permissions"><h2>Optional Android capture permissions</h2><p><code>DETECT_SCREEN_CAPTURE</code> on Android 14+ and <code>DETECT_SCREEN_RECORDING</code> on Android 15+ are host-declared permissions. The library declares neither and never shows a permission prompt. Without them, related fields are omitted.</p><p>See the exact <a href="../../integration/#permissions">permission matrix</a>.</p></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Payment pattern for SDK v0.8.1.</div><div class="footer-links"><a href="../">All use cases</a><a href="../../backend/">Backend guides</a><a href="../../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

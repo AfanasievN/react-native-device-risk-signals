@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Integration Prompts | Device Risk Signals</title>
+  <meta name="description" content="Copy source-grounded prompts that help AI assistants explain, install, integrate, store, and review React Native Device Risk Signals without inventing fields or policy.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/">
+  <meta property="og:title" content="AI Integration Prompts for Device Risk Signals"><meta property="og:description" content="Reusable prompts for mobile integration, backend contracts, framework-specific endpoints, and privacy review."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="../integration/">Integration</a><a href="../use-cases/">Use cases</a><a href="../backend/">Backend</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Prompt library</strong><a href="#how-to-use">How to use</a><a href="#explain">Explain the SDK</a><a href="#mobile">Mobile integration</a><a href="#backend">Backend architecture</a><a href="#frameworks">Framework prompts</a><a href="#privacy-review">Privacy review</a><a href="#quality">Quality checklist</a></aside>
+    <article class="prose">
+      <details class="mobile-toc"><summary>Prompt library</summary><nav aria-label="Page navigation"><a href="#how-to-use">How to use</a><a href="#explain">Explain the SDK</a><a href="#mobile">Mobile integration</a><a href="#backend">Backend architecture</a><a href="#frameworks">Framework prompts</a><a href="#privacy-review">Privacy review</a><a href="#quality">Quality checklist</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">AI integration kit</p><h1>Give your coding assistant the right contract.</h1><p class="lede">These prompts point AI tools at the typed catalog, JSON Schema, platform boundaries, and product rules before they propose code.</p><div class="button-row"><a class="button" href="../llms.txt">Open llms.txt</a><a class="button secondary" href="../raw-signal-event.schema.json">Open event schema</a><a class="button secondary" href="../probe-catalog.json">Open probe catalog</a></div></header>
+
+      <section id="how-to-use"><h2>How to use these prompts</h2><ol><li>Open an AI coding assistant in the repository that will receive the integration.</li><li>Choose the narrowest prompt for the current task.</li><li>Replace every <code>{{PLACEHOLDER}}</code> with your architecture details.</li><li>Let the assistant inspect the project before it edits files.</li><li>Review permissions, collected fields, retention, authentication, and migrations before accepting changes.</li></ol><div class="notice">The documentation URLs are part of the prompt. Keep them so the assistant verifies the current SDK contract instead of relying on model memory.</div></section>
+
+      <section id="explain"><h2>Explain the SDK to a team</h2><p>Use this for architecture discussions, onboarding, or an initial technical evaluation.</p><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="explain-sdk-prompt">Copy prompt</button><pre id="explain-sdk-prompt"><code>Explain react-native-device-risk-signals to a mobile, backend, security, and privacy team.
+
+Use these sources as authoritative:
+- https://afanasievn.github.io/react-native-device-risk-signals/
+- https://afanasievn.github.io/react-native-device-risk-signals/signals/
+- https://afanasievn.github.io/react-native-device-risk-signals/privacy/
+- https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json
+- https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json
+
+Cover:
+1. What the SDK collects and why probe outcomes are raw observations.
+2. The RawSignalEvent envelope and success, skipped, timeout, error, omission, and false semantics.
+3. Android and iOS availability and host permission boundaries.
+4. Consent gates, probe configuration, field projection, and default-off probes.
+5. How the host app transports events and how a backend should store them.
+6. What should be calibrated before production.
+
+Non-negotiable facts:
+- The SDK does not calculate a risk score or return a trusted/untrusted verdict.
+- The SDK performs no network requests.
+- The SDK does not create a persistent device identifier.
+- Do not invent probe IDs or fields. Quote exact paths from probe-catalog.json.
+- Never recommend blocking a user from one observation.
+
+End with:
+- a concise architecture diagram in text;
+- a list of questions the adopting team must answer;
+- a minimal safe pilot profile.</code></pre></div></section>
+
+      <section id="mobile"><h2>Integrate into an existing React Native app</h2><p>This prompt asks the assistant to inspect the host project, minimize data, and keep native configuration explicit.</p><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="mobile-integration-prompt">Copy prompt</button><pre id="mobile-integration-prompt"><code>Integrate react-native-device-risk-signals into this existing React Native application.
+
+Authoritative documentation:
+- https://afanasievn.github.io/react-native-device-risk-signals/integration/
+- https://afanasievn.github.io/react-native-device-risk-signals/use-cases/
+- https://afanasievn.github.io/react-native-device-risk-signals/signals/
+- https://afanasievn.github.io/react-native-device-risk-signals/privacy/
+- https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json
+
+Target use case: {{USE_CASE}}
+Server-issued action ID source: {{ACTION_ID_SOURCE}}
+Approved probe IDs: {{APPROVED_PROBE_IDS}}
+Approved optional permissions: {{APPROVED_PERMISSIONS_OR_NONE}}
+
+Before changing code:
+1. Inspect package manager, React Native version, New Architecture status, Android minSdk, iOS deployment target, and current native permissions.
+2. Locate the existing authenticated API client and the screen or service that owns {{USE_CASE}}.
+3. Propose a minimal collection profile and explain the purpose of every probe and selected field.
+4. Stop and report any incompatible platform requirement or permission that was not explicitly approved.
+
+Implementation requirements:
+- Use DeviceIntel and consentFor(...) from the public API.
+- Bind collect({sessionId}) to the server-issued action ID.
+- Set clientId only after authentication and never treat it as proof of identity.
+- Keep sensitive, expensive, benchmark, fork-test, and transaction probes disabled unless this use case explicitly requires them.
+- The SDK performs no upload. Send the returned event through the application's existing API client.
+- Preserve success, skipped, timeout, error, omitted values, and observed false.
+- Do not add a persistent device ID, vendor endpoint, QUERY_ALL_PACKAGES, permission prompt, or client-side score.
+- Do not invent probe IDs or fields. Verify every selection against probe-catalog.json.
+- Add focused tests for configuration, platform gating, failure, timeout, and transport handoff.
+
+Return:
+1. An implementation plan.
+2. Exact file changes.
+3. The final collection profile.
+4. Native permission changes, or an explicit statement that none are needed.
+5. Tests and verification commands.
+6. Privacy and rollout notes.</code></pre></div></section>
+
+      <section id="backend"><h2>Generate a backend contract for your architecture</h2><p>The universal prompt works with layered monoliths, modular monoliths, services, event-driven systems, and different databases.</p><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="backend-architecture-prompt">Copy prompt</button><pre id="backend-architecture-prompt"><code>Integrate raw device signal event ingestion into this existing backend.
+
+Architecture inputs:
+- Backend stack: {{BACKEND_STACK}}
+- API architecture: {{API_ARCHITECTURE}}
+- Database: {{DATABASE}}
+- Authentication model: {{AUTHENTICATION_MODEL}}
+- Existing idempotency mechanism: {{IDEMPOTENCY_MECHANISM}}
+- Action types: {{ACTION_TYPES}}
+- Raw-event retention: {{RETENTION_DAYS}} days
+- Expected peak requests per second: {{PEAK_RPS}}
+
+Read these sources before proposing code:
+- https://afanasievn.github.io/react-native-device-risk-signals/backend/
+- https://afanasievn.github.io/react-native-device-risk-signals/use-cases/
+- https://afanasievn.github.io/react-native-device-risk-signals/signals/
+- https://afanasievn.github.io/react-native-device-risk-signals/privacy/
+- https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json
+- https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json
+
+Inspect the repository first. Reuse its authentication, API versioning, validation, transaction, migration, logging, metrics, error-response, and testing conventions.
+
+Implement or design:
+1. POST /api/v1/device-signal-events.
+2. Authentication from the host session. Never trust observations.client_id as authentication.
+3. Required Idempotency-Key handling. A replay with the same payload returns the existing event; a different payload under the same key returns a conflict.
+4. Request-size and timestamp-freshness limits.
+5. Validation of the stable RawSignalEvent envelope against schema_version.
+6. Forward-compatible preservation of unknown probe IDs and additive success fields.
+7. Immutable raw JSON storage plus promoted columns for account, action_id, action_type, session_id, timestamps, platform, SDK version, and schema version.
+8. Indexes justified by known access patterns.
+9. Retention, deletion, access control, audit logging, encryption, and sensitive-field handling.
+10. Tests for valid data, every outcome type, omission, idempotent replay, conflicting replay, stale events, unknown additive fields, authentication, and size limits.
+
+Data rules:
+- JSON values may be strings, finite numbers, booleans, arrays, nested objects, and omitted optional keys.
+- Preserve success, skipped, timeout, error, omission, and observed false as distinct states.
+- Do not flatten all probe fields into relational columns.
+- Do not invent probe IDs or fields. Use probe-catalog.json and raw-signal-event.schema.json.
+- The SDK does not calculate a risk score. Keep scoring, policy, review, and appeals outside ingestion.
+- Never make a consequential decision from one observation.
+
+Return:
+1. The proposed API request and response contract.
+2. Database schema and migration.
+3. Validation and endpoint code using this repository's conventions.
+4. Idempotency and transaction behavior.
+5. Tests.
+6. Operational metrics and alerts.
+7. Privacy, retention, and rollout checklist.
+8. Any assumptions that require product or security approval.</code></pre></div></section>
+
+      <section id="frameworks"><h2>Framework-specific backend prompts</h2><p>Use one of these after filling in the universal architecture inputs.</p>
+        <h3>Django and Django REST Framework</h3><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="django-backend-prompt">Copy prompt</button><pre id="django-backend-prompt"><code>Implement the device signal ingestion contract in this existing Django and Django REST Framework project.
+
+First follow the universal backend requirements at:
+https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/#backend
+
+Project inputs:
+- Database: {{DATABASE}}
+- Authentication model: {{AUTHENTICATION_MODEL}}
+- App/module that should own the endpoint: {{DJANGO_APP}}
+
+Use the repository's existing APIView or generic-view convention, serializers.Serializer validation, models.JSONField for the immutable event, migrations, authentication classes, throttling, and test framework. Add a unique idempotency_key constraint and promoted indexed columns. Use transaction.atomic for race-safe creation. Preserve unknown probes and fields.
+
+Do not invent probe IDs or fields. The SDK does not calculate a risk score, and the endpoint must not return a device verdict.
+
+Show the model, migration, serializer, view, URL route, tests, and retention job changes.</code></pre></div>
+
+        <h3>FastAPI</h3><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="fastapi-backend-prompt">Copy prompt</button><pre id="fastapi-backend-prompt"><code>Implement the device signal ingestion contract in this existing FastAPI project.
+
+First follow the universal backend requirements at:
+https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/#backend
+
+Project inputs:
+- Database: {{DATABASE}}
+- Authentication dependency: {{AUTHENTICATION_MODEL}}
+- Persistence layer: {{PERSISTENCE_LAYER}}
+
+Use the project's current Pydantic version and model conventions. Validate stable transport fields while keeping observations forward-compatible. Reuse the existing async or sync database session pattern, migrations, exception schema, dependency injection, and tests. Enforce a unique idempotency key and conflicting-replay detection inside a transaction.
+
+Do not invent probe IDs or fields. The SDK does not calculate a risk score, and the endpoint must not return a device verdict.
+
+Show request models, route, repository/service changes, migration, tests, and operational safeguards.</code></pre></div>
+
+        <h3>Node.js and Express</h3><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="express-backend-prompt">Copy prompt</button><pre id="express-backend-prompt"><code>Implement the device signal ingestion contract in this existing Node.js and Express project.
+
+First follow the universal backend requirements at:
+https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/#backend
+
+Project inputs:
+- Language: {{JAVASCRIPT_OR_TYPESCRIPT}}
+- Database: {{DATABASE}}
+- Validation library already in use: {{VALIDATION_LIBRARY}}
+- Authentication middleware: {{AUTHENTICATION_MODEL}}
+
+Reuse the project's router, JSON body limit, validation, error middleware, database transaction, migration, logging, and test conventions. Validate the stable envelope, preserve observations as JSON, use parameterized queries or the existing ORM, and handle same-payload and conflicting idempotent replays explicitly.
+
+Do not add a new validation or ORM dependency when the project already has one. Do not invent probe IDs or fields. The SDK does not calculate a risk score, and the endpoint must not return a device verdict.
+
+Show types or schemas, route, service/repository code, migration, tests, and operational safeguards.</code></pre></div>
+
+        <h3>Go</h3><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="go-backend-prompt">Copy prompt</button><pre id="go-backend-prompt"><code>Implement the device signal ingestion contract in this existing Go backend.
+
+First follow the universal backend requirements at:
+https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/#backend
+
+Project inputs:
+- Router or framework: {{GO_ROUTER}}
+- Database: {{DATABASE}}
+- Query layer: {{SQLC_PGX_GORM_OR_OTHER}}
+- Authentication middleware: {{AUTHENTICATION_MODEL}}
+
+Reuse the project's handler, middleware, request-size, database transaction, migration, structured logging, and test conventions. Preserve observations as json.RawMessage after validating the stable envelope. Enforce a unique idempotency key and compare a canonical payload hash for replays.
+
+Do not introduce a new router or database library if the repository already has one. Do not invent probe IDs or fields. The SDK does not calculate a risk score, and the endpoint must not return a device verdict.
+
+Show structs, handler, store method, migration, tests, and operational safeguards.</code></pre></div>
+      </section>
+
+      <section id="privacy-review"><h2>Review collection and backend handling</h2><div class="code-block prompt-block"><button class="copy-button" type="button" data-copy="privacy-review-prompt">Copy prompt</button><pre id="privacy-review-prompt"><code>Review this proposed react-native-device-risk-signals integration for data minimization, platform privacy, security, and operational safety.
+
+Use these authoritative sources:
+- https://afanasievn.github.io/react-native-device-risk-signals/privacy/
+- https://afanasievn.github.io/react-native-device-risk-signals/signals/
+- https://afanasievn.github.io/react-native-device-risk-signals/backend/
+- https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json
+
+Inputs:
+- Product use case: {{USE_CASE}}
+- Enabled probes and fields: {{PROBE_CONFIGURATION}}
+- Host permissions: {{HOST_PERMISSIONS}}
+- Backend payload and schema: {{BACKEND_CONTRACT}}
+- Retention and access policy: {{RETENTION_AND_ACCESS}}
+- Decision or investigation process: {{POLICY_PROCESS}}
+
+Check:
+1. Whether each probe and field has a documented purpose.
+2. Whether a less sensitive field or disabled probe would satisfy the same purpose.
+3. Permission declarations, prompt behavior, Android app visibility, and Apple privacy implications.
+4. High-entropy data, location, telephony, accessibility, local addresses, and known-app observations.
+5. Missing-data semantics and platform/version availability.
+6. Authentication, action binding, idempotency, request limits, encryption, access logging, deletion, and retention.
+7. Whether any client-side or single-signal verdict has been introduced.
+8. Whether the rollout includes physical-device calibration, false-positive monitoring, recovery, and review.
+
+Non-negotiable:
+- The SDK does not calculate a risk score.
+- Do not invent probe IDs or fields.
+- Do not recommend persistent device identifiers, vendor uploads, QUERY_ALL_PACKAGES, or permission prompts from the SDK.
+
+Return findings grouped as blocking, important, and optional. For every finding, cite the exact probe, field, permission, contract rule, or policy line involved.</code></pre></div></section>
+
+      <section id="quality"><h2>AI output quality checklist</h2><div class="contract-rules">
+        <div><strong>Source-grounded</strong><p>Every probe and field exists in <a href="../probe-catalog.json">probe-catalog.json</a>.</p></div>
+        <div><strong>Contract-safe</strong><p>The event matches the published <a href="../raw-signal-event.schema.json">JSON Schema</a> and preserves outcome states.</p></div>
+        <div><strong>Architecture-native</strong><p>The proposal reuses the host project's authentication, validation, database, migration, and test patterns.</p></div>
+        <div><strong>Decision-safe</strong><p>No client-side score, device verdict, single-signal block, hidden upload, or persistent identifier is introduced.</p></div>
+      </div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Source-grounded prompts for SDK v0.8.1.</div><div class="footer-links"><a href="../llms.txt">llms.txt</a><a href="../integration/">Integration</a><a href="../backend/">Backend</a><a href="../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SDK Use Cases | React Native Device Risk Signals</title>
+  <meta name="description" content="Follow complete mobile and backend implementation patterns for authentication, payments, account recovery, promotion abuse, and protected actions.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/">
+  <meta property="og:title" content="Device Risk Signals Use Cases"><meta property="og:description" content="End-to-end patterns that connect React Native collection to server-owned actions and raw-signal storage."><meta property="og:type" content="website"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/use-cases/">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="../integration/">Integration</a><a href="./" aria-current="page">Use cases</a><a href="../backend/">Backend</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content">
+    <section class="container hero use-cases-hero">
+      <div>
+        <p class="eyebrow">Implementation patterns</p>
+        <h1>Start from the action you protect.</h1>
+        <p class="lede">Each guide connects collection timing, a conservative probe profile, the mobile payload, and the backend contract for one real product flow.</p>
+        <div class="hero-actions"><a class="button" href="./payments/">Open payment flow</a><a class="button secondary" href="../backend/">Build the Django endpoint</a></div>
+      </div>
+      <div class="use-case-sequence" aria-label="Collection flow">
+        <strong>One action, one traceable context</strong>
+        <ol>
+          <li><span>Backend</span> creates an opaque action ID.</li>
+          <li><span>App</span> collects only purpose-approved probes.</li>
+          <li><span>Host API</span> sends the raw event with authentication.</li>
+          <li><span>Backend</span> validates freshness and action ownership.</li>
+          <li><span>Policy</span> combines observations with server evidence.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section compact"><div class="container"><div class="section-heading"><h2>Choose the product flow</h2><p>The SDK stays the same. What changes is when collection happens, which fields are justified, and which server-owned action receives the event.</p></div><div class="route-grid use-case-grid">
+      <a class="route-card" href="./authentication/"><h3>Authentication</h3><p>Attach current device context to a login attempt without treating client telemetry as proof of identity.</p><span>Implement login context</span></a>
+      <a class="route-card featured-route" href="./payments/"><h3>Payments and checkout</h3><p>Bind pre-confirmation observations to a payment attempt and optionally use the two-stage transaction window.</p><span>Implement payment context</span></a>
+      <a class="route-card" href="./account-recovery/"><h3>Account recovery</h3><p>Add investigation context while preserving a usable recovery path when telemetry is absent or unusual.</p><span>Implement recovery context</span></a>
+      <a class="route-card" href="./promotions/"><h3>Promotion abuse</h3><p>Correlate redemption context with account, campaign, and server history while minimizing location and telephony data.</p><span>Implement redemption context</span></a>
+      <a class="route-card" href="./protected-actions/"><h3>Protected actions</h3><p>Collect around payout changes, new beneficiaries, password changes, or security-setting updates.</p><span>Implement action context</span></a>
+      <a class="route-card" href="../recipes/"><h3>Collection recipes</h3><p>Use compact probe profiles when you already understand the full mobile and backend lifecycle.</p><span>Compare profiles</span></a>
+    </div></div></section>
+
+    <section class="section compact"><div class="container"><div class="section-heading"><h2>What every implementation keeps constant</h2></div><div class="contract-rules">
+      <div><strong>Server-known action</strong><p>Use a short-lived login, payment, recovery, redemption, or protected-action ID. Do not invent a persistent device ID.</p></div>
+      <div><strong>Purpose-bound collection</strong><p>Use <code>consentFor(...)</code>, disable unnecessary probes, and project fields before the event leaves the app.</p></div>
+      <div><strong>Raw outcome semantics</strong><p>Preserve <code>success</code>, <code>skipped</code>, <code>timeout</code>, <code>error</code>, omitted values, and observed <code>false</code>.</p></div>
+      <div><strong>Backend-owned policy</strong><p>The SDK does not calculate a risk score, produce a verdict, upload data, or make a blocking decision.</p></div>
+    </div><div class="button-row"><a class="button" href="../signals/">Select exact fields</a><a class="button secondary" href="../privacy/">Review privacy boundaries</a></div></div></section>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Product patterns for raw mobile observations.</div><div class="footer-links"><a href="../integration/">Integration</a><a href="../backend/">Backend</a><a href="../recipes/">Recipes</a><a href="../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

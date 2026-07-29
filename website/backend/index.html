@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Django Backend Integration | Device Risk Signals</title>
-  <meta name="description" content="Build a production Django and Django REST Framework ingestion endpoint for raw device signal events, with JSONField storage, idempotency, validation, indexing, and retention.">
+  <title>Backend Integration | Device Risk Signals</title>
+  <meta name="description" content="Build a production ingestion endpoint for raw device signal events with Django, FastAPI, Express, or Go, including validation, idempotency, JSON storage, and retention.">
   <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/backend/">
-  <meta property="og:title" content="Django Backend Integration for Device Risk Signals"><meta property="og:description" content="A complete ingestion and storage contract for raw mobile device observations."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/backend/">
+  <meta property="og:title" content="Backend Integration for Device Risk Signals"><meta property="og:description" content="Django, FastAPI, Express, and Go examples for one raw mobile observation contract."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/backend/">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
-  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="../integration/">Integration</a><a href="./" aria-current="page">Backend</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="../integration/">Integration</a><a href="../use-cases/">Use cases</a><a href="./" aria-current="page">Backend</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
   <main id="content" class="container docs-layout">
-    <aside class="sidebar"><strong>On this page</strong><a href="#boundary">API boundary</a><a href="#payload">Request payload</a><a href="#model">Django model</a><a href="#serializer">DRF validation</a><a href="#view">Idempotent view</a><a href="#storage">Storage and indexes</a><a href="#evolution">Schema evolution</a><a href="#retention">Retention</a></aside>
+    <aside class="sidebar"><strong>On this page</strong><a href="#boundary">API boundary</a><a href="#payload">Request payload</a><a href="#implementation">Framework examples</a><a href="#storage">Storage and indexes</a><a href="#evolution">Schema evolution</a><a href="#retention">Retention</a></aside>
     <article class="prose">
-      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#boundary">API boundary</a><a href="#payload">Request payload</a><a href="#model">Django model</a><a href="#serializer">DRF validation</a><a href="#view">Idempotent view</a><a href="#storage">Storage and indexes</a><a href="#evolution">Schema evolution</a><a href="#retention">Retention</a></nav></details>
-      <header class="page-intro"><p class="eyebrow">Production ingestion</p><h1>Store raw device observations in Django</h1><p class="lede">Keep the exact SDK event immutable, bind it to a server-known action, and promote only the fields your backend deliberately uses.</p><div class="button-row"><a class="button" href="../raw-signal-event.schema.json">Download JSON Schema</a><a class="button secondary" href="../examples/android-event.json">Android example</a><a class="button secondary" href="../examples/ios-event.json">iOS example</a></div></header>
+      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#boundary">API boundary</a><a href="#payload">Request payload</a><a href="#implementation">Framework examples</a><a href="#storage">Storage and indexes</a><a href="#evolution">Schema evolution</a><a href="#retention">Retention</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Production ingestion</p><h1>Store raw observations in your backend</h1><p class="lede">Keep one transport contract across Django, FastAPI, Express, and Go. Store the exact SDK event, bind it to a server-known action, and promote only deliberately adopted fields.</p><div class="button-row"><a class="button" href="../raw-signal-event.schema.json">Download JSON Schema</a><a class="button secondary" href="../ai-prompts/#backend">Copy AI prompt</a><a class="button secondary" href="../examples/android-event.json">Android example</a><a class="button secondary" href="../examples/ios-event.json">iOS example</a></div></header>
 
       <section id="boundary"><h2>Recommended endpoint</h2><div class="code-block"><button class="copy-button" type="button" data-copy="endpoint">Copy</button><pre id="endpoint"><code>POST /api/v1/device-signal-events
 Authorization: Bearer &lt;application-session-token&gt;
@@ -23,6 +23,7 @@ Idempotency-Key: 01JEXAMPLEDEVICEEVENT</code></pre></div><p>Authenticate with th
 
       <section id="payload"><h2>Transport payload</h2><p>The SDK returns <code>observations</code>. The host application adds transport metadata that the SDK cannot know.</p><div class="code-block"><button class="copy-button" type="button" data-copy="request-payload">Copy</button><pre id="request-payload"><code>{
   "action_id": "checkout_01JEXAMPLE",
+  "action_type": "payment_attempt",
   "sdk_version": "0.8.1",
   "platform": "android",
   "app_version": "4.2.0",
@@ -48,7 +49,15 @@ Idempotency-Key: 01JEXAMPLEDEVICEEVENT</code></pre></div><p>Authenticate with th
   }
 }</code></pre></div><div class="notice">JSON data may contain strings, finite numbers, booleans, arrays, nested objects, and omitted optional keys. The SDK does not emit a risk score or device verdict.</div></section>
 
-      <section id="model"><h2>Django model</h2><div class="code-block"><button class="copy-button" type="button" data-copy="django-model">Copy</button><pre id="django-model"><code>import uuid
+      <section id="implementation"><h2>Choose your backend</h2><p>The envelope and database strategy stay the same. Select a framework to see its validation and idempotent create pattern.</p>
+        <div class="backend-tabs" role="tablist" aria-label="Backend framework">
+          <button type="button" role="tab" id="backend-tab-django" aria-controls="backend-panel-django" aria-selected="true" tabindex="0" data-backend-tab="django">Django / DRF</button>
+          <button type="button" role="tab" id="backend-tab-fastapi" aria-controls="backend-panel-fastapi" aria-selected="false" tabindex="-1" data-backend-tab="fastapi">FastAPI</button>
+          <button type="button" role="tab" id="backend-tab-express" aria-controls="backend-panel-express" aria-selected="false" tabindex="-1" data-backend-tab="express">Node.js / Express</button>
+          <button type="button" role="tab" id="backend-tab-go" aria-controls="backend-panel-go" aria-selected="false" tabindex="-1" data-backend-tab="go">Go</button>
+        </div>
+        <div class="backend-panel" role="tabpanel" id="backend-panel-django" aria-labelledby="backend-tab-django" data-backend-panel="django">
+      <section id="model"><h3>Django model</h3><div class="code-block"><button class="copy-button" type="button" data-copy="django-model">Copy</button><pre id="django-model"><code>import uuid
 
 from django.conf import settings
 from django.db import models
@@ -64,6 +73,7 @@ class DeviceSignalEvent(models.Model):
         related_name="device_signal_events",
     )
     action_id = models.CharField(max_length=128, db_index=True)
+    action_type = models.CharField(max_length=64, db_index=True)
     session_id = models.CharField(max_length=128, db_index=True)
     event_type = models.CharField(max_length=64)
     schema_version = models.PositiveSmallIntegerField()
@@ -78,10 +88,11 @@ class DeviceSignalEvent(models.Model):
         indexes = [
             models.Index(fields=["account", "-received_at"]),
             models.Index(fields=["action_id", "-received_at"]),
+            models.Index(fields=["action_type", "-received_at"]),
             models.Index(fields=["sdk_version", "schema_version"]),
         ]</code></pre></div><p><code>payload</code> stores the original <code>RawSignalEvent</code>. Promoted columns support common joins, retention jobs, and operational queries without duplicating all 322 fields into relational columns.</p></section>
 
-      <section id="serializer"><h2>DRF serializer</h2><div class="code-block"><button class="copy-button" type="button" data-copy="drf-serializer">Copy</button><pre id="drf-serializer"><code>from django.utils.dateparse import parse_datetime
+      <section id="serializer"><h3>DRF serializer</h3><div class="code-block"><button class="copy-button" type="button" data-copy="drf-serializer">Copy</button><pre id="drf-serializer"><code>from django.utils.dateparse import parse_datetime
 from rest_framework import serializers
 
 
@@ -90,6 +101,7 @@ ALLOWED_STATUSES = {"success", "skipped", "timeout", "error"}
 
 class DeviceSignalEventSerializer(serializers.Serializer):
     action_id = serializers.CharField(max_length=128)
+    action_type = serializers.CharField(max_length=64)
     sdk_version = serializers.CharField(max_length=32)
     platform = serializers.ChoiceField(choices=["android", "ios"])
     app_version = serializers.CharField(max_length=64, required=False, allow_blank=True)
@@ -127,7 +139,7 @@ class DeviceSignalEventSerializer(serializers.Serializer):
         # Preserve every unknown probe and additive field in payload.
         return event</code></pre></div><p>Validate the fields your feature logic consumes against the published JSON Schema. Do not reject an otherwise valid event solely because a newer SDK added an unknown probe or success-data field.</p></section>
 
-      <section id="view"><h2>Idempotent create view</h2><div class="code-block"><button class="copy-button" type="button" data-copy="drf-view">Copy</button><pre id="drf-view"><code>from django.utils.dateparse import parse_datetime
+      <section id="view"><h3>Idempotent create view</h3><div class="code-block"><button class="copy-button" type="button" data-copy="drf-view">Copy</button><pre id="drf-view"><code>from django.utils.dateparse import parse_datetime
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -147,6 +159,7 @@ class DeviceSignalEventView(APIView):
             defaults={
                 "account": request.user if request.user.is_authenticated else None,
                 "action_id": serializer.validated_data["action_id"],
+                "action_type": serializer.validated_data["action_type"],
                 "session_id": event["session_id"],
                 "event_type": event["event_type"],
                 "schema_version": event["schema_version"],
@@ -161,14 +174,232 @@ class DeviceSignalEventView(APIView):
             {"event_id": str(stored.id), "created": created},
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )</code></pre></div><p>In production, reject a replay when the same idempotency key arrives with a different payload hash. Apply request-size limits, timestamp freshness checks, action ownership checks, throttling, and normal application audit logging.</p></section>
+        <p class="framework-reference">Reference: <a href="https://docs.djangoproject.com/en/5.2/ref/models/">Django models</a> and <a href="https://www.django-rest-framework.org/api-guide/serializers/">DRF serializers</a>.</p>
+        </div>
 
-      <section id="storage"><h2>Storage and indexes</h2><ul><li>Keep the immutable raw event in PostgreSQL <code>jsonb</code> through <code>models.JSONField</code>.</li><li>Promote only stable query dimensions such as account, action, timestamps, platform, SDK version, and schema version.</li><li>Extract adopted model features into a separately versioned table or feature pipeline.</li><li>Add targeted expression indexes only for JSON paths used in production queries.</li><li>Avoid a broad GIN index on every raw payload until query evidence justifies its storage and write cost.</li><li>Keep application authentication and server observations separate from attacker-influenced client telemetry.</li></ul></section>
+        <div class="backend-panel" role="tabpanel" id="backend-panel-fastapi" aria-labelledby="backend-tab-fastapi" data-backend-panel="fastapi">
+          <h3>FastAPI with Pydantic validation</h3><p>Model the transport envelope explicitly while keeping <code>observations</code> open to additive probe IDs and fields.</p>
+          <div class="code-block"><button class="copy-button" type="button" data-copy="fastapi-model">Copy</button><pre id="fastapi-model"><code>from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+ALLOWED_STATUSES = {"success", "skipped", "timeout", "error"}
+
+
+class DeviceSignalEventIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    action_id: str = Field(max_length=128)
+    action_type: str = Field(max_length=64)
+    sdk_version: str = Field(max_length=32)
+    platform: Literal["android", "ios"]
+    app_version: str = Field(default="", max_length=64)
+    observations: dict[str, Any]
+
+    @field_validator("observations")
+    @classmethod
+    def validate_observations(cls, event: dict[str, Any]):
+        required = {
+            "session_id", "event_type", "schema_version",
+            "collected_at", "probes",
+        }
+        if not required.issubset(event):
+            raise ValueError("Invalid RawSignalEvent envelope")
+        if event["event_type"] != "device_intel_collection":
+            raise ValueError("Unsupported event_type")
+        if event["schema_version"] != 1:
+            raise ValueError("Unsupported schema_version")
+        if not isinstance(event["probes"], dict):
+            raise ValueError("probes must be an object")
+        for outcome in event["probes"].values():
+            if not isinstance(outcome, dict):
+                raise ValueError("Invalid probe outcome")
+            if outcome.get("status") not in ALLOWED_STATUSES:
+                raise ValueError("Unknown probe status")
+        return event</code></pre></div>
+          <h3>Idempotent endpoint</h3>
+          <div class="code-block"><button class="copy-button" type="button" data-copy="fastapi-view">Copy</button><pre id="fastapi-view"><code>from typing import Annotated
+
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
+
+
+@app.post("/api/v1/device-signal-events", status_code=status.HTTP_201_CREATED)
+async def create_device_signal_event(
+    body: DeviceSignalEventIn,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
+    account = Depends(require_account),
+):
+    # Repository stores body.observations unchanged in a JSONB column.
+    stored, created = await repository.get_or_create_device_signal_event(
+        idempotency_key=idempotency_key,
+        account_id=account.id,
+        action_id=body.action_id,
+        action_type=body.action_type,
+        sdk_version=body.sdk_version,
+        platform=body.platform,
+        payload=body.observations,
+    )
+    if not created and stored.payload != body.observations:
+        raise HTTPException(status_code=409, detail="Idempotency conflict")
+    return JSONResponse(
+        {"event_id": str(stored.id), "created": created},
+        status_code=201 if created else 200,
+    )</code></pre></div>
+          <p>The repository boundary is application-specific. Implement it with a unique constraint on <code>idempotency_key</code>, a transaction, and PostgreSQL <code>jsonb</code>.</p>
+          <p class="framework-reference">Reference: <a href="https://fastapi.tiangolo.com/tutorial/body-nested-models/">FastAPI nested request models</a>.</p>
+        </div>
+
+        <div class="backend-panel" role="tabpanel" id="backend-panel-express" aria-labelledby="backend-tab-express" data-backend-panel="express">
+          <h3>Node.js with Express 5 and PostgreSQL</h3><p>Parse a bounded JSON body, validate the stable envelope, then insert the untouched observations through a parameterized query.</p>
+          <div class="code-block"><button class="copy-button" type="button" data-copy="express-view">Copy</button><pre id="express-view"><code>import express from "express";
+
+const app = express();
+app.use(express.json({ limit: "256kb" }));
+
+function assertRawSignalRequest(input) {
+  if (!input || typeof input !== "object") throw new Error("Invalid request");
+  const event = input.observations;
+  if (!event || typeof event !== "object") throw new Error("Invalid observations");
+  if (event.event_type !== "device_intel_collection") {
+    throw new Error("Unsupported event_type");
+  }
+  if (event.schema_version !== 1 || !event.probes || typeof event.probes !== "object") {
+    throw new Error("Unsupported RawSignalEvent envelope");
+  }
+  for (const outcome of Object.values(event.probes)) {
+    if (!outcome || !["success", "skipped", "timeout", "error"].includes(outcome.status)) {
+      throw new Error("Invalid probe outcome");
+    }
+  }
+}
+
+app.post("/api/v1/device-signal-events", requireAccount, async (req, res) =&gt; {
+  try {
+    assertRawSignalRequest(req.body);
+  } catch (error) {
+    return res.status(400).json({ detail: error.message });
+  }
+
+  const idempotencyKey = req.get("Idempotency-Key");
+  if (!idempotencyKey) return res.status(400).json({ detail: "Idempotency-Key is required" });
+
+  const result = await db.query(
+    `INSERT INTO device_signal_event
+      (idempotency_key, account_id, action_id, action_type, sdk_version, platform, payload)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+     ON CONFLICT (idempotency_key) DO NOTHING
+     RETURNING id`,
+    [
+      idempotencyKey,
+      req.account.id,
+      req.body.action_id,
+      req.body.action_type,
+      req.body.sdk_version,
+      req.body.platform,
+      JSON.stringify(req.body.observations),
+    ],
+  );
+
+  if (result.rowCount === 1) {
+    return res.status(201).json({ event_id: result.rows[0].id, created: true });
+  }
+  const existing = await loadByIdempotencyKey(idempotencyKey);
+  return res.status(200).json({ event_id: existing.id, created: false });
+});</code></pre></div>
+          <p>In production, compare a canonical payload hash before treating a replay as successful. Authenticate before the handler and derive the account from middleware, not from <code>client_id</code>.</p>
+          <p class="framework-reference">Reference: <a href="https://expressjs.com/en/5x/api/router/">Express 5 Router API</a>.</p>
+        </div>
+
+        <div class="backend-panel" role="tabpanel" id="backend-panel-go" aria-labelledby="backend-tab-go" data-backend-panel="go">
+          <h3>Go standard library</h3><p>Keep the raw event as <code>json.RawMessage</code> after validating only the stable envelope. This preserves additive probe data.</p>
+          <div class="code-block"><button class="copy-button" type="button" data-copy="go-view">Copy</button><pre id="go-view"><code>package main
+
+import (
+    "encoding/json"
+    "net/http"
+)
+
+type ingestRequest struct {
+    ActionID     string          `json:"action_id"`
+    ActionType   string          `json:"action_type"`
+    SDKVersion   string          `json:"sdk_version"`
+    Platform     string          `json:"platform"`
+    AppVersion   string          `json:"app_version"`
+    Observations json.RawMessage `json:"observations"`
+}
+
+type rawEnvelope struct {
+    SessionID     string                     `json:"session_id"`
+    EventType     string                     `json:"event_type"`
+    SchemaVersion int                        `json:"schema_version"`
+    CollectedAt   string                     `json:"collected_at"`
+    Probes        map[string]json.RawMessage `json:"probes"`
+}
+
+func deviceSignalEvents(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+    key := r.Header.Get("Idempotency-Key")
+    if key == "" {
+        http.Error(w, "Idempotency-Key is required", http.StatusBadRequest)
+        return
+    }
+
+    r.Body = http.MaxBytesReader(w, r.Body, 256&lt;&lt;10)
+    var input ingestRequest
+    if err := json.NewDecoder(r.Body).Decode(&amp;input); err != nil {
+        http.Error(w, "invalid JSON", http.StatusBadRequest)
+        return
+    }
+    var event rawEnvelope
+    if err := json.Unmarshal(input.Observations, &amp;event); err != nil ||
+        event.EventType != "device_intel_collection" ||
+        event.SchemaVersion != 1 ||
+        event.Probes == nil {
+        http.Error(w, "invalid RawSignalEvent", http.StatusBadRequest)
+        return
+    }
+
+    accountID := authenticatedAccountID(r.Context())
+    stored, created, err := storeEvent(r.Context(), key, accountID, input)
+    if err != nil {
+        http.Error(w, "storage failure", http.StatusInternalServerError)
+        return
+    }
+    status := http.StatusOK
+    if created {
+        status = http.StatusCreated
+    }
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(status)
+    json.NewEncoder(w).Encode(map[string]any{
+        "event_id": stored.ID,
+        "created": created,
+    })
+}
+
+func main() {
+    http.HandleFunc("/api/v1/device-signal-events", deviceSignalEvents)
+    http.ListenAndServe(":8080", nil)
+}</code></pre></div>
+          <p><code>storeEvent</code> should use a database transaction and unique idempotency key, preserve <code>input.Observations</code> in <code>jsonb</code>, and reject conflicting replays.</p>
+          <p class="framework-reference">Reference: Go <a href="https://pkg.go.dev/net/http">net/http</a> and <a href="https://pkg.go.dev/encoding/json">encoding/json</a>.</p>
+        </div>
+      </section>
+
+      <section id="storage"><h2>Storage and indexes</h2><ul><li>Keep the immutable raw event in PostgreSQL <code>jsonb</code>. Django maps this through <code>models.JSONField</code>; other stacks should use their native JSON binding without flattening the payload.</li><li>Promote only stable query dimensions such as account, action ID, action type, timestamps, platform, SDK version, and schema version.</li><li>Treat <code>action_type</code> as a host-defined transport field, not part of <code>RawSignalEvent</code>. Keep its vocabulary versioned and documented by the backend.</li><li>Extract adopted model features into a separately versioned table or feature pipeline.</li><li>Add targeted expression indexes only for JSON paths used in production queries.</li><li>Avoid a broad GIN index on every raw payload until query evidence justifies its storage and write cost.</li><li>Keep application authentication and server observations separate from attacker-influenced client telemetry.</li></ul></section>
 
       <section id="evolution"><h2>Schema evolution</h2><div class="contract-rules"><div><strong>Envelope changes</strong><p>Route by <code>schema_version</code>. Reject unsupported envelope versions explicitly.</p></div><div><strong>Additive probe data</strong><p>Preserve unknown probe IDs and fields. Adopt them in feature logic only after review.</p></div><div><strong>Outcome semantics</strong><p>Never collapse omitted, skipped, timeout, error, and observed <code>false</code> into one value.</p></div><div><strong>SDK context</strong><p>Persist <code>sdk_version</code>, platform, app version, and collection time with every event.</p></div></div></section>
 
       <section id="retention"><h2>Retention and access</h2><p>Raw signal events can contain high-entropy and sensitive observations. Define a retention period per collection purpose, restrict raw access, record administrative access, encrypt data in transit and at rest, and support deletion requirements. Derived aggregates can often outlive raw payloads, but their lineage and feature version must remain auditable.</p><div class="notice warning">Treat every client field as attacker-influenced context. Never make a consequential decision from one device signal and always provide an appropriate recovery or review path.</div></section>
     </article>
   </main>
-  <footer class="site-footer"><div class="container footer-wrap"><div>Backend guide for SDK v0.8.1.</div><div class="footer-links"><a href="../signals/">Typed catalog</a><a href="../recipes/">Recipes</a><a href="../versions/">Versions</a><a href="../privacy/">Privacy</a></div></div></footer>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Backend guides for SDK v0.8.1.</div><div class="footer-links"><a href="../signals/">Typed catalog</a><a href="../use-cases/">Use cases</a><a href="../recipes/">Recipes</a><a href="../privacy/">Privacy</a></div></div></footer>
 </body>
 </html>

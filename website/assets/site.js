@@ -53,6 +53,41 @@ for (const button of document.querySelectorAll("[data-copy-path]")) {
   button.addEventListener("click", () => copyText(button, button.dataset.copyPath));
 }
 
+const backendTabs = [...document.querySelectorAll("[data-backend-tab]")];
+const backendPanels = [...document.querySelectorAll("[data-backend-panel]")];
+
+function activateBackendTab(activeTab, moveFocus = false) {
+  for (const tab of backendTabs) {
+    const isActive = tab === activeTab;
+    tab.setAttribute("aria-selected", String(isActive));
+    tab.tabIndex = isActive ? 0 : -1;
+  }
+  for (const panel of backendPanels) {
+    panel.hidden = panel.dataset.backendPanel !== activeTab.dataset.backendTab;
+  }
+  if (moveFocus) activeTab.focus();
+}
+
+for (const tab of backendTabs) {
+  tab.addEventListener("click", () => activateBackendTab(tab));
+  tab.addEventListener("keydown", (event) => {
+    const currentIndex = backendTabs.indexOf(tab);
+    let nextIndex;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + backendTabs.length) % backendTabs.length;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % backendTabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = backendTabs.length - 1;
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    activateBackendTab(backendTabs[nextIndex], true);
+  });
+}
+
+if (backendTabs.length > 0) {
+  const selectedTab = backendTabs.find((tab) => tab.getAttribute("aria-selected") === "true") ?? backendTabs[0];
+  activateBackendTab(selectedTab);
+}
+
 const filterButtons = document.querySelectorAll("[data-filter]");
 const signalRows = document.querySelectorAll("tr[data-probe-id]");
 const catalogSearch = document.querySelector("[data-catalog-search]");
