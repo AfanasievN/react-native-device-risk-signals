@@ -3,15 +3,84 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>React Native Device Risk Signals Documentation</title>
-  <meta name="description" content="Documentation for a privacy-aware React Native SDK that collects raw device integrity, application, network, runtime, and transaction safety signals on Android and iOS.">
+  <title>React Native Device Risk Signals SDK | Root, Jailbreak, Emulator &amp; Frida Detection</title>
+  <meta name="description" content="Open-source React Native SDK for typed root, jailbreak, emulator, Frida, tampering, network and transaction-time signals on Android and iOS.">
   <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/">
   <meta property="og:title" content="React Native Device Risk Signals">
   <meta property="og:description" content="Raw mobile device observations for security and fraud prevention, with no built-in transport or risk verdict.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/">
-  <meta property="og:image" content="https://raw.githubusercontent.com/AfanasievN/react-native-device-risk-signals/main/docs/images/signal-bench-results.png">
+  <!-- SEO_DISCOVERY_METADATA_START -->
+  <meta property="og:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <meta property="og:image:alt" content="Signal Bench displaying a structured React Native device signals event">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="React Native Device Risk Signals SDK | Root, Jailbreak, Emulator &amp; Frida Detection">
+  <meta name="twitter:description" content="Open-source React Native SDK for typed root, jailbreak, emulator, Frida, tampering, network and transaction-time signals on Android and iOS.">
+  <meta name="twitter:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#website",
+      "url": "https://afanasievn.github.io/react-native-device-risk-signals/",
+      "name": "React Native Device Risk Signals",
+      "description": "Open-source React Native SDK for typed root, jailbreak, emulator, Frida, tampering, network and transaction-time signals on Android and iOS.",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#software",
+      "name": "react-native-device-risk-signals",
+      "alternateName": "React Native Device Risk Signals",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Android, iOS",
+      "description": "Open-source React Native SDK for typed root, jailbreak, emulator, Frida, tampering, network and transaction-time signals on Android and iOS.",
+      "url": "https://afanasievn.github.io/react-native-device-risk-signals/",
+      "downloadUrl": "https://www.npmjs.com/package/react-native-device-risk-signals",
+      "codeRepository": "https://github.com/AfanasievN/react-native-device-risk-signals",
+      "programmingLanguage": [
+        "TypeScript",
+        "Kotlin",
+        "Objective-C++"
+      ],
+      "license": "https://github.com/AfanasievN/react-native-device-risk-signals/blob/main/LICENSE",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#page",
+      "url": "https://afanasievn.github.io/react-native-device-risk-signals/",
+      "name": "React Native Device Risk Signals SDK | Root, Jailbreak, Emulator & Frida Detection",
+      "description": "Open-source React Native SDK for typed root, jailbreak, emulator, Frida, tampering, network and transaction-time signals on Android and iOS.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#website"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Documentation",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <!-- SEO_DISCOVERY_METADATA_END -->
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/styles.css">
   <script defer src="./assets/site.js"></script>
@@ -32,8 +101,8 @@
     <section class="container hero">
       <div>
         <p class="eyebrow">React Native security telemetry</p>
-        <h1>Device context. Your decision.</h1>
-        <p class="lede">Typed Android and iOS observations for fraud prevention, collected locally without a vendor backend.</p>
+        <h1>Raw device risk signals for React Native</h1>
+        <p class="lede">Open-source Android and iOS observations for root, jailbreak, emulator, Frida, tampering, network, and transaction context, collected locally without a vendor backend. Device context. Your decision.</p>
         <div class="hero-actions">
           <a class="button" href="./integration/">Start integrating</a>
           <a class="button secondary" href="./signals/">Explore signals</a>
@@ -64,6 +133,7 @@
           <a class="route-card" href="./signals/"><h3>Signal catalog</h3><p>Review every probe, selectable field, platform boundary, outcome, and backend envelope rule.</p><span>Inspect the contract</span></a>
           <a class="route-card" href="./backend/"><h3>Backend integration</h3><p>Implement the same ingestion contract with Django, FastAPI, Express, or Go, including validation, idempotency, indexing, and retention.</p><span>Build the endpoint</span></a>
           <a class="route-card" href="./ai-prompts/"><h3>AI integration kit</h3><p>Copy source-grounded prompts for explaining the SDK, changing a mobile app, designing the backend contract, and reviewing privacy.</p><span>Open prompt library</span></a>
+          <a class="route-card" href="./guides/"><h3>Technical guides</h3><p>Understand root, jailbreak, emulator, Frida, platform attestation, and competing React Native library architectures.</p><span>Read implementation guides</span></a>
           <a class="route-card" href="./use-cases/"><h3>Product use cases</h3><p>Follow end-to-end patterns for authentication, payments, account recovery, promotions, and protected actions.</p><span>Choose a product flow</span></a>
           <a class="route-card" href="./risk-teams/"><h3>Risk team playbook</h3><p>Turn raw observations into governed model features, quality checks, and explainable investigation context.</p><span>Plan feature engineering</span></a>
           <a class="route-card" href="./privacy/"><h3>Privacy and governance</h3><p>Apply purpose limitation, retention, consent, access controls, and missing-data semantics before production collection.</p><span>Review safeguards</span></a>

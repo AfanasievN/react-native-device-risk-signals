@@ -11,6 +11,8 @@ The SDK returns typed RawSignalEvent data. It does not calculate a risk score, r
 - [Use cases](https://afanasievn.github.io/react-native-device-risk-signals/use-cases/): Authentication, payments, account recovery, promotions, and protected actions.
 - [Backend guides](https://afanasievn.github.io/react-native-device-risk-signals/backend/): Django/DRF, FastAPI, Express, and Go ingestion examples.
 - [AI prompts](https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/): Source-grounded prompts for explaining and integrating the SDK.
+- [Technical guides](https://afanasievn.github.io/react-native-device-risk-signals/guides/): Root, jailbreak, emulator, Frida, and platform-attestation architecture guides.
+- [Full AI context](https://afanasievn.github.io/react-native-device-risk-signals/llms-full.txt): Consolidated product, event, outcome, backend, privacy, and platform context.
 
 ## Machine-readable contracts
 
@@ -27,6 +29,7 @@ The SDK returns typed RawSignalEvent data. It does not calculate a risk score, r
 - [Compatibility](https://afanasievn.github.io/react-native-device-risk-signals/compatibility/): React Native, Android, iOS, architecture, and physical-device support.
 - [Version contract](https://afanasievn.github.io/react-native-device-risk-signals/versions/): SDK, event schema, and probe-catalog versioning.
 - [FAQ](https://afanasievn.github.io/react-native-device-risk-signals/faq/): Common integration and production questions.
+- [Library comparison](https://afanasievn.github.io/react-native-device-risk-signals/compare/react-native-device-risk-libraries/): Architecture-level comparison with focused integrity, RASP, and device-information libraries.
 
 ## Rules for generated integrations
 

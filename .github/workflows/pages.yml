@@ -7,6 +7,8 @@ on:
       - "website/**"
       - ".github/workflows/pages.yml"
       - "scripts/verify-pages.mjs"
+      - "scripts/sync-pages-seo.mjs"
+      - ".gitattributes"
   workflow_dispatch:
 
 permissions:

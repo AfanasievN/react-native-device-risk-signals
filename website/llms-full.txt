@@ -1,0 +1,134 @@
+# React Native Device Risk Signals - full AI context
+
+## Product
+
+react-native-device-risk-signals is an open-source React Native TurboModule for Android and iOS. It
+collects typed raw device, application, integrity, network, runtime, geolocation, hardware, and
+transaction-time observations locally. The package has zero runtime dependencies.
+
+The SDK does not calculate a risk score, return a trusted or untrusted verdict, make a blocking
+decision, perform a network request, or create a persistent device identifier. The host application
+owns consent, collection timing, authentication, transport, storage, retention, feature engineering,
+policy, review, recovery, and appeals.
+
+Authoritative machine-readable sources:
+
+- Probe catalog: https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json
+- Raw event schema: https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json
+- Android example: https://afanasievn.github.io/react-native-device-risk-signals/examples/android-event.json
+- iOS example: https://afanasievn.github.io/react-native-device-risk-signals/examples/ios-event.json
+
+## Supported environment
+
+- React Native 0.76 or newer.
+- React Native New Architecture enabled.
+- Android and iOS native projects.
+- Expo Go is not supported because the package contains native code.
+- No vendor backend is required.
+
+Install:
+
+```sh
+npm install react-native-device-risk-signals
+```
+
+## Collection model
+
+Create a DeviceIntel instance with a short-lived session or action identifier, explicit consent, and
+the probes or fields appropriate for the declared purpose. Call collect() near the action that needs
+context. The result is a RawSignalEvent. Send it through the application's existing authenticated API
+client if server-side storage or analysis is required.
+
+Never invent probe IDs or fields. Read probe-catalog.json before generating integration code.
+
+## RawSignalEvent
+
+The stable envelope contains:
+
+- session_id: short-lived caller-supplied correlation value.
+- client_id: optional caller-supplied value; never treat it as authenticated identity.
+- event_type: device_intel_collection.
+- schema_version: currently 1.
+- collected_at: ISO 8601 timestamp.
+- probes: object keyed by probe ID.
+
+Probe IDs and success-data fields are additive. Backends should preserve unknown probes and fields
+when the stable envelope remains valid.
+
+## Probe outcome semantics
+
+Every requested probe has one independent outcome:
+
+- success: data was collected. Optional fields may still be omitted when the platform cannot read
+  them. A present false, zero, empty string, empty array, or empty object is observed data.
+- skipped: the probe did not run, usually because it was disabled, unsupported, or outside consent.
+- timeout: the configured collection deadline elapsed.
+- error: the probe attempted collection and failed.
+
+Do not collapse omitted, skipped, timeout, error, false, zero, and empty values into one state.
+
+## Signal families
+
+The catalog includes device identity, application metadata and install provenance, OS integrity,
+emulator and simulator evidence, debugger and hook observations, Frida artifacts, network and proxy
+state, local addresses, hardware and memory state, locale, telephony, geolocation source information,
+device security posture, and transaction-time screen, overlay, accessibility, remote-control, and
+interaction observations. Availability, permissions, sensitivity, defaults, and exact field types
+are defined only by probe-catalog.json.
+
+Signals are attacker-influenced observations. A matching path, class, library, property, port, or
+package is evidence, not proof of compromise. Missing evidence is not proof of safety.
+
+## Backend ingestion contract
+
+A recommended endpoint is POST /api/v1/device-signal-events. Authenticate before parsing the event.
+Bind the request to a server-created short-lived action ID. Validate request size and the stable
+RawSignalEvent envelope, preserve the full probe object as JSON, and enforce an idempotency key.
+
+Recommended storage:
+
+- relational columns for event ID, authenticated subject, action ID, action type, collected_at,
+  received_at, SDK version, platform, schema version, and payload hash;
+- one JSON/JSONB column for the complete raw event;
+- indexes on server-owned subject/action identifiers and timestamps;
+- promoted columns only for fields deliberately adopted after calibration.
+
+Do not trust client_id as account identity. Do not reject unknown additive probes or success-data
+fields. Apply retention, access control, deletion, audit logging, and field-level purpose limitation.
+
+Framework examples:
+
+- Django/DRF, FastAPI, Express, and Go:
+  https://afanasievn.github.io/react-native-device-risk-signals/backend/
+
+## Platform attestation
+
+The SDK complements rather than replaces Google Play Integrity, Apple App Attest, or DeviceCheck.
+Platform attestation provides server-verifiable platform statements. This SDK provides transparent,
+locally collected raw context that can explain individual observations and cover development,
+diagnostic, or cross-platform use cases. Use attestation for claims that require platform-backed
+verification and raw signals for additional context. Keep both bound to the same server-known action.
+
+## Privacy and safety boundaries
+
+- Collect only fields needed for a documented purpose.
+- Sensitive and expensive probes remain disabled until explicitly selected and consented.
+- The SDK must not request permissions or show permission prompts.
+- The host app declares any optional permissions and explains them to users.
+- Do not add QUERY_ALL_PACKAGES, persistent IDs, vendor endpoints, hidden uploads, or customer secrets.
+- Never block, decline, or accuse a user from one observation.
+- Calibrate on representative physical devices and measure missingness, latency, and false positives.
+
+## Documentation map
+
+- Home: https://afanasievn.github.io/react-native-device-risk-signals/
+- Integration: https://afanasievn.github.io/react-native-device-risk-signals/integration/
+- Signal catalog: https://afanasievn.github.io/react-native-device-risk-signals/signals/
+- Technical guides: https://afanasievn.github.io/react-native-device-risk-signals/guides/
+- Use cases: https://afanasievn.github.io/react-native-device-risk-signals/use-cases/
+- Backend: https://afanasievn.github.io/react-native-device-risk-signals/backend/
+- AI prompts: https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/
+- Privacy: https://afanasievn.github.io/react-native-device-risk-signals/privacy/
+- Compatibility: https://afanasievn.github.io/react-native-device-risk-signals/compatibility/
+- Versions: https://afanasievn.github.io/react-native-device-risk-signals/versions/
+- Source: https://github.com/AfanasievN/react-native-device-risk-signals

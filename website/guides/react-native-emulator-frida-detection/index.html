@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>React Native Emulator and Frida Detection with Raw Signals</title>
+  <meta name="description" content="Collect explainable React Native emulator, simulator, debugger, hooking and Frida observations on Android and iOS without a client-side verdict.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-emulator-frida-detection/">
+  <meta property="og:title" content="React Native Emulator and Frida Detection"><meta property="og:description" content="Interpret virtual-device and runtime-instrumentation evidence without hiding uncertainty."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-emulator-frida-detection/">
+  <!-- SEO_DISCOVERY_METADATA_START -->
+  <meta property="og:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <meta property="og:image:alt" content="Signal Bench displaying a structured React Native device signals event">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="React Native Emulator and Frida Detection with Raw Signals">
+  <meta name="twitter:description" content="Collect explainable React Native emulator, simulator, debugger, hooking and Frida observations on Android and iOS without a client-side verdict.">
+  <meta name="twitter:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-emulator-frida-detection/#page",
+      "url": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-emulator-frida-detection/",
+      "name": "React Native Emulator and Frida Detection with Raw Signals",
+      "description": "Collect explainable React Native emulator, simulator, debugger, hooking and Frida observations on Android and iOS without a client-side verdict.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#website"
+      },
+      "author": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      },
+      "publisher": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-emulator-frida-detection/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Documentation",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/guides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "React Native Emulator and Frida Detection with Raw Signals",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-emulator-frida-detection/"
+        }
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author",
+      "name": "AfanasievN",
+      "url": "https://github.com/AfanasievN"
+    }
+  ]
+}
+  </script>
+  <!-- SEO_DISCOVERY_METADATA_END -->
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Guides</a><a href="../../use-cases/">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Emulator and Frida</strong><a href="#layers">Observation layers</a><a href="#emulator">Virtual devices</a><a href="#frida">Instrumentation</a><a href="#transaction">Transaction time</a><a href="#calibration">Calibration</a></aside>
+    <article class="prose">
+      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#layers">Observation layers</a><a href="#emulator">Virtual devices</a><a href="#frida">Instrumentation</a><a href="#transaction">Transaction time</a><a href="#calibration">Calibration</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Runtime evidence</p><h1>See emulator and instrumentation clues separately</h1><p class="lede">A useful event says which build marker, file, property, thread, class, library, pipe, or port was observed. It does not compress those values into an unexplained boolean.</p><div class="button-row"><a class="button" href="../../signals/#probe-os_integrity">Open integrity contract</a><a class="button secondary" href="../../compatibility/">Compatibility</a></div></header>
+      <section id="layers"><h2>Use independent observation layers</h2><table><thead><tr><th>Layer</th><th>Examples</th><th>Why preserve it</th></tr></thead><tbody><tr><td>Build and hardware</td><td>Build fingerprint, model, ABI, QEMU properties, virtual CPU markers</td><td>Explains why an environment resembled an emulator.</td></tr><tr><td>Filesystem and packages</td><td>Known emulator files and installed emulator-related packages</td><td>Supports family-specific analysis without a global verdict.</td></tr><tr><td>Runtime</td><td>Debugger state, hook classes, stack frames, mapped libraries, threads</td><td>Captures instrumentation that build metadata may not reveal.</td></tr><tr><td>Local endpoints</td><td>Frida handshake, reverse-engineering ports, injector pipes</td><td>Provides transaction-time evidence with explicit failure states.</td></tr></tbody></table></section>
+      <section id="emulator"><h2>Emulator and simulator observations</h2><p>Android checks can return the matching build fingerprint, virtual hardware properties, CPU and vendor markers, sensor counts, camera availability, emulator file paths, related packages, and which checks actually ran. Recognized families can include AOSP or Google emulators, Genymotion, BlueStacks, Nox, MuMu, LDPlayer, MEmu, and others represented in the published catalog.</p><p>iOS reports simulator build and environment markers when available. Development simulators are legitimate tools, so emulator evidence needs action context rather than automatic blocking.</p></section>
+      <section id="frida"><h2>Frida and hook observations</h2><p>The integrity probes can inspect already-loaded class names without initializing third-party code, parse mapped libraries and stack frames, inspect process thread names, observe known injector pipe targets, and test selected loopback ports. A separate Frida scan can perform a constrained local handshake and preserve connect, timeout, protocol-reject, and unavailable outcomes.</p><div class="notice">Local port checks never contact an external service. Keep expensive or transaction-time probes disabled by default until physical-device latency and accessibility behavior have been measured.</div></section>
+      <section id="transaction"><h2>Collect at the right moment</h2><p>Long-lived startup values and action-time runtime values answer different questions. Collect a baseline after app initialization, then collect a narrow transaction profile near confirmation of a payment, recovery, or protected account change. Bind both events to the same server-created action while giving each upload its own idempotency key.</p><p>See the <a href="../../use-cases/protected-actions/">protected actions</a> and <a href="../../use-cases/payments/">payments</a> guides for complete flows.</p></section>
+      <section id="calibration"><h2>Calibrate before policy</h2><ol><li>Test release builds on supported physical devices and OS versions.</li><li>Keep emulator and simulator samples as separate development cohorts.</li><li>Measure probe latency, timeout rate, missingness, and value distributions.</li><li>Review vendor-modified Android builds and managed enterprise devices.</li><li>Never block from one observation and provide a recovery path for policy decisions.</li></ol><p>The SDK does not calculate a risk score or return a trusted or untrusted verdict.</p></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Explainable runtime observations for React Native.</div><div class="footer-links"><a href="../">Guides</a><a href="../../signals/">Signal catalog</a><a href="../../risk-teams/">Calibration</a></div></div></footer>
+</body>
+</html>

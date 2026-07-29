@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>React Native Device Risk Library Comparison: JailMonkey, freeRASP and Device Info</title>
+  <meta name="description" content="Compare React Native Device Risk Signals with JailMonkey, freeRASP and react-native-device-info by output model, scope, transport and integration goals.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/compare/react-native-device-risk-libraries/">
+  <meta property="og:title" content="React Native Device Risk Library Comparison"><meta property="og:description" content="Choose between raw risk observations, focused integrity checks, runtime protection and general device metadata."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/compare/react-native-device-risk-libraries/">
+  <!-- SEO_DISCOVERY_METADATA_START -->
+  <meta property="og:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <meta property="og:image:alt" content="Signal Bench displaying a structured React Native device signals event">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="React Native Device Risk Library Comparison: JailMonkey, freeRASP and Device Info">
+  <meta name="twitter:description" content="Compare React Native Device Risk Signals with JailMonkey, freeRASP and react-native-device-info by output model, scope, transport and integration goals.">
+  <meta name="twitter:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/compare/react-native-device-risk-libraries/#page",
+      "url": "https://afanasievn.github.io/react-native-device-risk-signals/compare/react-native-device-risk-libraries/",
+      "name": "React Native Device Risk Library Comparison: JailMonkey, freeRASP and Device Info",
+      "description": "Compare React Native Device Risk Signals with JailMonkey, freeRASP and react-native-device-info by output model, scope, transport and integration goals.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#website"
+      },
+      "author": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      },
+      "publisher": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/compare/react-native-device-risk-libraries/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Documentation",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Compare",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/compare/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "React Native Device Risk Library Comparison: JailMonkey, freeRASP and Device Info",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/compare/react-native-device-risk-libraries/"
+        }
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author",
+      "name": "AfanasievN",
+      "url": "https://github.com/AfanasievN"
+    }
+  ]
+}
+  </script>
+  <!-- SEO_DISCOVERY_METADATA_END -->
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../../guides/">Guides</a><a href="../../use-cases/">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Library comparison</strong><a href="#summary">Summary</a><a href="#table">Comparison</a><a href="#choose">How to choose</a><a href="#combine">Combining libraries</a><a href="#method">Method</a></aside>
+    <article class="prose">
+      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#summary">Summary</a><a href="#table">Comparison</a><a href="#choose">How to choose</a><a href="#combine">Combining libraries</a><a href="#method">Method</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Architecture comparison</p><h1>Choose the output model before the library</h1><p class="lede">These projects overlap in a few checks, but they are built for different jobs: raw evidence, focused integrity helpers, runtime protection, or general device information.</p><div class="button-row"><a class="button" href="../../signals/">Inspect our complete contract</a><a class="button secondary" href="../../guides/">Read technical guides</a></div></header>
+      <section id="summary"><h2>Short answer</h2><ul><li>Choose <strong>React Native Device Risk Signals</strong> when you want a broad, typed, machine-readable raw event and your own backend policy.</li><li>Choose <strong>JailMonkey</strong> when a smaller focused API for common root, jailbreak, hook and mock-location checks matches your requirements.</li><li>Evaluate <strong>freeRASP</strong> when you need a runtime application self-protection product and its alert or response model.</li><li>Choose <strong>react-native-device-info</strong> for broad device and application metadata that is not primarily a risk telemetry contract.</li></ul></section>
+      <section id="table"><h2>Architecture-level comparison</h2><table><thead><tr><th>Project</th><th>Primary job</th><th>Output style</th><th>Best fit</th></tr></thead><tbody>
+        <tr><td><a href="https://github.com/AfanasievN/react-native-device-risk-signals">React Native Device Risk Signals</a></td><td>Transparent device and runtime risk observations</td><td>One typed event with independent success, skipped, timeout, and error outcomes</td><td>Teams building their own ingestion, calibration, privacy controls, and backend policy</td></tr>
+        <tr><td><a href="https://github.com/GantMan/jail-monkey">JailMonkey</a></td><td>Focused root, jailbreak and related environment checks</td><td>Individual helper results oriented around common detection questions</td><td>Applications needing a compact integrity-check surface</td></tr>
+        <tr><td><a href="https://github.com/talsec/Free-RASP-ReactNative">freeRASP</a></td><td>Runtime application self-protection</td><td>Threat detection and notification or response integration</td><td>Applications evaluating an RASP lifecycle rather than only storing raw observations</td></tr>
+        <tr><td><a href="https://github.com/react-native-device-info/react-native-device-info">react-native-device-info</a></td><td>General device and application information</td><td>Many independent getters and hooks</td><td>Product features, compatibility checks, diagnostics, and general metadata</td></tr>
+      </tbody></table><div class="notice">This is an architecture comparison, not a claim that one project detects every technique better. Detection catalogs and platform behavior change over time. Verify current upstream documentation and test the exact versions you plan to ship.</div></section>
+      <section id="choose"><h2>Questions to ask before choosing</h2><ol><li>Do you need raw field-level evidence or a higher-level detection event?</li><li>Must the package avoid all network traffic and vendor services?</li><li>Do you need one backend event schema across Android and iOS?</li><li>Which sensitive fields and permissions can your declared purpose justify?</li><li>Will you calibrate physical-device behavior and own downstream policy?</li><li>Do you need platform attestation in addition to local observations?</li></ol></section>
+      <section id="combine"><h2>Combining libraries safely</h2><p>It can be reasonable to use a general device metadata library, platform attestation, and a raw observation SDK together. Keep provenance explicit: store the source library, version, collection time, platform, verification status, and failure state for each value. Avoid copying everything into one ambiguous trusted-device object.</p><p>Do not collect duplicate sensitive fields without a documented purpose. Do not add persistent identifiers merely to join data across tools. The SDK does not calculate a risk score or make a blocking decision.</p></section>
+      <section id="method"><h2>Review method and freshness</h2><p>Last reviewed 2026-07-29 against the public project documentation linked above. This page compares documented product models, not unpublished implementations, bypass resistance, support quality, or commercial guarantees. Open an issue if a description is stale or materially incomplete.</p></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Compare architectures, then test real devices.</div><div class="footer-links"><a href="../../guides/">Guides</a><a href="../../signals/">Signals</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals/issues">Corrections</a></div></div></footer>
+</body>
+</html>

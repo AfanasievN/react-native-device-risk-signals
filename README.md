@@ -22,6 +22,7 @@ application owns transport, authentication, storage, scoring, and policy.
 [AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
 [Probe Catalog](https://afanasievn.github.io/react-native-device-risk-signals/signals/) ·
 [Backend guides](https://afanasievn.github.io/react-native-device-risk-signals/backend/) ·
+[Technical guides](https://afanasievn.github.io/react-native-device-risk-signals/guides/) ·
 [Use cases](https://afanasievn.github.io/react-native-device-risk-signals/use-cases/) ·
 [AI integration prompts](https://afanasievn.github.io/react-native-device-risk-signals/ai-prompts/) ·
 [Collection recipes](https://afanasievn.github.io/react-native-device-risk-signals/recipes/) ·

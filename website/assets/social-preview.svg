@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">React Native Device Risk Signals</title>
+  <desc id="description">Raw Android and iOS device risk observations without a vendor backend or client-side verdict.</desc>
+  <rect width="1200" height="630" fill="#f7f8f5"/>
+  <rect x="64" y="64" width="1072" height="502" rx="14" fill="#ffffff" stroke="#d7ded8" stroke-width="2"/>
+  <rect x="104" y="104" width="58" height="58" rx="12" fill="#18211c"/>
+  <text x="133" y="141" fill="#d9fbe7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="21" font-weight="700" text-anchor="middle">RS</text>
+  <text x="184" y="140" fill="#18211c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25" font-weight="700">React Native Device Risk Signals</text>
+  <text x="104" y="250" fill="#18211c" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="59" font-weight="760">
+    <tspan x="104" dy="0">Raw device context.</tspan>
+    <tspan x="104" dy="70">Your backend decides.</tspan>
+  </text>
+  <text x="106" y="422" fill="#56625b" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="25">
+    Root · Jailbreak · Emulator · Frida · Network · Runtime
+  </text>
+  <g transform="translate(760 204)">
+    <rect width="306" height="252" rx="12" fill="#111814"/>
+    <text x="28" y="46" fill="#74d99f" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">{</text>
+    <text x="48" y="80" fill="#d9fbe7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">"status": "success",</text>
+    <text x="48" y="114" fill="#d9fbe7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">"transport": null,</text>
+    <text x="48" y="148" fill="#d9fbe7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">"verdict": null,</text>
+    <text x="48" y="182" fill="#d9fbe7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">"raw": true</text>
+    <text x="28" y="216" fill="#74d99f" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">}</text>
+  </g>
+  <rect x="104" y="490" width="222" height="38" rx="19" fill="#dff4e8"/>
+  <text x="215" y="516" fill="#0d5d38" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="17" font-weight="700" text-anchor="middle">ZERO DEPENDENCIES</text>
+  <text x="1066" y="518" fill="#56625b" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="17" text-anchor="end">Android + iOS</text>
+</svg>

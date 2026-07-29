@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Raw Device Signals vs Play Integrity and Apple App Attest</title>
+  <meta name="description" content="Compare transparent React Native device signals with Google Play Integrity and Apple App Attest, and learn how to bind both layers to one backend action.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/guides/device-signals-vs-platform-attestation/">
+  <meta property="og:title" content="Raw Device Signals vs Platform Attestation"><meta property="og:description" content="Use explainable client observations and server-verified platform statements for different jobs."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/guides/device-signals-vs-platform-attestation/">
+  <!-- SEO_DISCOVERY_METADATA_START -->
+  <meta property="og:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <meta property="og:image:alt" content="Signal Bench displaying a structured React Native device signals event">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Raw Device Signals vs Play Integrity and Apple App Attest">
+  <meta name="twitter:description" content="Compare transparent React Native device signals with Google Play Integrity and Apple App Attest, and learn how to bind both layers to one backend action.">
+  <meta name="twitter:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/guides/device-signals-vs-platform-attestation/#page",
+      "url": "https://afanasievn.github.io/react-native-device-risk-signals/guides/device-signals-vs-platform-attestation/",
+      "name": "Raw Device Signals vs Play Integrity and Apple App Attest",
+      "description": "Compare transparent React Native device signals with Google Play Integrity and Apple App Attest, and learn how to bind both layers to one backend action.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#website"
+      },
+      "author": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      },
+      "publisher": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/guides/device-signals-vs-platform-attestation/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Documentation",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/guides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Raw Device Signals vs Play Integrity and Apple App Attest",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/guides/device-signals-vs-platform-attestation/"
+        }
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author",
+      "name": "AfanasievN",
+      "url": "https://github.com/AfanasievN"
+    }
+  ]
+}
+  </script>
+  <!-- SEO_DISCOVERY_METADATA_END -->
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Guides</a><a href="../../use-cases/">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Signals and attestation</strong><a href="#difference">Core difference</a><a href="#comparison">Comparison</a><a href="#architecture">Architecture</a><a href="#play">Play Integrity</a><a href="#apple">Apple</a><a href="#boundaries">Boundaries</a></aside>
+    <article class="prose">
+      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#difference">Core difference</a><a href="#comparison">Comparison</a><a href="#architecture">Architecture</a><a href="#play">Play Integrity</a><a href="#apple">Apple</a><a href="#boundaries">Boundaries</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Architecture guide</p><h1>Raw signals and attestation solve different problems</h1><p class="lede">Use platform-backed tokens when you need a server-verifiable platform statement. Use transparent raw observations when you need field-level context, diagnostics, or cross-platform consistency.</p><div class="button-row"><a class="button" href="../../backend/">Design the ingestion endpoint</a><a class="button secondary" href="../../signals/">Inspect raw fields</a></div></header>
+      <section id="difference"><h2>The core difference</h2><p>Play Integrity and App Attest are remote verification protocols. Their useful security properties depend on challenge or request binding and server-side verification. React Native Device Risk Signals is a local observation library. It returns values your app can inspect and serialize, but those values remain attacker-influenced.</p></section>
+      <section id="comparison"><h2>Choose the layer by the claim you need</h2><table><thead><tr><th>Capability</th><th>Raw device signals</th><th>Platform attestation</th></tr></thead><tbody><tr><td>Output</td><td>Typed paths, properties, classes, libraries, runtime and device observations</td><td>Signed or server-decoded platform verdict or assertion</td></tr><tr><td>Transport</td><td>None in the SDK; host app sends its own event</td><td>Requires platform APIs and backend verification</td></tr><tr><td>Explainability</td><td>Field-level and source-oriented</td><td>Platform-defined labels or verification result</td></tr><tr><td>Platform scope</td><td>One cross-platform React Native event model</td><td>Different Android and Apple protocols</td></tr><tr><td>Trust property</td><td>Attacker-influenced client observation</td><td>Platform-backed statement when correctly bound and verified</td></tr><tr><td>Offline inspection</td><td>Yes</td><td>Generally not a complete production verification path</td></tr></tbody></table></section>
+      <section id="architecture"><h2>Recommended combined architecture</h2><ol><li>Your backend creates a short-lived action ID.</li><li>The app binds the platform attestation request to that action or a server challenge.</li><li>The app collects a purpose-approved raw signal profile close to the same action.</li><li>The app submits both through an authenticated endpoint.</li><li>The backend verifies attestation independently and stores raw observations with distinct provenance.</li><li>Policy combines verified platform state, account history, action context, raw observations, and recovery rules.</li></ol><div class="notice">Never copy a platform verdict into the raw probe object. Keep source, verification state, errors, and timestamps explicit so downstream systems cannot confuse attested data with client observations.</div></section>
+      <section id="play"><h2>Google Play Integrity</h2><p>Play Integrity can provide app, account, device, and optional environment verdicts. The backend must verify request details and decode or verify the response using the documented Google flow. It can cover hardware-backed device integrity and optional Play ecosystem signals that a local library cannot reproduce.</p><p>Read Google's <a href="https://developer.android.com/google/play/integrity/overview">Play Integrity overview</a> and <a href="https://developer.android.com/google/play/integrity/verdicts">verdict reference</a> before implementation.</p></section>
+      <section id="apple"><h2>Apple App Attest and DeviceCheck</h2><p>App Attest lets a backend verify assertions associated with a genuine app instance using Apple services and server-side challenge handling. DeviceCheck provides a separate Apple service for limited device-associated state. Neither is represented as a raw probe in this SDK.</p><p>Follow Apple's current App Attest and DeviceCheck documentation for key lifecycle, assertion verification, retry behavior, and unsupported environments.</p></section>
+      <section id="boundaries"><h2>What not to do</h2><ul><li>Do not treat client-side fields as attested claims.</li><li>Do not cache or replay an attestation result across unrelated actions.</li><li>Do not invent a single universal device trust boolean.</li><li>Do not persist a device identifier to join unrelated user activity.</li><li>Do not block from one observation without calibration and recovery.</li></ul><p>The SDK does not calculate a risk score and does not perform network requests.</p></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Keep provenance and verification state explicit.</div><div class="footer-links"><a href="../">Guides</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

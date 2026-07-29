@@ -11,6 +11,11 @@ const expectedPages = [
   "backend/index.html",
   "recipes/index.html",
   "ai-prompts/index.html",
+  "guides/index.html",
+  "guides/react-native-root-jailbreak-detection/index.html",
+  "guides/react-native-emulator-frida-detection/index.html",
+  "guides/device-signals-vs-platform-attestation/index.html",
+  "compare/react-native-device-risk-libraries/index.html",
   "use-cases/index.html",
   "use-cases/authentication/index.html",
   "use-cases/payments/index.html",
@@ -51,6 +56,21 @@ for (const relativePath of expectedPages) {
   assert(/<meta name="description" content="[^"]{50,}"/.test(html), `${relativePath}: missing meta description`);
   assert(/<link rel="canonical" href="https:[\/]\/afanasievn\.github\.io\/react-native-device-risk-signals\//.test(html), `${relativePath}: missing canonical URL`);
   assert(/<meta property="og:title"/.test(html), `${relativePath}: missing Open Graph title`);
+  assert(/<meta property="og:image" content="https:/.test(html), `${relativePath}: missing Open Graph image`);
+  assert(/<meta property="og:image:alt" content="[^"]+"/.test(html), `${relativePath}: missing Open Graph image alt`);
+  assert(/<meta property="og:image:width" content="1200"/.test(html), `${relativePath}: missing Open Graph image width`);
+  assert(/<meta property="og:image:height" content="630"/.test(html), `${relativePath}: missing Open Graph image height`);
+  assert(/<meta name="twitter:card" content="summary_large_image"/.test(html), `${relativePath}: missing Twitter card`);
+  assert(/<meta name="twitter:title" content="[^"]+"/.test(html), `${relativePath}: missing Twitter title`);
+  assert(/<meta name="twitter:description" content="[^"]+"/.test(html), `${relativePath}: missing Twitter description`);
+  assert(/<script type="application\/ld\+json">[\s\S]+?<\/script>/.test(html), `${relativePath}: missing JSON-LD`);
+  for (const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]+?)<\/script>/g)) {
+    try {
+      JSON.parse(match[1]);
+    } catch {
+      assert(false, `${relativePath}: contains invalid JSON-LD`);
+    }
+  }
   assert(!/[—–]/.test(html), `${relativePath}: contains a forbidden typographic dash`);
 
   for (const match of html.matchAll(/href="([^"]+)"/g)) {
@@ -65,9 +85,11 @@ for (const relativePath of expectedPages) {
 for (const asset of [
   "assets/styles.css",
   "assets/site.js",
+  "assets/social-preview.png",
   "probe-catalog.json",
   "raw-signal-event.schema.json",
   "llms.txt",
+  "llms-full.txt",
   "examples/android-event.json",
   "examples/ios-event.json",
   "examples/outcome-states.json",
@@ -76,6 +98,26 @@ for (const asset of [
   ".nojekyll",
 ]) {
   assert(fs.existsSync(path.join(siteRoot, asset)), `Missing website/${asset}`);
+}
+
+const sitemapPath = path.join(siteRoot, "sitemap.xml");
+if (fs.existsSync(sitemapPath)) {
+  const sitemap = fs.readFileSync(sitemapPath, "utf8");
+  const indexablePages = expectedPages.filter((relativePath) => relativePath !== "404.html");
+  const sitemapUrls = [...sitemap.matchAll(/<url><loc>([^<]+)<\/loc><lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod><\/url>/g)];
+  assert(sitemapUrls.length === indexablePages.length, "Sitemap must contain every indexable page with lastmod");
+  for (const relativePath of indexablePages) {
+    const route = relativePath === "index.html" ? "" : relativePath.replace(/index\.html$/, "");
+    const canonical = `https://afanasievn.github.io/react-native-device-risk-signals/${route}`;
+    assert(sitemapUrls.some(([_, url]) => url === canonical), `Sitemap is missing ${canonical}`);
+  }
+}
+
+const attributesPath = path.join(root, ".gitattributes");
+assert(fs.existsSync(attributesPath), "Missing .gitattributes language classification");
+if (fs.existsSync(attributesPath)) {
+  const attributes = fs.readFileSync(attributesPath, "utf8");
+  assert(/^website\/\*\* linguist-documentation$/m.test(attributes), "website/** must be classified as documentation");
 }
 
 const probeCatalog = readProbeCatalog(root);
@@ -233,6 +275,21 @@ if (fs.existsSync(llmsPath)) {
   assert(/does not calculate a risk score/i.test(llms), "llms.txt must preserve the SDK decision boundary");
 }
 
+const llmsFullPath = path.join(siteRoot, "llms-full.txt");
+if (fs.existsSync(llmsFullPath)) {
+  const llmsFull = fs.readFileSync(llmsFullPath, "utf8");
+  for (const requiredTerm of [
+    "RawSignalEvent",
+    "zero runtime dependencies",
+    "Probe outcome semantics",
+    "Backend ingestion contract",
+    "does not calculate a risk score",
+    "probe-catalog.json",
+  ]) {
+    assert(llmsFull.includes(requiredTerm), `llms-full.txt is missing required context: ${requiredTerm}`);
+  }
+}
+
 const integrationPath = path.join(siteRoot, "integration/index.html");
 if (fs.existsSync(integrationPath)) {
   const integration = fs.readFileSync(integrationPath, "utf8");
@@ -259,13 +316,28 @@ if (fs.existsSync(riskGuidePath)) {
 const homePath = path.join(siteRoot, "index.html");
 if (fs.existsSync(homePath)) {
   const home = fs.readFileSync(homePath, "utf8");
+  assert(
+    /<title>React Native Device Risk Signals SDK \| Root, Jailbreak, Emulator &amp; Frida Detection<\/title>/.test(home),
+    "Homepage title must target the primary SDK search intent",
+  );
+  assert(/<h1>Raw device risk signals for React Native<\/h1>/.test(home), "Homepage H1 must describe the SDK");
   assert(home.includes("./use-cases/"), "Homepage must link to the use-case hub");
+  assert(home.includes("./guides/"), "Homepage must link to the technical guides");
   assert(home.includes("./ai-prompts/"), "Homepage must link to the AI prompt library");
   assert(home.includes("/discussions/categories/q-a"), "Homepage must link to integration Q&A");
   assert(
     home.includes("issues/new?template=03-device-compatibility.yml"),
     "Homepage must link to the physical-device compatibility form",
   );
+}
+
+const discoveryGuidePath = path.join(root, "docs/SEARCH_DISCOVERY.md");
+assert(fs.existsSync(discoveryGuidePath), "Missing search discovery operations guide");
+if (fs.existsSync(discoveryGuidePath)) {
+  const discoveryGuide = fs.readFileSync(discoveryGuidePath, "utf8");
+  for (const requiredTerm of ["Google Search Console", "Bing Webmaster Tools", "npm run docs:seo"]) {
+    assert(discoveryGuide.includes(requiredTerm), `Search discovery guide is missing ${requiredTerm}`);
+  }
 }
 
 const workflowPath = path.join(root, ".github/workflows/pages.yml");

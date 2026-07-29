@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>React Native Root and Jailbreak Detection with Raw Signals</title>
+  <meta name="description" content="Implement React Native root and jailbreak detection using transparent raw Android and iOS observations without a client-side risk score or verdict.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-root-jailbreak-detection/">
+  <meta property="og:title" content="React Native Root and Jailbreak Detection"><meta property="og:description" content="Collect explainable integrity evidence while preserving uncertainty and platform limits."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-root-jailbreak-detection/">
+  <!-- SEO_DISCOVERY_METADATA_START -->
+  <meta property="og:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <meta property="og:image:alt" content="Signal Bench displaying a structured React Native device signals event">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="React Native Root and Jailbreak Detection with Raw Signals">
+  <meta name="twitter:description" content="Implement React Native root and jailbreak detection using transparent raw Android and iOS observations without a client-side risk score or verdict.">
+  <meta name="twitter:image" content="https://afanasievn.github.io/react-native-device-risk-signals/assets/social-preview.png">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-root-jailbreak-detection/#page",
+      "url": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-root-jailbreak-detection/",
+      "name": "React Native Root and Jailbreak Detection with Raw Signals",
+      "description": "Implement React Native root and jailbreak detection using transparent raw Android and iOS observations without a client-side risk score or verdict.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://afanasievn.github.io/react-native-device-risk-signals/#website"
+      },
+      "author": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      },
+      "publisher": {
+        "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-root-jailbreak-detection/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Documentation",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/guides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "React Native Root and Jailbreak Detection with Raw Signals",
+          "item": "https://afanasievn.github.io/react-native-device-risk-signals/guides/react-native-root-jailbreak-detection/"
+        }
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://github.com/AfanasievN/react-native-device-risk-signals#author",
+      "name": "AfanasievN",
+      "url": "https://github.com/AfanasievN"
+    }
+  ]
+}
+  </script>
+  <!-- SEO_DISCOVERY_METADATA_END -->
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../assets/styles.css"><script defer src="../../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../../signals/">Signals</a><a href="../../integration/">Integration</a><a href="../" aria-current="page">Guides</a><a href="../../use-cases/">Use cases</a><a href="../../backend/">Backend</a><a href="../../privacy/">Privacy</a><a href="../../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>Root and jailbreak</strong><a href="#model">Evidence model</a><a href="#android">Android signals</a><a href="#ios">iOS signals</a><a href="#collect">Collection</a><a href="#backend">Backend use</a><a href="#limits">Limitations</a></aside>
+    <article class="prose">
+      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#model">Evidence model</a><a href="#android">Android signals</a><a href="#ios">iOS signals</a><a href="#collect">Collection</a><a href="#backend">Backend use</a><a href="#limits">Limitations</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Integrity evidence</p><h1>Root and jailbreak detection without a black-box verdict</h1><p class="lede">Collect the exact artifacts that were observable, preserve unavailable values, and let a calibrated backend interpret them with account and action context.</p><div class="button-row"><a class="button" href="../../signals/#probe-os_integrity">Inspect os_integrity fields</a><a class="button secondary" href="../../integration/">Integration guide</a></div></header>
+      <section id="model"><h2>Model detection as evidence</h2><p>Root and jailbreak checks run inside an attacker-controlled client. A modified environment can hide files, intercept APIs, or change return values. Treat every hit as an observation and every miss as uncertainty, not proof that the device is safe.</p><table><thead><tr><th>Outcome</th><th>Meaning</th><th>Backend treatment</th></tr></thead><tbody><tr><td><code>success</code> with a path</td><td>The path was observable during collection.</td><td>Preserve the exact value and collection context.</td></tr><tr><td><code>success</code> with an empty array</td><td>The check ran and found no matching items.</td><td>Do not translate it into trusted.</td></tr><tr><td>Optional field omitted</td><td>The value could not be read or does not exist on this platform.</td><td>Keep it missing.</td></tr><tr><td><code>error</code> or <code>timeout</code></td><td>Collection did not produce usable data.</td><td>Measure separately from a negative observation.</td></tr></tbody></table></section>
+      <section id="android"><h2>Android raw observations</h2><p>The integrity probe can return discovered root-management or cloaking packages, artifact paths, dangerous system properties as exact <code>key=value</code> strings, writable system locations, mapped libraries, hook classes, suspicious stack frames, Frida threads, injector pipes, and debugger state. Modern catalogs cover Magisk, KernelSU, APatch, resetprop, Xposed-style hooks, Substrate-style hooks, and Frida artifacts.</p><div class="notice">A generic utility such as BusyBox is not converted into a root verdict. The SDK returns the concrete path or package observation so your backend can apply a documented interpretation.</div></section>
+      <section id="ios"><h2>iOS raw observations</h2><p>On iOS the probe can report jailbreak and rootless-jailbreak paths, URL-scheme observations, suspicious environment variables, loaded dyld images, unexpected parent process context, writable locations, executable encryption state when available, reverse-engineering ports, and known bypass artifacts. Catalog entries include modern Dopamine, palera1n, TrollStore, ElleKit, and Frida families.</p><p>Sandbox and OS restrictions make many values unavailable on stock devices. Unavailable values are omitted rather than synthesized as <code>false</code>.</p></section>
+      <section id="collect"><h2>Collect a purpose-bound profile</h2><div class="code-block"><button class="copy-button" type="button" data-copy="root-guide-code">Copy</button><pre id="root-guide-code"><code>import { consentFor, DeviceIntel } from "react-native-device-risk-signals";
+
+const deviceIntel = new DeviceIntel({
+  sessionId: actionId,
+  consent: consentFor([
+    "application",
+    "os_integrity",
+    "runtime",
+  ]),
+});
+
+const event = await deviceIntel.collect();
+// Send through your existing authenticated API client.</code></pre></div><p>Collect close to the protected action. Use a short-lived server-created action ID and keep the SDK event separate from authenticated account identity.</p></section>
+      <section id="backend"><h2>Use the observations on the backend</h2><ol><li>Validate the stable event envelope and freshness.</li><li>Preserve the complete raw event and independent probe outcomes.</li><li>Join it to server-known account, session, action, and historical context.</li><li>Measure distributions and false positives on supported physical devices.</li><li>Introduce any policy only after calibration, monitoring, review, and recovery paths exist.</li></ol><p>See the <a href="../../backend/">backend ingestion guide</a> for Django, FastAPI, Express, and Go examples.</p></section>
+      <section id="limits"><h2>What this cannot prove</h2><ul><li>No client-side technique guarantees detection of every modified device.</li><li>No single path, package, port, or class proves malicious intent.</li><li>A clean observation does not establish device identity or integrity.</li><li>The SDK does not replace server-verified platform attestation.</li><li>The SDK does not calculate a risk score or make a blocking decision.</li></ul></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Raw evidence, not a client-side verdict.</div><div class="footer-links"><a href="../">Guides</a><a href="../../signals/">Signal catalog</a><a href="../../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>
