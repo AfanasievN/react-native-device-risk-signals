@@ -186,12 +186,9 @@ code:not(pre code) { padding: .14rem .38rem; border-radius: 6px; background: #e5
 .support-option p { max-width: 58ch; color: var(--muted); }
 .support-qr { width: 240px; margin: 1.4rem 0; border: 10px solid white; border-radius: 10px; }
 .wallet-address { display: block; max-width: 100%; margin-top: 1rem; padding: .8rem; overflow-wrap: anywhere; border-radius: 8px; background: var(--surface-subtle); color: var(--ink); font-size: .78rem; user-select: all; }
-.support-strip { background: var(--ink); color: #e6f1e9; }
-.support-strip-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2rem; align-items: center; }
-.support-strip h2 { color: white; font-size: clamp(1.8rem, 4vw, 3rem); }
-.support-strip p { max-width: 65ch; margin-bottom: 0; color: #b9c9bf; }
-.support-strip .button { border-color: #f5fff8; background: #f5fff8; color: var(--ink); }
-.support-strip .button.secondary { border-color: #566a5e; background: transparent; color: #f5fff8; }
+.home-support { background: var(--surface-subtle); }
+.home-support .support-option h3 { font-size: clamp(1.55rem, 3vw, 2.25rem); }
+.home-support .support-qr { width: 200px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 1080px) {
@@ -221,7 +218,6 @@ code:not(pre code) { padding: .14rem .38rem; border-radius: 6px; background: #e5
   .pipeline { grid-template-columns: 1fr; }
   .decision-item { grid-template-columns: 1fr; gap: .35rem; }
   .footer-wrap { flex-direction: column; }
-  .support-strip-inner { grid-template-columns: 1fr; }
   .prose table { display: block; overflow-x: auto; }
   .scroll-hint { display: block; margin: .5rem 0 1rem; font-size: .9rem; }
   .catalog-table-wrap { overflow: visible; border: 0; background: transparent; }

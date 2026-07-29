@@ -330,6 +330,14 @@ if (fs.existsSync(homePath)) {
   assert(home.includes("./use-cases/"), "Homepage must link to the use-case hub");
   assert(home.includes("./guides/"), "Homepage must link to the technical guides");
   assert(home.includes("./ai-prompts/"), "Homepage must link to the AI prompt library");
+  for (const supportTerm of [
+    "https://github.com/sponsors/AfanasievN",
+    "https://app.tonkeeper.com/transfer/UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK",
+    "UQAMfkOwBBk_TZyn7LP2o9UgMrNW3GCLs3IJKOVxYBdzr0IK",
+    "./assets/donate-ton-qr.png",
+  ]) {
+    assert(home.includes(supportTerm), `Homepage support section is missing ${supportTerm}`);
+  }
   assert(home.includes("/discussions/categories/q-a"), "Homepage must link to integration Q&A");
   assert(
     home.includes("issues/new?template=03-device-compatibility.yml"),
