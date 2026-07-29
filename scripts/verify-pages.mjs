@@ -188,6 +188,10 @@ if (fs.existsSync(workflowPath)) {
   assert(workflow.includes("actions/upload-pages-artifact@"), "Pages workflow must upload a Pages artifact");
   assert(workflow.includes("actions/deploy-pages@"), "Pages workflow must deploy through GitHub Pages");
   assert(workflow.includes("path: website"), "Pages workflow must publish only website/");
+  assert(
+    workflow.includes("npm ci --ignore-scripts"),
+    "Pages workflow must install verification dependencies without lifecycle scripts"
+  );
 }
 
 if (failures.length > 0) {
