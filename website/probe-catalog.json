@@ -1,6 +1,8 @@
 {
-  "catalog_version": 1,
+  "catalog_version": 2,
+  "sdk_version": "0.8.1",
   "source": "src/probeCatalog.ts",
+  "type_source": "src/NativeDeviceIntel.ts and src/probes/runtimeProbe.ts",
   "probes": [
     {
       "id": "device_identity",
@@ -24,6 +26,138 @@
         "systemName",
         "systemVersion",
         "isTablet",
+        "osBuild",
+        "kernelVersion",
+        "kernelOsRelease",
+        "kernelOsType",
+        "androidBuild",
+        "isIosAppOnMac",
+        "isMacCatalystApp"
+      ],
+      "typeName": "DeviceIdentity",
+      "fieldTypes": {
+        "manufacturer": "string",
+        "model": "string",
+        "brand": "string",
+        "systemName": "string",
+        "systemVersion": "string",
+        "isTablet": "boolean",
+        "osBuild": "string",
+        "kernelVersion": "string",
+        "kernelOsRelease": "string",
+        "kernelOsType": "string",
+        "androidBuild": "AndroidBuildInfo",
+        "isIosAppOnMac": "boolean",
+        "isMacCatalystApp": "boolean"
+      },
+      "fieldSchemas": {
+        "manufacturer": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "brand": {
+          "type": "string"
+        },
+        "systemName": {
+          "type": "string"
+        },
+        "systemVersion": {
+          "type": "string"
+        },
+        "isTablet": {
+          "type": "boolean"
+        },
+        "osBuild": {
+          "type": "string"
+        },
+        "kernelVersion": {
+          "type": "string"
+        },
+        "kernelOsRelease": {
+          "type": "string"
+        },
+        "kernelOsType": {
+          "type": "string"
+        },
+        "androidBuild": {
+          "type": "object",
+          "properties": {
+            "board": {
+              "type": "string"
+            },
+            "bootloader": {
+              "type": "string"
+            },
+            "device": {
+              "type": "string"
+            },
+            "display": {
+              "type": "string"
+            },
+            "fingerprint": {
+              "type": "string"
+            },
+            "hardware": {
+              "type": "string"
+            },
+            "host": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "product": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "string"
+            },
+            "buildType": {
+              "type": "string"
+            },
+            "supportedAbis": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "sdkInt": {
+              "type": "number"
+            },
+            "codename": {
+              "type": "string"
+            },
+            "incremental": {
+              "type": "string"
+            },
+            "securityPatch": {
+              "type": "string"
+            },
+            "baseOs": {
+              "type": "string"
+            },
+            "socManufacturer": {
+              "type": "string"
+            },
+            "socModel": {
+              "type": "string"
+            },
+            "buildTimeMs": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        "isIosAppOnMac": {
+          "type": "boolean"
+        },
+        "isMacCatalystApp": {
+          "type": "boolean"
+        }
+      },
+      "optionalFields": [
         "osBuild",
         "kernelVersion",
         "kernelOsRelease",
@@ -88,7 +222,189 @@
         "storageFreeBytes",
         "uptimeMs"
       ],
-      "notes": "Detailed battery/power and NFC state are Android-only. Storage and uptime are Android-only because the corresponding iOS APIs require additional declarations."
+      "notes": "Detailed battery/power and NFC state are Android-only. Storage and uptime are Android-only because the corresponding iOS APIs require additional declarations.",
+      "typeName": "HardwareSignals",
+      "fieldTypes": {
+        "screenWidthPx": "number",
+        "screenHeightPx": "number",
+        "screenDensity": "number",
+        "screenDpi": "number",
+        "screenPhysicalWidthPx": "number",
+        "screenPhysicalHeightPx": "number",
+        "screenPhysicalDensity": "number",
+        "screenBrightness": "number",
+        "screenOrientation": "string",
+        "processorCount": "number",
+        "cpuArchitecture": "string",
+        "cpuMaxFrequencyMhz": "number",
+        "totalMemoryBytes": "number",
+        "freeMemoryBytes": "number",
+        "isLowMemory": "boolean",
+        "processResidentMemoryBytes": "number",
+        "isLowRamDevice": "boolean",
+        "runtimeMaxMemoryBytes": "number",
+        "lowPowerModeEnabled": "boolean",
+        "batteryLevel": "number",
+        "batteryState": "string",
+        "batteryTemperatureC": "number",
+        "batteryHealth": "string",
+        "batteryVoltageMv": "number",
+        "batteryTechnology": "string",
+        "batteryPresent": "boolean",
+        "batteryLow": "boolean",
+        "powerSource": "string",
+        "batteryCycleCount": "number",
+        "chargeTimeRemainingMs": "number",
+        "nfcAvailable": "boolean",
+        "nfcEnabled": "boolean",
+        "storageTotalBytes": "number",
+        "storageFreeBytes": "number",
+        "uptimeMs": "number"
+      },
+      "fieldSchemas": {
+        "screenWidthPx": {
+          "type": "number"
+        },
+        "screenHeightPx": {
+          "type": "number"
+        },
+        "screenDensity": {
+          "type": "number"
+        },
+        "screenDpi": {
+          "type": "number"
+        },
+        "screenPhysicalWidthPx": {
+          "type": "number"
+        },
+        "screenPhysicalHeightPx": {
+          "type": "number"
+        },
+        "screenPhysicalDensity": {
+          "type": "number"
+        },
+        "screenBrightness": {
+          "type": "number"
+        },
+        "screenOrientation": {
+          "type": "string"
+        },
+        "processorCount": {
+          "type": "number"
+        },
+        "cpuArchitecture": {
+          "type": "string"
+        },
+        "cpuMaxFrequencyMhz": {
+          "type": "number"
+        },
+        "totalMemoryBytes": {
+          "type": "number"
+        },
+        "freeMemoryBytes": {
+          "type": "number"
+        },
+        "isLowMemory": {
+          "type": "boolean"
+        },
+        "processResidentMemoryBytes": {
+          "type": "number"
+        },
+        "isLowRamDevice": {
+          "type": "boolean"
+        },
+        "runtimeMaxMemoryBytes": {
+          "type": "number"
+        },
+        "lowPowerModeEnabled": {
+          "type": "boolean"
+        },
+        "batteryLevel": {
+          "type": "number"
+        },
+        "batteryState": {
+          "type": "string"
+        },
+        "batteryTemperatureC": {
+          "type": "number"
+        },
+        "batteryHealth": {
+          "type": "string"
+        },
+        "batteryVoltageMv": {
+          "type": "number"
+        },
+        "batteryTechnology": {
+          "type": "string"
+        },
+        "batteryPresent": {
+          "type": "boolean"
+        },
+        "batteryLow": {
+          "type": "boolean"
+        },
+        "powerSource": {
+          "type": "string"
+        },
+        "batteryCycleCount": {
+          "type": "number"
+        },
+        "chargeTimeRemainingMs": {
+          "type": "number"
+        },
+        "nfcAvailable": {
+          "type": "boolean"
+        },
+        "nfcEnabled": {
+          "type": "boolean"
+        },
+        "storageTotalBytes": {
+          "type": "number"
+        },
+        "storageFreeBytes": {
+          "type": "number"
+        },
+        "uptimeMs": {
+          "type": "number"
+        }
+      },
+      "optionalFields": [
+        "screenWidthPx",
+        "screenHeightPx",
+        "screenDensity",
+        "screenDpi",
+        "screenPhysicalWidthPx",
+        "screenPhysicalHeightPx",
+        "screenPhysicalDensity",
+        "screenBrightness",
+        "screenOrientation",
+        "processorCount",
+        "cpuArchitecture",
+        "cpuMaxFrequencyMhz",
+        "totalMemoryBytes",
+        "freeMemoryBytes",
+        "isLowMemory",
+        "processResidentMemoryBytes",
+        "isLowRamDevice",
+        "runtimeMaxMemoryBytes",
+        "lowPowerModeEnabled",
+        "batteryLevel",
+        "batteryState",
+        "batteryTemperatureC",
+        "batteryHealth",
+        "batteryVoltageMv",
+        "batteryTechnology",
+        "batteryPresent",
+        "batteryLow",
+        "powerSource",
+        "batteryCycleCount",
+        "chargeTimeRemainingMs",
+        "nfcAvailable",
+        "nfcEnabled",
+        "storageTotalBytes",
+        "storageFreeBytes",
+        "uptimeMs"
+      ]
     },
     {
       "id": "fonts",
@@ -107,7 +423,19 @@
       "fields": [
         "fontsDigest"
       ],
-      "notes": "Digests are comparable only within the same platform and are not persistent device identifiers."
+      "notes": "Digests are comparable only within the same platform and are not persistent device identifiers.",
+      "typeName": "FontsSignals",
+      "fieldTypes": {
+        "fontsDigest": "string"
+      },
+      "fieldSchemas": {
+        "fontsDigest": {
+          "type": "string"
+        }
+      },
+      "optionalFields": [
+        "fontsDigest"
+      ]
     },
     {
       "id": "os_integrity",
@@ -193,7 +521,391 @@
         "suspiciousPathCount",
         "injectedLibraryCount"
       ],
-      "notes": "Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation."
+      "notes": "Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation.",
+      "typeName": "OsIntegritySignals",
+      "fieldTypes": {
+        "isEmulator": "boolean",
+        "isDebuggerAttached": "boolean",
+        "isDebuggerWaiting": "boolean",
+        "developerModeEnabled": "boolean",
+        "usbDebuggingEnabled": "boolean",
+        "suBinaryFound": "boolean",
+        "suOnPath": "boolean",
+        "rootManagementAppFound": "boolean",
+        "dangerousAppFound": "boolean",
+        "rootCloakingAppFound": "boolean",
+        "suspiciousFilePathsFound": "boolean",
+        "suspiciousFilePaths": "string[]",
+        "writableSystemPathFound": "boolean",
+        "dangerousPropsPresent": "boolean",
+        "dangerousSystemProperties": "string[]",
+        "canOpenJailbreakScheme": "boolean",
+        "symbolicLinksSuspicious": "boolean",
+        "injectedLibrariesFound": "boolean",
+        "injectedLibraryNames": "string[]",
+        "loadedHookClassNames": "string[]",
+        "hookStackFrameFound": "boolean",
+        "hookStackFrames": "string[]",
+        "hookFrameworkFound": "boolean",
+        "magiskMountsFound": "boolean",
+        "magiskAbstractSocketFound": "boolean",
+        "magicMountModulesFound": "boolean",
+        "fridaThreadNamesFound": "string[]",
+        "fridaInjectorPipeFound": "boolean",
+        "fridaListenerPortFound": "boolean",
+        "verifiedBootState": "string",
+        "bootloaderLocked": "boolean",
+        "selinuxEnforcing": "boolean",
+        "ldPreloadSet": "boolean",
+        "ldPreloadValue": "string",
+        "hiddenApiPolicy": "string",
+        "emulatorFingerprintMatch": "boolean",
+        "emulatorFilesFound": "boolean",
+        "emulatorBuildMarkers": "string[]",
+        "emulatorFilePaths": "string[]",
+        "emulatorSystemPropertyMarkers": "string[]",
+        "emulatorCpuMarkers": "string[]",
+        "emulatorVendorMarkers": "string[]",
+        "deviceFarmMarkers": "string[]",
+        "emulatorChecksPerformed": "string[]",
+        "sensorCount": "number",
+        "hasAccelerometer": "boolean",
+        "hasGyroscope": "boolean",
+        "hasMagnetometer": "boolean",
+        "hasProximitySensor": "boolean",
+        "isRunningInUserTestHarness": "boolean",
+        "simulatorEnvironmentPresent": "boolean",
+        "abi": "string",
+        "dyldImageCount": "number",
+        "parentPidUnexpected": "boolean",
+        "jailbreakBypassDetected": "boolean",
+        "mainExecutableEncrypted": "boolean",
+        "openReverseEngineeringPorts": "number[]",
+        "tracerPid": "number",
+        "tracedByOtherProcess": "boolean",
+        "testKeysBuild": "boolean",
+        "suspiciousMountsFound": "boolean",
+        "zygiskIndicatorsFound": "boolean",
+        "suspiciousExecutableMappingsFound": "boolean",
+        "suspiciousEnvironmentVariablesFound": "boolean",
+        "suspiciousEnvironmentVariableNames": "string[]",
+        "suspiciousPathCount": "number",
+        "injectedLibraryCount": "number"
+      },
+      "fieldSchemas": {
+        "isEmulator": {
+          "type": "boolean"
+        },
+        "isDebuggerAttached": {
+          "type": "boolean"
+        },
+        "isDebuggerWaiting": {
+          "type": "boolean"
+        },
+        "developerModeEnabled": {
+          "type": "boolean"
+        },
+        "usbDebuggingEnabled": {
+          "type": "boolean"
+        },
+        "suBinaryFound": {
+          "type": "boolean"
+        },
+        "suOnPath": {
+          "type": "boolean"
+        },
+        "rootManagementAppFound": {
+          "type": "boolean"
+        },
+        "dangerousAppFound": {
+          "type": "boolean"
+        },
+        "rootCloakingAppFound": {
+          "type": "boolean"
+        },
+        "suspiciousFilePathsFound": {
+          "type": "boolean"
+        },
+        "suspiciousFilePaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "writableSystemPathFound": {
+          "type": "boolean"
+        },
+        "dangerousPropsPresent": {
+          "type": "boolean"
+        },
+        "dangerousSystemProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "canOpenJailbreakScheme": {
+          "type": "boolean"
+        },
+        "symbolicLinksSuspicious": {
+          "type": "boolean"
+        },
+        "injectedLibrariesFound": {
+          "type": "boolean"
+        },
+        "injectedLibraryNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loadedHookClassNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hookStackFrameFound": {
+          "type": "boolean"
+        },
+        "hookStackFrames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hookFrameworkFound": {
+          "type": "boolean"
+        },
+        "magiskMountsFound": {
+          "type": "boolean"
+        },
+        "magiskAbstractSocketFound": {
+          "type": "boolean"
+        },
+        "magicMountModulesFound": {
+          "type": "boolean"
+        },
+        "fridaThreadNamesFound": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fridaInjectorPipeFound": {
+          "type": "boolean"
+        },
+        "fridaListenerPortFound": {
+          "type": "boolean"
+        },
+        "verifiedBootState": {
+          "type": "string"
+        },
+        "bootloaderLocked": {
+          "type": "boolean"
+        },
+        "selinuxEnforcing": {
+          "type": "boolean"
+        },
+        "ldPreloadSet": {
+          "type": "boolean"
+        },
+        "ldPreloadValue": {
+          "type": "string"
+        },
+        "hiddenApiPolicy": {
+          "type": "string"
+        },
+        "emulatorFingerprintMatch": {
+          "type": "boolean"
+        },
+        "emulatorFilesFound": {
+          "type": "boolean"
+        },
+        "emulatorBuildMarkers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emulatorFilePaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emulatorSystemPropertyMarkers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emulatorCpuMarkers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emulatorVendorMarkers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deviceFarmMarkers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emulatorChecksPerformed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sensorCount": {
+          "type": "number"
+        },
+        "hasAccelerometer": {
+          "type": "boolean"
+        },
+        "hasGyroscope": {
+          "type": "boolean"
+        },
+        "hasMagnetometer": {
+          "type": "boolean"
+        },
+        "hasProximitySensor": {
+          "type": "boolean"
+        },
+        "isRunningInUserTestHarness": {
+          "type": "boolean"
+        },
+        "simulatorEnvironmentPresent": {
+          "type": "boolean"
+        },
+        "abi": {
+          "type": "string"
+        },
+        "dyldImageCount": {
+          "type": "number"
+        },
+        "parentPidUnexpected": {
+          "type": "boolean"
+        },
+        "jailbreakBypassDetected": {
+          "type": "boolean"
+        },
+        "mainExecutableEncrypted": {
+          "type": "boolean"
+        },
+        "openReverseEngineeringPorts": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "tracerPid": {
+          "type": "number"
+        },
+        "tracedByOtherProcess": {
+          "type": "boolean"
+        },
+        "testKeysBuild": {
+          "type": "boolean"
+        },
+        "suspiciousMountsFound": {
+          "type": "boolean"
+        },
+        "zygiskIndicatorsFound": {
+          "type": "boolean"
+        },
+        "suspiciousExecutableMappingsFound": {
+          "type": "boolean"
+        },
+        "suspiciousEnvironmentVariablesFound": {
+          "type": "boolean"
+        },
+        "suspiciousEnvironmentVariableNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "suspiciousPathCount": {
+          "type": "number"
+        },
+        "injectedLibraryCount": {
+          "type": "number"
+        }
+      },
+      "optionalFields": [
+        "isDebuggerWaiting",
+        "usbDebuggingEnabled",
+        "suBinaryFound",
+        "suOnPath",
+        "rootManagementAppFound",
+        "dangerousAppFound",
+        "rootCloakingAppFound",
+        "suspiciousFilePathsFound",
+        "suspiciousFilePaths",
+        "writableSystemPathFound",
+        "dangerousPropsPresent",
+        "dangerousSystemProperties",
+        "canOpenJailbreakScheme",
+        "symbolicLinksSuspicious",
+        "injectedLibrariesFound",
+        "injectedLibraryNames",
+        "loadedHookClassNames",
+        "hookStackFrameFound",
+        "hookStackFrames",
+        "hookFrameworkFound",
+        "magiskMountsFound",
+        "magiskAbstractSocketFound",
+        "magicMountModulesFound",
+        "fridaThreadNamesFound",
+        "fridaInjectorPipeFound",
+        "fridaListenerPortFound",
+        "verifiedBootState",
+        "bootloaderLocked",
+        "selinuxEnforcing",
+        "ldPreloadSet",
+        "ldPreloadValue",
+        "hiddenApiPolicy",
+        "emulatorFingerprintMatch",
+        "emulatorFilesFound",
+        "emulatorBuildMarkers",
+        "emulatorFilePaths",
+        "emulatorSystemPropertyMarkers",
+        "emulatorCpuMarkers",
+        "emulatorVendorMarkers",
+        "deviceFarmMarkers",
+        "emulatorChecksPerformed",
+        "sensorCount",
+        "hasAccelerometer",
+        "hasGyroscope",
+        "hasMagnetometer",
+        "hasProximitySensor",
+        "isRunningInUserTestHarness",
+        "simulatorEnvironmentPresent",
+        "abi",
+        "dyldImageCount",
+        "parentPidUnexpected",
+        "jailbreakBypassDetected",
+        "mainExecutableEncrypted",
+        "openReverseEngineeringPorts",
+        "tracerPid",
+        "tracedByOtherProcess",
+        "testKeysBuild",
+        "suspiciousMountsFound",
+        "zygiskIndicatorsFound",
+        "suspiciousExecutableMappingsFound",
+        "suspiciousEnvironmentVariablesFound",
+        "suspiciousEnvironmentVariableNames",
+        "suspiciousPathCount",
+        "injectedLibraryCount"
+      ]
     },
     {
       "id": "os_integrity_frida_scan",
@@ -210,6 +922,32 @@
       ],
       "fields": [
         "scanPerformed",
+        "defaultPortOpen",
+        "scannedPort",
+        "fridaHandshakeReject"
+      ],
+      "typeName": "FridaScanSignals",
+      "fieldTypes": {
+        "scanPerformed": "boolean",
+        "defaultPortOpen": "boolean",
+        "scannedPort": "number",
+        "fridaHandshakeReject": "boolean"
+      },
+      "fieldSchemas": {
+        "scanPerformed": {
+          "type": "boolean"
+        },
+        "defaultPortOpen": {
+          "type": "boolean"
+        },
+        "scannedPort": {
+          "type": "number"
+        },
+        "fridaHandshakeReject": {
+          "type": "boolean"
+        }
+      },
+      "optionalFields": [
         "defaultPortOpen",
         "scannedPort",
         "fridaHandshakeReject"
@@ -232,7 +970,23 @@
         "testPerformed",
         "forkSucceeded"
       ],
-      "notes": "Disabled until stability is validated on a representative physical-device lab."
+      "notes": "Disabled until stability is validated on a representative physical-device lab.",
+      "typeName": "ForkJailbreakSignal",
+      "fieldTypes": {
+        "testPerformed": "boolean",
+        "forkSucceeded": "boolean"
+      },
+      "fieldSchemas": {
+        "testPerformed": {
+          "type": "boolean"
+        },
+        "forkSucceeded": {
+          "type": "boolean"
+        }
+      },
+      "optionalFields": [
+        "forkSucceeded"
+      ]
     },
     {
       "id": "network",
@@ -277,7 +1031,146 @@
         "wifiRxBytes",
         "wifiTxBytes"
       ],
-      "notes": "Active-link details require host-declared ACCESS_NETWORK_STATE. Missing permission/read failures are omitted; no DNS lookup or network request is performed. SSID and BSSID are normally absent."
+      "notes": "Active-link details require host-declared ACCESS_NETWORK_STATE. Missing permission/read failures are omitted; no DNS lookup or network request is performed. SSID and BSSID are normally absent.",
+      "typeName": "NetworkSignals",
+      "fieldTypes": {
+        "isConnected": "boolean",
+        "connectionType": "string",
+        "isMetered": "boolean",
+        "isVpnActive": "boolean",
+        "isProxyConfigured": "boolean",
+        "proxyHost": "string",
+        "proxyPort": "number",
+        "wifiSsid": "string",
+        "wifiBssid": "string",
+        "interfaceNames": "string[]",
+        "localIpAddresses": "string[]",
+        "linkDownstreamKbps": "number",
+        "linkUpstreamKbps": "number",
+        "networkTransportTypes": "string[]",
+        "dnsServerAddresses": "string[]",
+        "isPrivateDnsActive": "boolean",
+        "privateDnsServerName": "string",
+        "activeNetworkMtu": "number",
+        "isInternetValidated": "boolean",
+        "hasCaptivePortal": "boolean",
+        "mobileRxBytes": "number",
+        "mobileTxBytes": "number",
+        "wifiRxBytes": "number",
+        "wifiTxBytes": "number"
+      },
+      "fieldSchemas": {
+        "isConnected": {
+          "type": "boolean"
+        },
+        "connectionType": {
+          "type": "string"
+        },
+        "isMetered": {
+          "type": "boolean"
+        },
+        "isVpnActive": {
+          "type": "boolean"
+        },
+        "isProxyConfigured": {
+          "type": "boolean"
+        },
+        "proxyHost": {
+          "type": "string"
+        },
+        "proxyPort": {
+          "type": "number"
+        },
+        "wifiSsid": {
+          "type": "string"
+        },
+        "wifiBssid": {
+          "type": "string"
+        },
+        "interfaceNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "localIpAddresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "linkDownstreamKbps": {
+          "type": "number"
+        },
+        "linkUpstreamKbps": {
+          "type": "number"
+        },
+        "networkTransportTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dnsServerAddresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isPrivateDnsActive": {
+          "type": "boolean"
+        },
+        "privateDnsServerName": {
+          "type": "string"
+        },
+        "activeNetworkMtu": {
+          "type": "number"
+        },
+        "isInternetValidated": {
+          "type": "boolean"
+        },
+        "hasCaptivePortal": {
+          "type": "boolean"
+        },
+        "mobileRxBytes": {
+          "type": "number"
+        },
+        "mobileTxBytes": {
+          "type": "number"
+        },
+        "wifiRxBytes": {
+          "type": "number"
+        },
+        "wifiTxBytes": {
+          "type": "number"
+        }
+      },
+      "optionalFields": [
+        "isConnected",
+        "connectionType",
+        "isMetered",
+        "isVpnActive",
+        "isProxyConfigured",
+        "proxyHost",
+        "proxyPort",
+        "wifiSsid",
+        "wifiBssid",
+        "interfaceNames",
+        "localIpAddresses",
+        "linkDownstreamKbps",
+        "linkUpstreamKbps",
+        "networkTransportTypes",
+        "dnsServerAddresses",
+        "isPrivateDnsActive",
+        "privateDnsServerName",
+        "activeNetworkMtu",
+        "isInternetValidated",
+        "hasCaptivePortal",
+        "mobileRxBytes",
+        "mobileTxBytes",
+        "wifiRxBytes",
+        "wifiTxBytes"
+      ]
     },
     {
       "id": "telephony",
@@ -313,7 +1206,84 @@
         "carrierAllowsVoip",
         "imei"
       ],
-      "notes": "No phone-state permission is requested. IMEI is intentionally unavailable to normal applications."
+      "notes": "No phone-state permission is requested. IMEI is intentionally unavailable to normal applications.",
+      "typeName": "TelephonySignals",
+      "fieldTypes": {
+        "phoneType": "string",
+        "networkOperatorName": "string",
+        "simOperatorName": "string",
+        "networkCountryIso": "string",
+        "simCountryIso": "string",
+        "simState": "string",
+        "simCount": "number",
+        "hasIccCard": "boolean",
+        "isNetworkRoaming": "boolean",
+        "dataState": "string",
+        "carrierMobileCountryCode": "string",
+        "carrierMobileNetworkCode": "string",
+        "carrierAllowsVoip": "boolean",
+        "imei": "string"
+      },
+      "fieldSchemas": {
+        "phoneType": {
+          "type": "string"
+        },
+        "networkOperatorName": {
+          "type": "string"
+        },
+        "simOperatorName": {
+          "type": "string"
+        },
+        "networkCountryIso": {
+          "type": "string"
+        },
+        "simCountryIso": {
+          "type": "string"
+        },
+        "simState": {
+          "type": "string"
+        },
+        "simCount": {
+          "type": "number"
+        },
+        "hasIccCard": {
+          "type": "boolean"
+        },
+        "isNetworkRoaming": {
+          "type": "boolean"
+        },
+        "dataState": {
+          "type": "string"
+        },
+        "carrierMobileCountryCode": {
+          "type": "string"
+        },
+        "carrierMobileNetworkCode": {
+          "type": "string"
+        },
+        "carrierAllowsVoip": {
+          "type": "boolean"
+        },
+        "imei": {
+          "type": "string"
+        }
+      },
+      "optionalFields": [
+        "phoneType",
+        "networkOperatorName",
+        "simOperatorName",
+        "networkCountryIso",
+        "simCountryIso",
+        "simState",
+        "simCount",
+        "hasIccCard",
+        "isNetworkRoaming",
+        "dataState",
+        "carrierMobileCountryCode",
+        "carrierMobileNetworkCode",
+        "carrierAllowsVoip",
+        "imei"
+      ]
     },
     {
       "id": "locale",
@@ -332,6 +1302,84 @@
         "keyboard_language"
       ],
       "fields": [
+        "language",
+        "languages",
+        "country",
+        "timezoneId",
+        "timezoneOffsetMinutes",
+        "uses24HourClock",
+        "currencyCode",
+        "calendar",
+        "decimalSeparator",
+        "groupingSeparator",
+        "measurementSystem",
+        "firstDayOfWeek",
+        "keyboardLanguages"
+      ],
+      "typeName": "LocaleSignals",
+      "fieldTypes": {
+        "language": "string",
+        "languages": "string[]",
+        "country": "string",
+        "timezoneId": "string",
+        "timezoneOffsetMinutes": "number",
+        "uses24HourClock": "boolean",
+        "currencyCode": "string",
+        "calendar": "string",
+        "decimalSeparator": "string",
+        "groupingSeparator": "string",
+        "measurementSystem": "string",
+        "firstDayOfWeek": "number",
+        "keyboardLanguages": "string[]"
+      },
+      "fieldSchemas": {
+        "language": {
+          "type": "string"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "country": {
+          "type": "string"
+        },
+        "timezoneId": {
+          "type": "string"
+        },
+        "timezoneOffsetMinutes": {
+          "type": "number"
+        },
+        "uses24HourClock": {
+          "type": "boolean"
+        },
+        "currencyCode": {
+          "type": "string"
+        },
+        "calendar": {
+          "type": "string"
+        },
+        "decimalSeparator": {
+          "type": "string"
+        },
+        "groupingSeparator": {
+          "type": "string"
+        },
+        "measurementSystem": {
+          "type": "string"
+        },
+        "firstDayOfWeek": {
+          "type": "number"
+        },
+        "keyboardLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "optionalFields": [
         "language",
         "languages",
         "country",
@@ -380,7 +1428,84 @@
         "locationAgeMs",
         "gnssSupported"
       ],
-      "notes": "The SDK never requests location permission or starts an active location update. mockLocationAppsFound is reserved but not populated because broad package enumeration is prohibited."
+      "notes": "The SDK never requests location permission or starts an active location update. mockLocationAppsFound is reserved but not populated because broad package enumeration is prohibited.",
+      "typeName": "GeolocationSignals",
+      "fieldTypes": {
+        "authorizationStatus": "string",
+        "hasCoarsePermission": "boolean",
+        "latitude": "number",
+        "longitude": "number",
+        "accuracyMeters": "number",
+        "altitudeMeters": "number",
+        "locationServicesEnabled": "boolean",
+        "isFromMockProvider": "boolean",
+        "mockLocationAppsFound": "boolean",
+        "isSimulatedBySoftware": "boolean",
+        "isProducedByAccessory": "boolean",
+        "provider": "string",
+        "locationAgeMs": "number",
+        "gnssSupported": "boolean"
+      },
+      "fieldSchemas": {
+        "authorizationStatus": {
+          "type": "string"
+        },
+        "hasCoarsePermission": {
+          "type": "boolean"
+        },
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "accuracyMeters": {
+          "type": "number"
+        },
+        "altitudeMeters": {
+          "type": "number"
+        },
+        "locationServicesEnabled": {
+          "type": "boolean"
+        },
+        "isFromMockProvider": {
+          "type": "boolean"
+        },
+        "mockLocationAppsFound": {
+          "type": "boolean"
+        },
+        "isSimulatedBySoftware": {
+          "type": "boolean"
+        },
+        "isProducedByAccessory": {
+          "type": "boolean"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "locationAgeMs": {
+          "type": "number"
+        },
+        "gnssSupported": {
+          "type": "boolean"
+        }
+      },
+      "optionalFields": [
+        "authorizationStatus",
+        "hasCoarsePermission",
+        "latitude",
+        "longitude",
+        "accuracyMeters",
+        "altitudeMeters",
+        "locationServicesEnabled",
+        "isFromMockProvider",
+        "mockLocationAppsFound",
+        "isSimulatedBySoftware",
+        "isProducedByAccessory",
+        "provider",
+        "locationAgeMs",
+        "gnssSupported"
+      ]
     },
     {
       "id": "media_bluetooth_apps",
@@ -418,7 +1543,101 @@
         "accessibilityRunning",
         "accessibilityFeatures"
       ],
-      "notes": "App visibility is limited to an audited finite list; QUERY_ALL_PACKAGES is not requested. iOS mirroring uses UIScreen.mirroredScreen rather than external-screen presence."
+      "notes": "App visibility is limited to an audited finite list; QUERY_ALL_PACKAGES is not requested. iOS mirroring uses UIScreen.mirroredScreen rather than external-screen presence.",
+      "typeName": "MediaBluetoothAppsSignals",
+      "fieldTypes": {
+        "audioOutputRoute": "string",
+        "isMusicActive": "boolean",
+        "isOtherAudioPlaying": "boolean",
+        "isScreenCaptured": "boolean",
+        "isScreenMirrored": "boolean",
+        "connectedScreenCount": "number",
+        "mirroredScreenCount": "number",
+        "displayCount": "number",
+        "presentationDisplayCount": "number",
+        "bluetoothBondedDeviceCount": "number",
+        "installedFlaggedApps": "string[]",
+        "openableFlaggedSchemes": "string[]",
+        "enabledAccessibilityServices": "string[]",
+        "accessibilityRunning": "boolean",
+        "accessibilityFeatures": "string[]"
+      },
+      "fieldSchemas": {
+        "audioOutputRoute": {
+          "type": "string"
+        },
+        "isMusicActive": {
+          "type": "boolean"
+        },
+        "isOtherAudioPlaying": {
+          "type": "boolean"
+        },
+        "isScreenCaptured": {
+          "type": "boolean"
+        },
+        "isScreenMirrored": {
+          "type": "boolean"
+        },
+        "connectedScreenCount": {
+          "type": "number"
+        },
+        "mirroredScreenCount": {
+          "type": "number"
+        },
+        "displayCount": {
+          "type": "number"
+        },
+        "presentationDisplayCount": {
+          "type": "number"
+        },
+        "bluetoothBondedDeviceCount": {
+          "type": "number"
+        },
+        "installedFlaggedApps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "openableFlaggedSchemes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabledAccessibilityServices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "accessibilityRunning": {
+          "type": "boolean"
+        },
+        "accessibilityFeatures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "optionalFields": [
+        "audioOutputRoute",
+        "isMusicActive",
+        "isOtherAudioPlaying",
+        "isScreenCaptured",
+        "isScreenMirrored",
+        "connectedScreenCount",
+        "mirroredScreenCount",
+        "displayCount",
+        "presentationDisplayCount",
+        "bluetoothBondedDeviceCount",
+        "installedFlaggedApps",
+        "openableFlaggedSchemes",
+        "enabledAccessibilityServices",
+        "accessibilityRunning",
+        "accessibilityFeatures"
+      ]
     },
     {
       "id": "gpu_benchmark",
@@ -452,7 +1671,88 @@
         "operationTimeCoefficientOfVariation",
         "warmupSlope"
       ],
-      "notes": "Disabled by default because it is high entropy and requires device-lab calibration."
+      "notes": "Disabled by default because it is high entropy and requires device-lab calibration.",
+      "typeName": "GpuBenchmarkSignals",
+      "fieldTypes": {
+        "benchmarkPerformed": "boolean",
+        "skippedReason": "string",
+        "rendererName": "string",
+        "vendorName": "string",
+        "apiVersion": "string",
+        "shadingLanguageVersion": "string",
+        "maxTextureSize": "number",
+        "drawCallsCompleted": "number",
+        "durationMs": "number",
+        "gpuTimeMs": "number",
+        "operationTimeP50Ms": "number",
+        "operationTimeP95Ms": "number",
+        "operationTimeMadMs": "number",
+        "operationTimeCoefficientOfVariation": "number",
+        "warmupSlope": "number"
+      },
+      "fieldSchemas": {
+        "benchmarkPerformed": {
+          "type": "boolean"
+        },
+        "skippedReason": {
+          "type": "string"
+        },
+        "rendererName": {
+          "type": "string"
+        },
+        "vendorName": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "shadingLanguageVersion": {
+          "type": "string"
+        },
+        "maxTextureSize": {
+          "type": "number"
+        },
+        "drawCallsCompleted": {
+          "type": "number"
+        },
+        "durationMs": {
+          "type": "number"
+        },
+        "gpuTimeMs": {
+          "type": "number"
+        },
+        "operationTimeP50Ms": {
+          "type": "number"
+        },
+        "operationTimeP95Ms": {
+          "type": "number"
+        },
+        "operationTimeMadMs": {
+          "type": "number"
+        },
+        "operationTimeCoefficientOfVariation": {
+          "type": "number"
+        },
+        "warmupSlope": {
+          "type": "number"
+        }
+      },
+      "optionalFields": [
+        "skippedReason",
+        "rendererName",
+        "vendorName",
+        "apiVersion",
+        "shadingLanguageVersion",
+        "maxTextureSize",
+        "drawCallsCompleted",
+        "durationMs",
+        "gpuTimeMs",
+        "operationTimeP50Ms",
+        "operationTimeP95Ms",
+        "operationTimeMadMs",
+        "operationTimeCoefficientOfVariation",
+        "warmupSlope"
+      ]
     },
     {
       "id": "audio_latency",
@@ -477,7 +1777,43 @@
         "framesPerBuffer",
         "nativeSampleRate"
       ],
-      "notes": "Disabled by default pending representative device-lab calibration."
+      "notes": "Disabled by default pending representative device-lab calibration.",
+      "typeName": "AudioLatencySignals",
+      "fieldTypes": {
+        "measured": "boolean",
+        "outputLatencyMs": "number",
+        "inputLatencyMs": "number",
+        "ioBufferDurationMs": "number",
+        "framesPerBuffer": "number",
+        "nativeSampleRate": "number"
+      },
+      "fieldSchemas": {
+        "measured": {
+          "type": "boolean"
+        },
+        "outputLatencyMs": {
+          "type": "number"
+        },
+        "inputLatencyMs": {
+          "type": "number"
+        },
+        "ioBufferDurationMs": {
+          "type": "number"
+        },
+        "framesPerBuffer": {
+          "type": "number"
+        },
+        "nativeSampleRate": {
+          "type": "number"
+        }
+      },
+      "optionalFields": [
+        "outputLatencyMs",
+        "inputLatencyMs",
+        "ioBufferDurationMs",
+        "framesPerBuffer",
+        "nativeSampleRate"
+      ]
     },
     {
       "id": "application",
@@ -532,7 +1868,204 @@
         "embeddedProvisioningProfilePresent",
         "getTaskAllowEntitlement"
       ],
-      "notes": "Android install-source values describe the host package only and remain untrusted installer-supplied observations. getTaskAllowEntitlement is reserved but not populated because the public iPhoneOS headers do not expose a supported entitlement lookup API."
+      "notes": "Android install-source values describe the host package only and remain untrusted installer-supplied observations. getTaskAllowEntitlement is reserved but not populated because the public iPhoneOS headers do not expose a supported entitlement lookup API.",
+      "typeName": "ApplicationSignals",
+      "fieldTypes": {
+        "appVersion": "string",
+        "appBuild": "string",
+        "bundleId": "string",
+        "appName": "string",
+        "installerPackage": "string",
+        "installingPackageName": "string",
+        "initiatingPackageName": "string",
+        "initiatingPackageSigningCertificateSha256": "string[]",
+        "installPackageSource": "string",
+        "updateOwnerPackageName": "string",
+        "isForeground": "boolean",
+        "processUptimeMs": "number",
+        "grantedPermissions": "string[]",
+        "isSplitApks": "boolean",
+        "splitNames": "string[]",
+        "firstInstallTimeMs": "number",
+        "lastUpdateTimeMs": "number",
+        "targetSdkVersion": "number",
+        "minSdkVersion": "number",
+        "minimumOsVersion": "string",
+        "isDebuggable": "boolean",
+        "isInstantApp": "boolean",
+        "signingCertificateSha256": "string[]",
+        "signingCertificateHistorySha256": "string[]",
+        "hasMultipleSigners": "boolean",
+        "receiptPresent": "boolean",
+        "receiptEnvironment": "string",
+        "bundleExecutable": "string",
+        "isAppExtension": "boolean",
+        "isSimulatorBuild": "boolean",
+        "isInstalledOnExternalStorage": "boolean",
+        "isSystemApp": "boolean",
+        "isUpdatedSystemApp": "boolean",
+        "embeddedProvisioningProfilePresent": "boolean",
+        "getTaskAllowEntitlement": "boolean"
+      },
+      "fieldSchemas": {
+        "appVersion": {
+          "type": "string"
+        },
+        "appBuild": {
+          "type": "string"
+        },
+        "bundleId": {
+          "type": "string"
+        },
+        "appName": {
+          "type": "string"
+        },
+        "installerPackage": {
+          "type": "string"
+        },
+        "installingPackageName": {
+          "type": "string"
+        },
+        "initiatingPackageName": {
+          "type": "string"
+        },
+        "initiatingPackageSigningCertificateSha256": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "installPackageSource": {
+          "type": "string"
+        },
+        "updateOwnerPackageName": {
+          "type": "string"
+        },
+        "isForeground": {
+          "type": "boolean"
+        },
+        "processUptimeMs": {
+          "type": "number"
+        },
+        "grantedPermissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isSplitApks": {
+          "type": "boolean"
+        },
+        "splitNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "firstInstallTimeMs": {
+          "type": "number"
+        },
+        "lastUpdateTimeMs": {
+          "type": "number"
+        },
+        "targetSdkVersion": {
+          "type": "number"
+        },
+        "minSdkVersion": {
+          "type": "number"
+        },
+        "minimumOsVersion": {
+          "type": "string"
+        },
+        "isDebuggable": {
+          "type": "boolean"
+        },
+        "isInstantApp": {
+          "type": "boolean"
+        },
+        "signingCertificateSha256": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "signingCertificateHistorySha256": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hasMultipleSigners": {
+          "type": "boolean"
+        },
+        "receiptPresent": {
+          "type": "boolean"
+        },
+        "receiptEnvironment": {
+          "type": "string"
+        },
+        "bundleExecutable": {
+          "type": "string"
+        },
+        "isAppExtension": {
+          "type": "boolean"
+        },
+        "isSimulatorBuild": {
+          "type": "boolean"
+        },
+        "isInstalledOnExternalStorage": {
+          "type": "boolean"
+        },
+        "isSystemApp": {
+          "type": "boolean"
+        },
+        "isUpdatedSystemApp": {
+          "type": "boolean"
+        },
+        "embeddedProvisioningProfilePresent": {
+          "type": "boolean"
+        },
+        "getTaskAllowEntitlement": {
+          "type": "boolean"
+        }
+      },
+      "optionalFields": [
+        "appVersion",
+        "appBuild",
+        "bundleId",
+        "appName",
+        "installerPackage",
+        "installingPackageName",
+        "initiatingPackageName",
+        "initiatingPackageSigningCertificateSha256",
+        "installPackageSource",
+        "updateOwnerPackageName",
+        "isForeground",
+        "processUptimeMs",
+        "grantedPermissions",
+        "isSplitApks",
+        "splitNames",
+        "firstInstallTimeMs",
+        "lastUpdateTimeMs",
+        "targetSdkVersion",
+        "minSdkVersion",
+        "minimumOsVersion",
+        "isDebuggable",
+        "isInstantApp",
+        "signingCertificateSha256",
+        "signingCertificateHistorySha256",
+        "hasMultipleSigners",
+        "receiptPresent",
+        "receiptEnvironment",
+        "bundleExecutable",
+        "isAppExtension",
+        "isSimulatorBuild",
+        "isInstalledOnExternalStorage",
+        "isSystemApp",
+        "isUpdatedSystemApp",
+        "embeddedProvisioningProfilePresent",
+        "getTaskAllowEntitlement"
+      ]
     },
     {
       "id": "device_security_posture",
@@ -565,7 +2098,79 @@
         "deviceProvisioned",
         "securityPatch"
       ],
-      "notes": "Reports capability/state only and never displays an authentication prompt or reads biometric material. iOS Lockdown Mode is not collected: its only read path (NSUserDefaults) is an Apple Required-Reason API category and this module declares none."
+      "notes": "Reports capability/state only and never displays an authentication prompt or reads biometric material. iOS Lockdown Mode is not collected: its only read path (NSUserDefaults) is an Apple Required-Reason API category and this module declares none.",
+      "typeName": "DeviceSecurityPostureSignals",
+      "fieldTypes": {
+        "hasSecureLockScreen": "boolean",
+        "isDeviceLocked": "boolean",
+        "isUserUnlocked": "boolean",
+        "protectedDataAvailable": "boolean",
+        "biometryAvailable": "boolean",
+        "biometryType": "string",
+        "fingerprintHardwarePresent": "boolean",
+        "faceHardwarePresent": "boolean",
+        "strongBoxAvailable": "boolean",
+        "automaticTimeEnabled": "boolean",
+        "automaticTimeZoneEnabled": "boolean",
+        "deviceProvisioned": "boolean",
+        "securityPatch": "string"
+      },
+      "fieldSchemas": {
+        "hasSecureLockScreen": {
+          "type": "boolean"
+        },
+        "isDeviceLocked": {
+          "type": "boolean"
+        },
+        "isUserUnlocked": {
+          "type": "boolean"
+        },
+        "protectedDataAvailable": {
+          "type": "boolean"
+        },
+        "biometryAvailable": {
+          "type": "boolean"
+        },
+        "biometryType": {
+          "type": "string"
+        },
+        "fingerprintHardwarePresent": {
+          "type": "boolean"
+        },
+        "faceHardwarePresent": {
+          "type": "boolean"
+        },
+        "strongBoxAvailable": {
+          "type": "boolean"
+        },
+        "automaticTimeEnabled": {
+          "type": "boolean"
+        },
+        "automaticTimeZoneEnabled": {
+          "type": "boolean"
+        },
+        "deviceProvisioned": {
+          "type": "boolean"
+        },
+        "securityPatch": {
+          "type": "string"
+        }
+      },
+      "optionalFields": [
+        "hasSecureLockScreen",
+        "isDeviceLocked",
+        "isUserUnlocked",
+        "protectedDataAvailable",
+        "biometryAvailable",
+        "biometryType",
+        "fingerprintHardwarePresent",
+        "faceHardwarePresent",
+        "strongBoxAvailable",
+        "automaticTimeEnabled",
+        "automaticTimeZoneEnabled",
+        "deviceProvisioned",
+        "securityPatch"
+      ]
     },
     {
       "id": "transaction_safety",
@@ -610,7 +2215,122 @@
         "audioMode",
         "isCallActive"
       ],
-      "notes": "Ships disabled until physical-device calibration. Android UI observation starts lazily on the first collection; collect once when the protected flow starts and again immediately before its action. The library declares neither capture permission and never prompts."
+      "notes": "Ships disabled until physical-device calibration. Android UI observation starts lazily on the first collection; collect once when the protected flow starts and again immediately before its action. The library declares neither capture permission and never prompts.",
+      "typeName": "TransactionSafetySignals",
+      "fieldTypes": {
+        "isDeviceLocked": "boolean",
+        "isInteractive": "boolean",
+        "isScreenCaptured": "boolean",
+        "isScreenMirrored": "boolean",
+        "isVisibleInScreenRecording": "boolean",
+        "screenshotObservationActive": "boolean",
+        "screenshotDetectedSinceObservationStart": "boolean",
+        "lastScreenshotDetectedElapsedMs": "number",
+        "transactionObservationStartedElapsedMs": "number",
+        "observedTouchCount": "number",
+        "obscuredTouchObserved": "boolean",
+        "partiallyObscuredTouchObserved": "boolean",
+        "lastObscuredTouchElapsedMs": "number",
+        "lastPartiallyObscuredTouchElapsedMs": "number",
+        "accessibilityRunning": "boolean",
+        "accessibilityFeatureCount": "number",
+        "enabledAccessibilityServiceCount": "number",
+        "remoteAccessAppsFound": "string[]",
+        "remoteAccessAppCount": "number",
+        "audioMode": "string",
+        "isCallActive": "boolean"
+      },
+      "fieldSchemas": {
+        "isDeviceLocked": {
+          "type": "boolean"
+        },
+        "isInteractive": {
+          "type": "boolean"
+        },
+        "isScreenCaptured": {
+          "type": "boolean"
+        },
+        "isScreenMirrored": {
+          "type": "boolean"
+        },
+        "isVisibleInScreenRecording": {
+          "type": "boolean"
+        },
+        "screenshotObservationActive": {
+          "type": "boolean"
+        },
+        "screenshotDetectedSinceObservationStart": {
+          "type": "boolean"
+        },
+        "lastScreenshotDetectedElapsedMs": {
+          "type": "number"
+        },
+        "transactionObservationStartedElapsedMs": {
+          "type": "number"
+        },
+        "observedTouchCount": {
+          "type": "number"
+        },
+        "obscuredTouchObserved": {
+          "type": "boolean"
+        },
+        "partiallyObscuredTouchObserved": {
+          "type": "boolean"
+        },
+        "lastObscuredTouchElapsedMs": {
+          "type": "number"
+        },
+        "lastPartiallyObscuredTouchElapsedMs": {
+          "type": "number"
+        },
+        "accessibilityRunning": {
+          "type": "boolean"
+        },
+        "accessibilityFeatureCount": {
+          "type": "number"
+        },
+        "enabledAccessibilityServiceCount": {
+          "type": "number"
+        },
+        "remoteAccessAppsFound": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "remoteAccessAppCount": {
+          "type": "number"
+        },
+        "audioMode": {
+          "type": "string"
+        },
+        "isCallActive": {
+          "type": "boolean"
+        }
+      },
+      "optionalFields": [
+        "isDeviceLocked",
+        "isInteractive",
+        "isScreenCaptured",
+        "isScreenMirrored",
+        "isVisibleInScreenRecording",
+        "screenshotObservationActive",
+        "screenshotDetectedSinceObservationStart",
+        "lastScreenshotDetectedElapsedMs",
+        "transactionObservationStartedElapsedMs",
+        "observedTouchCount",
+        "obscuredTouchObserved",
+        "partiallyObscuredTouchObserved",
+        "lastObscuredTouchElapsedMs",
+        "lastPartiallyObscuredTouchElapsedMs",
+        "accessibilityRunning",
+        "accessibilityFeatureCount",
+        "enabledAccessibilityServiceCount",
+        "remoteAccessAppsFound",
+        "remoteAccessAppCount",
+        "audioMode",
+        "isCallActive"
+      ]
     },
     {
       "id": "runtime",
@@ -628,6 +2348,58 @@
         "software_version"
       ],
       "fields": [
+        "jsEngine",
+        "hermesVersion",
+        "isHermes",
+        "isFabric",
+        "isTurboModule",
+        "isBridgeless",
+        "isDebugBuild",
+        "reactNativeVersion",
+        "platformOs"
+      ],
+      "typeName": "RuntimeSignals",
+      "fieldTypes": {
+        "jsEngine": "string",
+        "hermesVersion": "string",
+        "isHermes": "boolean",
+        "isFabric": "boolean",
+        "isTurboModule": "boolean",
+        "isBridgeless": "boolean",
+        "isDebugBuild": "boolean",
+        "reactNativeVersion": "string",
+        "platformOs": "string"
+      },
+      "fieldSchemas": {
+        "jsEngine": {
+          "type": "string"
+        },
+        "hermesVersion": {
+          "type": "string"
+        },
+        "isHermes": {
+          "type": "boolean"
+        },
+        "isFabric": {
+          "type": "boolean"
+        },
+        "isTurboModule": {
+          "type": "boolean"
+        },
+        "isBridgeless": {
+          "type": "boolean"
+        },
+        "isDebugBuild": {
+          "type": "boolean"
+        },
+        "reactNativeVersion": {
+          "type": "string"
+        },
+        "platformOs": {
+          "type": "string"
+        }
+      },
+      "optionalFields": [
         "jsEngine",
         "hermesVersion",
         "isHermes",
@@ -670,7 +2442,69 @@
         "nativeIntervalP95Ns",
         "nativeIntervalMadNs"
       ],
-      "notes": "Disabled by default because timing is noisy, high entropy, and requires physical-device calibration."
+      "notes": "Disabled by default because timing is noisy, high entropy, and requires physical-device calibration.",
+      "typeName": "RuntimeTimingSignals",
+      "fieldTypes": {
+        "jsClockSource": "string",
+        "jsTimerSampleCount": "number",
+        "jsTimerResolutionMs": "number",
+        "eventLoopSampleCount": "number",
+        "eventLoopP50Ms": "number",
+        "eventLoopP95Ms": "number",
+        "eventLoopMadMs": "number",
+        "bridgeRoundTripMs": "number",
+        "nativeClockSource": "string",
+        "nativeSampleCount": "number",
+        "nativeTimerResolutionNs": "number",
+        "nativeIntervalMedianNs": "number",
+        "nativeIntervalP95Ns": "number",
+        "nativeIntervalMadNs": "number"
+      },
+      "fieldSchemas": {
+        "jsClockSource": {
+          "type": "string"
+        },
+        "jsTimerSampleCount": {
+          "type": "number"
+        },
+        "jsTimerResolutionMs": {
+          "type": "number"
+        },
+        "eventLoopSampleCount": {
+          "type": "number"
+        },
+        "eventLoopP50Ms": {
+          "type": "number"
+        },
+        "eventLoopP95Ms": {
+          "type": "number"
+        },
+        "eventLoopMadMs": {
+          "type": "number"
+        },
+        "bridgeRoundTripMs": {
+          "type": "number"
+        },
+        "nativeClockSource": {
+          "type": "string"
+        },
+        "nativeSampleCount": {
+          "type": "number"
+        },
+        "nativeTimerResolutionNs": {
+          "type": "number"
+        },
+        "nativeIntervalMedianNs": {
+          "type": "number"
+        },
+        "nativeIntervalP95Ns": {
+          "type": "number"
+        },
+        "nativeIntervalMadNs": {
+          "type": "number"
+        }
+      },
+      "optionalFields": []
     },
     {
       "id": "numeric_consistency",
@@ -696,7 +2530,43 @@
         "signedZeroPreserved",
         "subnormalPreserved"
       ],
-      "notes": "Disabled by default; returns comparison aggregates rather than raw stable identifiers or a verdict."
+      "notes": "Disabled by default; returns comparison aggregates rather than raw stable identifiers or a verdict.",
+      "typeName": "NumericConsistencySignals",
+      "fieldTypes": {
+        "integerVectorMatches": "boolean",
+        "integerMismatchCount": "number",
+        "floatSampleCount": "number",
+        "floatMismatchCount": "number",
+        "floatMaxAbsoluteDifference": "number",
+        "signedZeroPreserved": "boolean",
+        "subnormalPreserved": "boolean"
+      },
+      "fieldSchemas": {
+        "integerVectorMatches": {
+          "type": "boolean"
+        },
+        "integerMismatchCount": {
+          "type": "number"
+        },
+        "floatSampleCount": {
+          "type": "number"
+        },
+        "floatMismatchCount": {
+          "type": "number"
+        },
+        "floatMaxAbsoluteDifference": {
+          "type": "number"
+        },
+        "signedZeroPreserved": {
+          "type": "boolean"
+        },
+        "subnormalPreserved": {
+          "type": "boolean"
+        }
+      },
+      "optionalFields": [
+        "floatMaxAbsoluteDifference"
+      ]
     }
   ]
 }

@@ -1,0 +1,44 @@
+{
+  "session_id": "checkout_01JEXAMPLE",
+  "client_id": "account_12345",
+  "event_type": "device_intel_collection",
+  "schema_version": 1,
+  "collected_at": "2026-07-29T12:00:00.000Z",
+  "probes": {
+    "device_identity": {
+      "status": "success",
+      "data": {
+        "manufacturer": "Google",
+        "model": "Pixel 8",
+        "systemName": "Android",
+        "systemVersion": "15",
+        "isTablet": false,
+        "androidBuild": {
+          "fingerprint": "google/example/device:user/release-keys",
+          "supportedAbis": [
+            "arm64-v8a",
+            "armeabi-v7a"
+          ],
+          "sdkInt": 35
+        }
+      }
+    },
+    "network": {
+      "status": "success",
+      "data": {
+        "isConnected": true,
+        "connectionType": "wifi",
+        "interfaceNames": [
+          "wlan0"
+        ],
+        "localIpAddresses": [
+          "192.0.2.10"
+        ]
+      }
+    },
+    "transaction_safety": {
+      "status": "skipped",
+      "reason": "disabled"
+    }
+  }
+}

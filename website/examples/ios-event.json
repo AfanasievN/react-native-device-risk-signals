@@ -1,0 +1,35 @@
+{
+  "session_id": "login_01JEXAMPLE",
+  "event_type": "device_intel_collection",
+  "schema_version": 1,
+  "collected_at": "2026-07-29T12:00:00.000Z",
+  "probes": {
+    "device_identity": {
+      "status": "success",
+      "data": {
+        "model": "iPhone",
+        "systemName": "iOS",
+        "systemVersion": "18.5",
+        "isTablet": false,
+        "isIosAppOnMac": false,
+        "isMacCatalystApp": false
+      }
+    },
+    "application": {
+      "status": "success",
+      "data": {
+        "appVersion": "4.2.0",
+        "appBuild": "420",
+        "bundleId": "com.example.app",
+        "receiptPresent": true,
+        "grantedPermissions": [
+          "notifications"
+        ]
+      }
+    },
+    "geolocation": {
+      "status": "error",
+      "error": "location provider unavailable"
+    }
+  }
+}

@@ -4,6 +4,9 @@ This page separates automated build compatibility from physical-device evidence.
 simulator build proves that native code compiles; it does not prove that every observation behaves
 correctly on real hardware, vendor-modified Android builds, rooted devices, or jailbroken devices.
 
+The same information is available in the hosted
+[compatibility guide](https://afanasievn.github.io/react-native-device-risk-signals/compatibility/).
+
 ## Automated coverage
 
 Every pull request runs the following compatibility checks:

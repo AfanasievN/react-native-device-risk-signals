@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Django Backend Integration | Device Risk Signals</title>
+  <meta name="description" content="Build a production Django and Django REST Framework ingestion endpoint for raw device signal events, with JSONField storage, idempotency, validation, indexing, and retention.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/backend/">
+  <meta property="og:title" content="Django Backend Integration for Device Risk Signals"><meta property="og:description" content="A complete ingestion and storage contract for raw mobile device observations."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/backend/">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="../integration/">Integration</a><a href="./" aria-current="page">Backend</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>On this page</strong><a href="#boundary">API boundary</a><a href="#payload">Request payload</a><a href="#model">Django model</a><a href="#serializer">DRF validation</a><a href="#view">Idempotent view</a><a href="#storage">Storage and indexes</a><a href="#evolution">Schema evolution</a><a href="#retention">Retention</a></aside>
+    <article class="prose">
+      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#boundary">API boundary</a><a href="#payload">Request payload</a><a href="#model">Django model</a><a href="#serializer">DRF validation</a><a href="#view">Idempotent view</a><a href="#storage">Storage and indexes</a><a href="#evolution">Schema evolution</a><a href="#retention">Retention</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Production ingestion</p><h1>Store raw device observations in Django</h1><p class="lede">Keep the exact SDK event immutable, bind it to a server-known action, and promote only the fields your backend deliberately uses.</p><div class="button-row"><a class="button" href="../raw-signal-event.schema.json">Download JSON Schema</a><a class="button secondary" href="../examples/android-event.json">Android example</a><a class="button secondary" href="../examples/ios-event.json">iOS example</a></div></header>
+
+      <section id="boundary"><h2>Recommended endpoint</h2><div class="code-block"><button class="copy-button" type="button" data-copy="endpoint">Copy</button><pre id="endpoint"><code>POST /api/v1/device-signal-events
+Authorization: Bearer &lt;application-session-token&gt;
+Idempotency-Key: 01JEXAMPLEDEVICEEVENT</code></pre></div><p>Authenticate with the host application's normal session controls. The server must derive account identity from the authenticated request, not trust <code>client_id</code> as authentication. Return <code>201 Created</code> for a new event and <code>200 OK</code> when the same idempotency key is replayed.</p></section>
+
+      <section id="payload"><h2>Transport payload</h2><p>The SDK returns <code>observations</code>. The host application adds transport metadata that the SDK cannot know.</p><div class="code-block"><button class="copy-button" type="button" data-copy="request-payload">Copy</button><pre id="request-payload"><code>{
+  "action_id": "checkout_01JEXAMPLE",
+  "sdk_version": "0.8.1",
+  "platform": "android",
+  "app_version": "4.2.0",
+  "observations": {
+    "session_id": "checkout_01JEXAMPLE",
+    "event_type": "device_intel_collection",
+    "schema_version": 1,
+    "collected_at": "2026-07-29T12:00:00.000Z",
+    "probes": {
+      "network": {
+        "status": "success",
+        "data": {
+          "isConnected": true,
+          "interfaceNames": ["wlan0"],
+          "activeNetworkMtu": 1500
+        }
+      },
+      "transaction_safety": {
+        "status": "skipped",
+        "reason": "disabled"
+      }
+    }
+  }
+}</code></pre></div><div class="notice">JSON data may contain strings, finite numbers, booleans, arrays, nested objects, and omitted optional keys. The SDK does not emit a risk score or device verdict.</div></section>
+
+      <section id="model"><h2>Django model</h2><div class="code-block"><button class="copy-button" type="button" data-copy="django-model">Copy</button><pre id="django-model"><code>import uuid
+
+from django.conf import settings
+from django.db import models
+
+
+class DeviceSignalEvent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    idempotency_key = models.CharField(max_length=128, unique=True)
+    account = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="device_signal_events",
+    )
+    action_id = models.CharField(max_length=128, db_index=True)
+    session_id = models.CharField(max_length=128, db_index=True)
+    event_type = models.CharField(max_length=64)
+    schema_version = models.PositiveSmallIntegerField()
+    sdk_version = models.CharField(max_length=32)
+    platform = models.CharField(max_length=16)
+    app_version = models.CharField(max_length=64, blank=True)
+    collected_at = models.DateTimeField(db_index=True)
+    received_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    payload = models.JSONField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["account", "-received_at"]),
+            models.Index(fields=["action_id", "-received_at"]),
+            models.Index(fields=["sdk_version", "schema_version"]),
+        ]</code></pre></div><p><code>payload</code> stores the original <code>RawSignalEvent</code>. Promoted columns support common joins, retention jobs, and operational queries without duplicating all 322 fields into relational columns.</p></section>
+
+      <section id="serializer"><h2>DRF serializer</h2><div class="code-block"><button class="copy-button" type="button" data-copy="drf-serializer">Copy</button><pre id="drf-serializer"><code>from django.utils.dateparse import parse_datetime
+from rest_framework import serializers
+
+
+ALLOWED_STATUSES = {"success", "skipped", "timeout", "error"}
+
+
+class DeviceSignalEventSerializer(serializers.Serializer):
+    action_id = serializers.CharField(max_length=128)
+    sdk_version = serializers.CharField(max_length=32)
+    platform = serializers.ChoiceField(choices=["android", "ios"])
+    app_version = serializers.CharField(max_length=64, required=False, allow_blank=True)
+    observations = serializers.JSONField()
+
+    def validate_observations(self, event):
+        required = {
+            "session_id", "event_type", "schema_version",
+            "collected_at", "probes",
+        }
+        if not isinstance(event, dict) or not required.issubset(event):
+            raise serializers.ValidationError("Invalid RawSignalEvent envelope.")
+        if event["event_type"] != "device_intel_collection":
+            raise serializers.ValidationError("Unsupported event_type.")
+        if event["schema_version"] != 1:
+            raise serializers.ValidationError("Unsupported schema_version.")
+        if parse_datetime(event["collected_at"]) is None:
+            raise serializers.ValidationError("collected_at must be ISO 8601.")
+        if not isinstance(event["probes"], dict):
+            raise serializers.ValidationError("probes must be an object.")
+
+        for probe_id, outcome in event["probes"].items():
+            if not isinstance(probe_id, str) or not isinstance(outcome, dict):
+                raise serializers.ValidationError("Invalid probe outcome.")
+            status = outcome.get("status")
+            if status not in ALLOWED_STATUSES:
+                raise serializers.ValidationError("Unknown probe status.")
+            if status == "success" and not isinstance(outcome.get("data"), dict):
+                raise serializers.ValidationError("Success requires object data.")
+            if status == "skipped" and not isinstance(outcome.get("reason"), str):
+                raise serializers.ValidationError("Skipped requires a reason.")
+            if status == "error" and not isinstance(outcome.get("error"), str):
+                raise serializers.ValidationError("Error requires a message.")
+
+        # Preserve every unknown probe and additive field in payload.
+        return event</code></pre></div><p>Validate the fields your feature logic consumes against the published JSON Schema. Do not reject an otherwise valid event solely because a newer SDK added an unknown probe or success-data field.</p></section>
+
+      <section id="view"><h2>Idempotent create view</h2><div class="code-block"><button class="copy-button" type="button" data-copy="drf-view">Copy</button><pre id="drf-view"><code>from django.utils.dateparse import parse_datetime
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+
+class DeviceSignalEventView(APIView):
+    def post(self, request):
+        serializer = DeviceSignalEventSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        event = serializer.validated_data["observations"]
+        idempotency_key = request.headers.get("Idempotency-Key")
+        if not idempotency_key:
+            raise serializers.ValidationError("Idempotency-Key is required.")
+
+        stored, created = DeviceSignalEvent.objects.get_or_create(
+            idempotency_key=idempotency_key,
+            defaults={
+                "account": request.user if request.user.is_authenticated else None,
+                "action_id": serializer.validated_data["action_id"],
+                "session_id": event["session_id"],
+                "event_type": event["event_type"],
+                "schema_version": event["schema_version"],
+                "sdk_version": serializer.validated_data["sdk_version"],
+                "platform": serializer.validated_data["platform"],
+                "app_version": serializer.validated_data.get("app_version", ""),
+                "collected_at": parse_datetime(event["collected_at"]),
+                "payload": event,
+            },
+        )
+        return Response(
+            {"event_id": str(stored.id), "created": created},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )</code></pre></div><p>In production, reject a replay when the same idempotency key arrives with a different payload hash. Apply request-size limits, timestamp freshness checks, action ownership checks, throttling, and normal application audit logging.</p></section>
+
+      <section id="storage"><h2>Storage and indexes</h2><ul><li>Keep the immutable raw event in PostgreSQL <code>jsonb</code> through <code>models.JSONField</code>.</li><li>Promote only stable query dimensions such as account, action, timestamps, platform, SDK version, and schema version.</li><li>Extract adopted model features into a separately versioned table or feature pipeline.</li><li>Add targeted expression indexes only for JSON paths used in production queries.</li><li>Avoid a broad GIN index on every raw payload until query evidence justifies its storage and write cost.</li><li>Keep application authentication and server observations separate from attacker-influenced client telemetry.</li></ul></section>
+
+      <section id="evolution"><h2>Schema evolution</h2><div class="contract-rules"><div><strong>Envelope changes</strong><p>Route by <code>schema_version</code>. Reject unsupported envelope versions explicitly.</p></div><div><strong>Additive probe data</strong><p>Preserve unknown probe IDs and fields. Adopt them in feature logic only after review.</p></div><div><strong>Outcome semantics</strong><p>Never collapse omitted, skipped, timeout, error, and observed <code>false</code> into one value.</p></div><div><strong>SDK context</strong><p>Persist <code>sdk_version</code>, platform, app version, and collection time with every event.</p></div></div></section>
+
+      <section id="retention"><h2>Retention and access</h2><p>Raw signal events can contain high-entropy and sensitive observations. Define a retention period per collection purpose, restrict raw access, record administrative access, encrypt data in transit and at rest, and support deletion requirements. Derived aggregates can often outlive raw payloads, but their lineage and feature version must remain auditable.</p><div class="notice warning">Treat every client field as attacker-influenced context. Never make a consequential decision from one device signal and always provide an appropriate recovery or review path.</div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Backend guide for SDK v0.8.1.</div><div class="footer-links"><a href="../signals/">Typed catalog</a><a href="../recipes/">Recipes</a><a href="../versions/">Versions</a><a href="../privacy/">Privacy</a></div></div></footer>
+</body>
+</html>

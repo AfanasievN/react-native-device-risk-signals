@@ -23,7 +23,7 @@
       <a class="brand" href="./"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a>
       <button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button>
       <nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation">
-        <a href="./signals/">Signals</a><a href="./integration/">Integration</a><a href="./privacy/">Privacy</a><a href="./risk-teams/">Risk teams</a><a href="./faq/">FAQ</a>
+        <a href="./signals/">Signals</a><a href="./integration/">Integration</a><a href="./backend/">Backend</a><a href="./privacy/">Privacy</a><a href="./risk-teams/">Risk teams</a><a href="./faq/">FAQ</a>
         <a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a>
       </nav>
     </div>
@@ -62,6 +62,8 @@
         <div class="route-grid">
           <a class="route-card" href="./integration/"><h3>Mobile integration</h3><p>Install the TurboModule, configure consent, collect an event, and send it using your existing authenticated API.</p><span>Open integration guide</span></a>
           <a class="route-card" href="./signals/"><h3>Signal catalog</h3><p>Review every probe, selectable field, platform boundary, outcome, and backend envelope rule.</p><span>Inspect the contract</span></a>
+          <a class="route-card" href="./backend/"><h3>Django backend</h3><p>Implement the ingestion endpoint, JSONField model, DRF validation, idempotency, indexing, and retention.</p><span>Build the endpoint</span></a>
+          <a class="route-card" href="./recipes/"><h3>Collection recipes</h3><p>Start with purpose-bound profiles for login, registration, checkout, recovery, and protected actions.</p><span>Choose a collection profile</span></a>
           <a class="route-card" href="./risk-teams/"><h3>Risk team playbook</h3><p>Turn raw observations into governed model features, quality checks, and explainable investigation context.</p><span>Plan feature engineering</span></a>
           <a class="route-card" href="./privacy/"><h3>Privacy and governance</h3><p>Apply purpose limitation, retention, consent, access controls, and missing-data semantics before production collection.</p><span>Review safeguards</span></a>
         </div>
@@ -103,6 +105,6 @@ const event = await deviceIntel.collect();
       </div>
     </section>
   </main>
-  <footer class="site-footer"><div class="container footer-wrap"><div>Open-source mobile security telemetry for React Native.</div><div class="footer-links"><a href="https://www.npmjs.com/package/react-native-device-risk-signals">npm</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals">Source</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals/discussions">Discussions</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals/issues">Issues</a><a href="./privacy/">Responsible use</a></div></div></footer>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Open-source mobile security telemetry for React Native. Docs for v0.8.1.</div><div class="footer-links"><a href="https://www.npmjs.com/package/react-native-device-risk-signals">npm</a><a href="./versions/">Versions</a><a href="./compatibility/">Compatibility</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals">Source</a><a href="https://github.com/AfanasievN/react-native-device-risk-signals/discussions">Discussions</a><a href="./privacy/">Responsible use</a></div></div></footer>
 </body>
 </html>

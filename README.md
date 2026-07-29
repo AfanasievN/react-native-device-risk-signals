@@ -20,7 +20,10 @@ application owns transport, authentication, storage, scoring, and policy.
 
 [Documentation](https://afanasievn.github.io/react-native-device-risk-signals/) · [Quick start](#quick-start) · [What it detects](#what-it-detects) ·
 [AI-assisted setup](#ai-assisted-installation-and-integration) · [Example app](#run-the-example) ·
-[Probe Catalog](https://afanasievn.github.io/react-native-device-risk-signals/signals/) · [Compatibility reports](docs/DEVICE_COMPATIBILITY.md) ·
+[Probe Catalog](https://afanasievn.github.io/react-native-device-risk-signals/signals/) ·
+[Django backend guide](https://afanasievn.github.io/react-native-device-risk-signals/backend/) ·
+[Collection recipes](https://afanasievn.github.io/react-native-device-risk-signals/recipes/) ·
+[Compatibility](https://afanasievn.github.io/react-native-device-risk-signals/compatibility/) ·
 [Ask a question](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/q-a) ·
 [Share your integration](https://github.com/AfanasievN/react-native-device-risk-signals/discussions/categories/show-and-tell) ·
 [Support ☕](#support-this-project)
@@ -519,6 +522,12 @@ await appApi.post("/v1/device-signals", event);
 Do not place credentials or vendor endpoints in SDK configuration. The application decides whether
 an event should be sent and how delivery failures are handled.
 
+For a complete ingestion contract, use the hosted
+[Django and Django REST Framework backend guide](https://afanasievn.github.io/react-native-device-risk-signals/backend/).
+It includes the request envelope, `models.JSONField` storage, DRF validation, idempotency, indexing,
+schema evolution, and retention. The exact event contract is also published as
+[JSON Schema](https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json).
+
 ## Available signal groups
 
 | Group          | Probe ids                                                           | Notes                                                       |
@@ -565,6 +574,8 @@ const enabledByDefault = PROBE_CATALOG.filter((probe) => probe.enabledByDefault)
 See the complete backend envelope and field table in the hosted
 [Signal Catalog](https://afanasievn.github.io/react-native-device-risk-signals/signals/), download the
 [machine-readable probe catalog](https://afanasievn.github.io/react-native-device-risk-signals/probe-catalog.json),
+validate events with the generated
+[RawSignalEvent JSON Schema](https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json),
 or continue to the detailed [Data Dictionary](docs/DATA_DICTIONARY.md) and transparent
 [benchmark methodology and baseline](docs/BENCHMARKS.md).
 

@@ -1,0 +1,2552 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json",
+  "title": "React Native Device Risk Signals raw event",
+  "description": "Exact SDK event envelope. Probe IDs and success data are additive.",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "client_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_type": {
+      "const": "device_intel_collection"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "probes": {
+      "type": "object",
+      "properties": {
+        "device_identity": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "manufacturer": {
+                      "type": "string"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "brand": {
+                      "type": "string"
+                    },
+                    "systemName": {
+                      "type": "string"
+                    },
+                    "systemVersion": {
+                      "type": "string"
+                    },
+                    "isTablet": {
+                      "type": "boolean"
+                    },
+                    "osBuild": {
+                      "type": "string"
+                    },
+                    "kernelVersion": {
+                      "type": "string"
+                    },
+                    "kernelOsRelease": {
+                      "type": "string"
+                    },
+                    "kernelOsType": {
+                      "type": "string"
+                    },
+                    "androidBuild": {
+                      "type": "object",
+                      "properties": {
+                        "board": {
+                          "type": "string"
+                        },
+                        "bootloader": {
+                          "type": "string"
+                        },
+                        "device": {
+                          "type": "string"
+                        },
+                        "display": {
+                          "type": "string"
+                        },
+                        "fingerprint": {
+                          "type": "string"
+                        },
+                        "hardware": {
+                          "type": "string"
+                        },
+                        "host": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "product": {
+                          "type": "string"
+                        },
+                        "tags": {
+                          "type": "string"
+                        },
+                        "buildType": {
+                          "type": "string"
+                        },
+                        "supportedAbis": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "sdkInt": {
+                          "type": "number"
+                        },
+                        "codename": {
+                          "type": "string"
+                        },
+                        "incremental": {
+                          "type": "string"
+                        },
+                        "securityPatch": {
+                          "type": "string"
+                        },
+                        "baseOs": {
+                          "type": "string"
+                        },
+                        "socManufacturer": {
+                          "type": "string"
+                        },
+                        "socModel": {
+                          "type": "string"
+                        },
+                        "buildTimeMs": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "isIosAppOnMac": {
+                      "type": "boolean"
+                    },
+                    "isMacCatalystApp": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "manufacturer",
+                    "model",
+                    "brand",
+                    "systemName",
+                    "systemVersion",
+                    "isTablet"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "hardware": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "screenWidthPx": {
+                      "type": "number"
+                    },
+                    "screenHeightPx": {
+                      "type": "number"
+                    },
+                    "screenDensity": {
+                      "type": "number"
+                    },
+                    "screenDpi": {
+                      "type": "number"
+                    },
+                    "screenPhysicalWidthPx": {
+                      "type": "number"
+                    },
+                    "screenPhysicalHeightPx": {
+                      "type": "number"
+                    },
+                    "screenPhysicalDensity": {
+                      "type": "number"
+                    },
+                    "screenBrightness": {
+                      "type": "number"
+                    },
+                    "screenOrientation": {
+                      "type": "string"
+                    },
+                    "processorCount": {
+                      "type": "number"
+                    },
+                    "cpuArchitecture": {
+                      "type": "string"
+                    },
+                    "cpuMaxFrequencyMhz": {
+                      "type": "number"
+                    },
+                    "totalMemoryBytes": {
+                      "type": "number"
+                    },
+                    "freeMemoryBytes": {
+                      "type": "number"
+                    },
+                    "isLowMemory": {
+                      "type": "boolean"
+                    },
+                    "processResidentMemoryBytes": {
+                      "type": "number"
+                    },
+                    "isLowRamDevice": {
+                      "type": "boolean"
+                    },
+                    "runtimeMaxMemoryBytes": {
+                      "type": "number"
+                    },
+                    "lowPowerModeEnabled": {
+                      "type": "boolean"
+                    },
+                    "batteryLevel": {
+                      "type": "number"
+                    },
+                    "batteryState": {
+                      "type": "string"
+                    },
+                    "batteryTemperatureC": {
+                      "type": "number"
+                    },
+                    "batteryHealth": {
+                      "type": "string"
+                    },
+                    "batteryVoltageMv": {
+                      "type": "number"
+                    },
+                    "batteryTechnology": {
+                      "type": "string"
+                    },
+                    "batteryPresent": {
+                      "type": "boolean"
+                    },
+                    "batteryLow": {
+                      "type": "boolean"
+                    },
+                    "powerSource": {
+                      "type": "string"
+                    },
+                    "batteryCycleCount": {
+                      "type": "number"
+                    },
+                    "chargeTimeRemainingMs": {
+                      "type": "number"
+                    },
+                    "nfcAvailable": {
+                      "type": "boolean"
+                    },
+                    "nfcEnabled": {
+                      "type": "boolean"
+                    },
+                    "storageTotalBytes": {
+                      "type": "number"
+                    },
+                    "storageFreeBytes": {
+                      "type": "number"
+                    },
+                    "uptimeMs": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "fonts": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "fontsDigest": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "os_integrity": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "isEmulator": {
+                      "type": "boolean"
+                    },
+                    "isDebuggerAttached": {
+                      "type": "boolean"
+                    },
+                    "isDebuggerWaiting": {
+                      "type": "boolean"
+                    },
+                    "developerModeEnabled": {
+                      "type": "boolean"
+                    },
+                    "usbDebuggingEnabled": {
+                      "type": "boolean"
+                    },
+                    "suBinaryFound": {
+                      "type": "boolean"
+                    },
+                    "suOnPath": {
+                      "type": "boolean"
+                    },
+                    "rootManagementAppFound": {
+                      "type": "boolean"
+                    },
+                    "dangerousAppFound": {
+                      "type": "boolean"
+                    },
+                    "rootCloakingAppFound": {
+                      "type": "boolean"
+                    },
+                    "suspiciousFilePathsFound": {
+                      "type": "boolean"
+                    },
+                    "suspiciousFilePaths": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "writableSystemPathFound": {
+                      "type": "boolean"
+                    },
+                    "dangerousPropsPresent": {
+                      "type": "boolean"
+                    },
+                    "dangerousSystemProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "canOpenJailbreakScheme": {
+                      "type": "boolean"
+                    },
+                    "symbolicLinksSuspicious": {
+                      "type": "boolean"
+                    },
+                    "injectedLibrariesFound": {
+                      "type": "boolean"
+                    },
+                    "injectedLibraryNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "loadedHookClassNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "hookStackFrameFound": {
+                      "type": "boolean"
+                    },
+                    "hookStackFrames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "hookFrameworkFound": {
+                      "type": "boolean"
+                    },
+                    "magiskMountsFound": {
+                      "type": "boolean"
+                    },
+                    "magiskAbstractSocketFound": {
+                      "type": "boolean"
+                    },
+                    "magicMountModulesFound": {
+                      "type": "boolean"
+                    },
+                    "fridaThreadNamesFound": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "fridaInjectorPipeFound": {
+                      "type": "boolean"
+                    },
+                    "fridaListenerPortFound": {
+                      "type": "boolean"
+                    },
+                    "verifiedBootState": {
+                      "type": "string"
+                    },
+                    "bootloaderLocked": {
+                      "type": "boolean"
+                    },
+                    "selinuxEnforcing": {
+                      "type": "boolean"
+                    },
+                    "ldPreloadSet": {
+                      "type": "boolean"
+                    },
+                    "ldPreloadValue": {
+                      "type": "string"
+                    },
+                    "hiddenApiPolicy": {
+                      "type": "string"
+                    },
+                    "emulatorFingerprintMatch": {
+                      "type": "boolean"
+                    },
+                    "emulatorFilesFound": {
+                      "type": "boolean"
+                    },
+                    "emulatorBuildMarkers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "emulatorFilePaths": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "emulatorSystemPropertyMarkers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "emulatorCpuMarkers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "emulatorVendorMarkers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "deviceFarmMarkers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "emulatorChecksPerformed": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "sensorCount": {
+                      "type": "number"
+                    },
+                    "hasAccelerometer": {
+                      "type": "boolean"
+                    },
+                    "hasGyroscope": {
+                      "type": "boolean"
+                    },
+                    "hasMagnetometer": {
+                      "type": "boolean"
+                    },
+                    "hasProximitySensor": {
+                      "type": "boolean"
+                    },
+                    "isRunningInUserTestHarness": {
+                      "type": "boolean"
+                    },
+                    "simulatorEnvironmentPresent": {
+                      "type": "boolean"
+                    },
+                    "abi": {
+                      "type": "string"
+                    },
+                    "dyldImageCount": {
+                      "type": "number"
+                    },
+                    "parentPidUnexpected": {
+                      "type": "boolean"
+                    },
+                    "jailbreakBypassDetected": {
+                      "type": "boolean"
+                    },
+                    "mainExecutableEncrypted": {
+                      "type": "boolean"
+                    },
+                    "openReverseEngineeringPorts": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    "tracerPid": {
+                      "type": "number"
+                    },
+                    "tracedByOtherProcess": {
+                      "type": "boolean"
+                    },
+                    "testKeysBuild": {
+                      "type": "boolean"
+                    },
+                    "suspiciousMountsFound": {
+                      "type": "boolean"
+                    },
+                    "zygiskIndicatorsFound": {
+                      "type": "boolean"
+                    },
+                    "suspiciousExecutableMappingsFound": {
+                      "type": "boolean"
+                    },
+                    "suspiciousEnvironmentVariablesFound": {
+                      "type": "boolean"
+                    },
+                    "suspiciousEnvironmentVariableNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suspiciousPathCount": {
+                      "type": "number"
+                    },
+                    "injectedLibraryCount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "isEmulator",
+                    "isDebuggerAttached",
+                    "developerModeEnabled"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "os_integrity_frida_scan": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "scanPerformed": {
+                      "type": "boolean"
+                    },
+                    "defaultPortOpen": {
+                      "type": "boolean"
+                    },
+                    "scannedPort": {
+                      "type": "number"
+                    },
+                    "fridaHandshakeReject": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scanPerformed"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "os_integrity_fork_test": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "testPerformed": {
+                      "type": "boolean"
+                    },
+                    "forkSucceeded": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "testPerformed"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "network": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "isConnected": {
+                      "type": "boolean"
+                    },
+                    "connectionType": {
+                      "type": "string"
+                    },
+                    "isMetered": {
+                      "type": "boolean"
+                    },
+                    "isVpnActive": {
+                      "type": "boolean"
+                    },
+                    "isProxyConfigured": {
+                      "type": "boolean"
+                    },
+                    "proxyHost": {
+                      "type": "string"
+                    },
+                    "proxyPort": {
+                      "type": "number"
+                    },
+                    "wifiSsid": {
+                      "type": "string"
+                    },
+                    "wifiBssid": {
+                      "type": "string"
+                    },
+                    "interfaceNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "localIpAddresses": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "linkDownstreamKbps": {
+                      "type": "number"
+                    },
+                    "linkUpstreamKbps": {
+                      "type": "number"
+                    },
+                    "networkTransportTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "dnsServerAddresses": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isPrivateDnsActive": {
+                      "type": "boolean"
+                    },
+                    "privateDnsServerName": {
+                      "type": "string"
+                    },
+                    "activeNetworkMtu": {
+                      "type": "number"
+                    },
+                    "isInternetValidated": {
+                      "type": "boolean"
+                    },
+                    "hasCaptivePortal": {
+                      "type": "boolean"
+                    },
+                    "mobileRxBytes": {
+                      "type": "number"
+                    },
+                    "mobileTxBytes": {
+                      "type": "number"
+                    },
+                    "wifiRxBytes": {
+                      "type": "number"
+                    },
+                    "wifiTxBytes": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "telephony": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "phoneType": {
+                      "type": "string"
+                    },
+                    "networkOperatorName": {
+                      "type": "string"
+                    },
+                    "simOperatorName": {
+                      "type": "string"
+                    },
+                    "networkCountryIso": {
+                      "type": "string"
+                    },
+                    "simCountryIso": {
+                      "type": "string"
+                    },
+                    "simState": {
+                      "type": "string"
+                    },
+                    "simCount": {
+                      "type": "number"
+                    },
+                    "hasIccCard": {
+                      "type": "boolean"
+                    },
+                    "isNetworkRoaming": {
+                      "type": "boolean"
+                    },
+                    "dataState": {
+                      "type": "string"
+                    },
+                    "carrierMobileCountryCode": {
+                      "type": "string"
+                    },
+                    "carrierMobileNetworkCode": {
+                      "type": "string"
+                    },
+                    "carrierAllowsVoip": {
+                      "type": "boolean"
+                    },
+                    "imei": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "locale": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "language": {
+                      "type": "string"
+                    },
+                    "languages": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "country": {
+                      "type": "string"
+                    },
+                    "timezoneId": {
+                      "type": "string"
+                    },
+                    "timezoneOffsetMinutes": {
+                      "type": "number"
+                    },
+                    "uses24HourClock": {
+                      "type": "boolean"
+                    },
+                    "currencyCode": {
+                      "type": "string"
+                    },
+                    "calendar": {
+                      "type": "string"
+                    },
+                    "decimalSeparator": {
+                      "type": "string"
+                    },
+                    "groupingSeparator": {
+                      "type": "string"
+                    },
+                    "measurementSystem": {
+                      "type": "string"
+                    },
+                    "firstDayOfWeek": {
+                      "type": "number"
+                    },
+                    "keyboardLanguages": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "geolocation": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "authorizationStatus": {
+                      "type": "string"
+                    },
+                    "hasCoarsePermission": {
+                      "type": "boolean"
+                    },
+                    "latitude": {
+                      "type": "number"
+                    },
+                    "longitude": {
+                      "type": "number"
+                    },
+                    "accuracyMeters": {
+                      "type": "number"
+                    },
+                    "altitudeMeters": {
+                      "type": "number"
+                    },
+                    "locationServicesEnabled": {
+                      "type": "boolean"
+                    },
+                    "isFromMockProvider": {
+                      "type": "boolean"
+                    },
+                    "mockLocationAppsFound": {
+                      "type": "boolean"
+                    },
+                    "isSimulatedBySoftware": {
+                      "type": "boolean"
+                    },
+                    "isProducedByAccessory": {
+                      "type": "boolean"
+                    },
+                    "provider": {
+                      "type": "string"
+                    },
+                    "locationAgeMs": {
+                      "type": "number"
+                    },
+                    "gnssSupported": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "media_bluetooth_apps": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "audioOutputRoute": {
+                      "type": "string"
+                    },
+                    "isMusicActive": {
+                      "type": "boolean"
+                    },
+                    "isOtherAudioPlaying": {
+                      "type": "boolean"
+                    },
+                    "isScreenCaptured": {
+                      "type": "boolean"
+                    },
+                    "isScreenMirrored": {
+                      "type": "boolean"
+                    },
+                    "connectedScreenCount": {
+                      "type": "number"
+                    },
+                    "mirroredScreenCount": {
+                      "type": "number"
+                    },
+                    "displayCount": {
+                      "type": "number"
+                    },
+                    "presentationDisplayCount": {
+                      "type": "number"
+                    },
+                    "bluetoothBondedDeviceCount": {
+                      "type": "number"
+                    },
+                    "installedFlaggedApps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "openableFlaggedSchemes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "enabledAccessibilityServices": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "accessibilityRunning": {
+                      "type": "boolean"
+                    },
+                    "accessibilityFeatures": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "gpu_benchmark": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "benchmarkPerformed": {
+                      "type": "boolean"
+                    },
+                    "skippedReason": {
+                      "type": "string"
+                    },
+                    "rendererName": {
+                      "type": "string"
+                    },
+                    "vendorName": {
+                      "type": "string"
+                    },
+                    "apiVersion": {
+                      "type": "string"
+                    },
+                    "shadingLanguageVersion": {
+                      "type": "string"
+                    },
+                    "maxTextureSize": {
+                      "type": "number"
+                    },
+                    "drawCallsCompleted": {
+                      "type": "number"
+                    },
+                    "durationMs": {
+                      "type": "number"
+                    },
+                    "gpuTimeMs": {
+                      "type": "number"
+                    },
+                    "operationTimeP50Ms": {
+                      "type": "number"
+                    },
+                    "operationTimeP95Ms": {
+                      "type": "number"
+                    },
+                    "operationTimeMadMs": {
+                      "type": "number"
+                    },
+                    "operationTimeCoefficientOfVariation": {
+                      "type": "number"
+                    },
+                    "warmupSlope": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "benchmarkPerformed"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "audio_latency": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "measured": {
+                      "type": "boolean"
+                    },
+                    "outputLatencyMs": {
+                      "type": "number"
+                    },
+                    "inputLatencyMs": {
+                      "type": "number"
+                    },
+                    "ioBufferDurationMs": {
+                      "type": "number"
+                    },
+                    "framesPerBuffer": {
+                      "type": "number"
+                    },
+                    "nativeSampleRate": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "measured"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "application": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "appVersion": {
+                      "type": "string"
+                    },
+                    "appBuild": {
+                      "type": "string"
+                    },
+                    "bundleId": {
+                      "type": "string"
+                    },
+                    "appName": {
+                      "type": "string"
+                    },
+                    "installerPackage": {
+                      "type": "string"
+                    },
+                    "installingPackageName": {
+                      "type": "string"
+                    },
+                    "initiatingPackageName": {
+                      "type": "string"
+                    },
+                    "initiatingPackageSigningCertificateSha256": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "installPackageSource": {
+                      "type": "string"
+                    },
+                    "updateOwnerPackageName": {
+                      "type": "string"
+                    },
+                    "isForeground": {
+                      "type": "boolean"
+                    },
+                    "processUptimeMs": {
+                      "type": "number"
+                    },
+                    "grantedPermissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isSplitApks": {
+                      "type": "boolean"
+                    },
+                    "splitNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "firstInstallTimeMs": {
+                      "type": "number"
+                    },
+                    "lastUpdateTimeMs": {
+                      "type": "number"
+                    },
+                    "targetSdkVersion": {
+                      "type": "number"
+                    },
+                    "minSdkVersion": {
+                      "type": "number"
+                    },
+                    "minimumOsVersion": {
+                      "type": "string"
+                    },
+                    "isDebuggable": {
+                      "type": "boolean"
+                    },
+                    "isInstantApp": {
+                      "type": "boolean"
+                    },
+                    "signingCertificateSha256": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "signingCertificateHistorySha256": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "hasMultipleSigners": {
+                      "type": "boolean"
+                    },
+                    "receiptPresent": {
+                      "type": "boolean"
+                    },
+                    "receiptEnvironment": {
+                      "type": "string"
+                    },
+                    "bundleExecutable": {
+                      "type": "string"
+                    },
+                    "isAppExtension": {
+                      "type": "boolean"
+                    },
+                    "isSimulatorBuild": {
+                      "type": "boolean"
+                    },
+                    "isInstalledOnExternalStorage": {
+                      "type": "boolean"
+                    },
+                    "isSystemApp": {
+                      "type": "boolean"
+                    },
+                    "isUpdatedSystemApp": {
+                      "type": "boolean"
+                    },
+                    "embeddedProvisioningProfilePresent": {
+                      "type": "boolean"
+                    },
+                    "getTaskAllowEntitlement": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "device_security_posture": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "hasSecureLockScreen": {
+                      "type": "boolean"
+                    },
+                    "isDeviceLocked": {
+                      "type": "boolean"
+                    },
+                    "isUserUnlocked": {
+                      "type": "boolean"
+                    },
+                    "protectedDataAvailable": {
+                      "type": "boolean"
+                    },
+                    "biometryAvailable": {
+                      "type": "boolean"
+                    },
+                    "biometryType": {
+                      "type": "string"
+                    },
+                    "fingerprintHardwarePresent": {
+                      "type": "boolean"
+                    },
+                    "faceHardwarePresent": {
+                      "type": "boolean"
+                    },
+                    "strongBoxAvailable": {
+                      "type": "boolean"
+                    },
+                    "automaticTimeEnabled": {
+                      "type": "boolean"
+                    },
+                    "automaticTimeZoneEnabled": {
+                      "type": "boolean"
+                    },
+                    "deviceProvisioned": {
+                      "type": "boolean"
+                    },
+                    "securityPatch": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "transaction_safety": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "isDeviceLocked": {
+                      "type": "boolean"
+                    },
+                    "isInteractive": {
+                      "type": "boolean"
+                    },
+                    "isScreenCaptured": {
+                      "type": "boolean"
+                    },
+                    "isScreenMirrored": {
+                      "type": "boolean"
+                    },
+                    "isVisibleInScreenRecording": {
+                      "type": "boolean"
+                    },
+                    "screenshotObservationActive": {
+                      "type": "boolean"
+                    },
+                    "screenshotDetectedSinceObservationStart": {
+                      "type": "boolean"
+                    },
+                    "lastScreenshotDetectedElapsedMs": {
+                      "type": "number"
+                    },
+                    "transactionObservationStartedElapsedMs": {
+                      "type": "number"
+                    },
+                    "observedTouchCount": {
+                      "type": "number"
+                    },
+                    "obscuredTouchObserved": {
+                      "type": "boolean"
+                    },
+                    "partiallyObscuredTouchObserved": {
+                      "type": "boolean"
+                    },
+                    "lastObscuredTouchElapsedMs": {
+                      "type": "number"
+                    },
+                    "lastPartiallyObscuredTouchElapsedMs": {
+                      "type": "number"
+                    },
+                    "accessibilityRunning": {
+                      "type": "boolean"
+                    },
+                    "accessibilityFeatureCount": {
+                      "type": "number"
+                    },
+                    "enabledAccessibilityServiceCount": {
+                      "type": "number"
+                    },
+                    "remoteAccessAppsFound": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "remoteAccessAppCount": {
+                      "type": "number"
+                    },
+                    "audioMode": {
+                      "type": "string"
+                    },
+                    "isCallActive": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "runtime": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "jsEngine": {
+                      "type": "string"
+                    },
+                    "hermesVersion": {
+                      "type": "string"
+                    },
+                    "isHermes": {
+                      "type": "boolean"
+                    },
+                    "isFabric": {
+                      "type": "boolean"
+                    },
+                    "isTurboModule": {
+                      "type": "boolean"
+                    },
+                    "isBridgeless": {
+                      "type": "boolean"
+                    },
+                    "isDebugBuild": {
+                      "type": "boolean"
+                    },
+                    "reactNativeVersion": {
+                      "type": "string"
+                    },
+                    "platformOs": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "runtime_timing": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "jsClockSource": {
+                      "type": "string"
+                    },
+                    "jsTimerSampleCount": {
+                      "type": "number"
+                    },
+                    "jsTimerResolutionMs": {
+                      "type": "number"
+                    },
+                    "eventLoopSampleCount": {
+                      "type": "number"
+                    },
+                    "eventLoopP50Ms": {
+                      "type": "number"
+                    },
+                    "eventLoopP95Ms": {
+                      "type": "number"
+                    },
+                    "eventLoopMadMs": {
+                      "type": "number"
+                    },
+                    "bridgeRoundTripMs": {
+                      "type": "number"
+                    },
+                    "nativeClockSource": {
+                      "type": "string"
+                    },
+                    "nativeSampleCount": {
+                      "type": "number"
+                    },
+                    "nativeTimerResolutionNs": {
+                      "type": "number"
+                    },
+                    "nativeIntervalMedianNs": {
+                      "type": "number"
+                    },
+                    "nativeIntervalP95Ns": {
+                      "type": "number"
+                    },
+                    "nativeIntervalMadNs": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "jsClockSource",
+                    "jsTimerSampleCount",
+                    "jsTimerResolutionMs",
+                    "eventLoopSampleCount",
+                    "eventLoopP50Ms",
+                    "eventLoopP95Ms",
+                    "eventLoopMadMs",
+                    "bridgeRoundTripMs",
+                    "nativeClockSource",
+                    "nativeSampleCount",
+                    "nativeTimerResolutionNs",
+                    "nativeIntervalMedianNs",
+                    "nativeIntervalP95Ns",
+                    "nativeIntervalMadNs"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "numeric_consistency": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "integerVectorMatches": {
+                      "type": "boolean"
+                    },
+                    "integerMismatchCount": {
+                      "type": "number"
+                    },
+                    "floatSampleCount": {
+                      "type": "number"
+                    },
+                    "floatMismatchCount": {
+                      "type": "number"
+                    },
+                    "floatMaxAbsoluteDifference": {
+                      "type": "number"
+                    },
+                    "signedZeroPreserved": {
+                      "type": "boolean"
+                    },
+                    "subnormalPreserved": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "integerVectorMatches",
+                    "integerMismatchCount",
+                    "floatSampleCount",
+                    "floatMismatchCount",
+                    "signedZeroPreserved",
+                    "subnormalPreserved"
+                  ],
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "status",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "skipped"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "timeout"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "error"
+                },
+                "error": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "success"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "status",
+              "data"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "skipped"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "timeout"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "error"
+              },
+              "error": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "error"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "session_id",
+    "event_type",
+    "schema_version",
+    "collected_at",
+    "probes"
+  ],
+  "additionalProperties": false
+}

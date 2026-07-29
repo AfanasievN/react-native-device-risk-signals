@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collection Recipes | React Native Device Risk Signals</title>
+  <meta name="description" content="Use practical collection recipes for login, registration, checkout, account recovery, and protected actions while keeping device telemetry narrow and purpose-bound.">
+  <link rel="canonical" href="https://afanasievn.github.io/react-native-device-risk-signals/recipes/">
+  <meta property="og:title" content="Device Signal Collection Recipes"><meta property="og:description" content="Purpose-bound profiles for common mobile security and fraud-prevention events."><meta property="og:type" content="article"><meta property="og:url" content="https://afanasievn.github.io/react-native-device-risk-signals/recipes/">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/styles.css"><script defer src="../assets/site.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="../"><span class="brand-mark">RS</span><span>Device Risk Signals</span></a><button class="menu-button" type="button" data-menu-button aria-expanded="false" aria-controls="site-navigation">Menu</button><nav class="site-nav" id="site-navigation" data-navigation aria-label="Primary navigation"><a href="../signals/">Signals</a><a href="../integration/">Integration</a><a href="../backend/">Backend</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a><a href="../faq/">FAQ</a><a class="nav-github" href="https://github.com/AfanasievN/react-native-device-risk-signals">GitHub</a></nav></div></header>
+  <main id="content" class="container docs-layout">
+    <aside class="sidebar"><strong>On this page</strong><a href="#principles">Principles</a><a href="#login">Login</a><a href="#registration">Registration</a><a href="#checkout">Checkout</a><a href="#recovery">Recovery</a><a href="#protected">Protected action</a><a href="#transport">Transport</a></aside>
+    <article class="prose">
+      <details class="mobile-toc"><summary>On this page</summary><nav aria-label="Page navigation"><a href="#principles">Principles</a><a href="#login">Login</a><a href="#registration">Registration</a><a href="#checkout">Checkout</a><a href="#recovery">Recovery</a><a href="#protected">Protected action</a><a href="#transport">Transport</a></nav></details>
+      <header class="page-intro"><p class="eyebrow">Purpose-bound profiles</p><h1>Collect for an event, not forever</h1><p class="lede">Start with a small profile, bind collection to a server-known action, and enable expensive or sensitive probes only when their purpose is explicit.</p></header>
+      <section id="principles"><h2>Profile rules</h2><ul><li>Use a fresh action or session ID supplied by the application backend.</li><li>Use <code>consentFor(...)</code> as an allowlist and field projection for minimization.</li><li>Keep benchmark, fork-test, timing, numeric, and transaction probes off unless the flow requires them.</li><li>Do not reuse one collection indefinitely across unrelated actions.</li><li>Do not convert the raw event into a client-side score or verdict.</li></ul></section>
+      <section id="login"><h2>Login</h2><p>Use low-cost identity, app, integrity, posture, locale, runtime, and network context. Collect immediately before submitting credentials or completing an identity-provider callback.</p><div class="code-block"><button class="copy-button" type="button" data-copy="login-recipe">Copy</button><pre id="login-recipe"><code>const loginConfig = {
+  probes: {
+    geolocation: {enabled: false},
+    media_bluetooth_apps: {enabled: false},
+    transaction_safety: {enabled: false},
+    gpu_benchmark: {enabled: false},
+    audio_latency: {enabled: false},
+    runtime_timing: {enabled: false},
+    numeric_consistency: {enabled: false},
+    os_integrity_fork_test: {enabled: false},
+  },
+};
+
+const observations = await deviceIntel.collect({
+  sessionId: loginActionId,
+  config: loginConfig,
+});</code></pre></div></section>
+      <section id="registration"><h2>Registration</h2><p>Registration often needs app provenance, environment consistency, and coarse country or locale comparison. Keep precise location off unless the product has a separate documented purpose and existing permission.</p><div class="decision-list"><div class="decision-item"><h3>Recommended core</h3><p><code>device_identity</code>, <code>application</code>, <code>os_integrity</code>, <code>device_security_posture</code>, <code>locale</code>, and <code>runtime</code>.</p></div><div class="decision-item"><h3>Conditional</h3><p><code>network</code> and <code>telephony</code> when country, VPN, proxy, or SIM context has been approved for this flow.</p></div><div class="decision-item"><h3>Avoid by default</h3><p>Location coordinates, accessibility inventory, known-app observations, and active benchmarks.</p></div></div></section>
+      <section id="checkout"><h2>Checkout or payment</h2><p>Bind collection to the server-created order or payment attempt. The backend should compare freshness and action binding before using any derived feature.</p><div class="code-block"><button class="copy-button" type="button" data-copy="checkout-recipe">Copy</button><pre id="checkout-recipe"><code>const observations = await deviceIntel.collect({
+  sessionId: paymentAttemptId,
+  config: {
+    probes: {
+      application: {
+        fields: {
+          include: [
+            "appVersion",
+            "appBuild",
+            "bundleId",
+            "installerPackage",
+            "signingCertificateSha256",
+            "isDebuggable",
+          ],
+        },
+      },
+      transaction_safety: {enabled: false},
+    },
+  },
+});</code></pre></div></section>
+      <section id="recovery"><h2>Account recovery</h2><p>Account recovery is high impact. Collect current context, but keep recovery available when telemetry is missing, unavailable, or unusual. Strong authenticated recovery factors and server history remain primary.</p><div class="notice warning">Root, jailbreak, emulator, VPN, accessibility, and remote-access observations all have legitimate explanations. They are review context, not identity proof.</div></section>
+      <section id="protected"><h2>Protected action with transaction context</h2><p><code>transaction_safety</code> uses a two-stage Android observation window. Collect once when the protected UI opens, then again immediately before its final action.</p><div class="code-block"><button class="copy-button" type="button" data-copy="protected-recipe">Copy</button><pre id="protected-recipe"><code>const protectedConfig = {
+  probes: {
+    transaction_safety: {enabled: true, timeoutMs: 900},
+  },
+};
+
+await deviceIntel.collect({
+  sessionId: protectedActionId,
+  config: protectedConfig,
+});
+
+// Immediately before confirmation:
+const observations = await deviceIntel.collect({
+  sessionId: protectedActionId,
+  config: protectedConfig,
+});</code></pre></div><p>Android capture observations additionally require the host to declare the applicable install-time permission. See the exact <a href="../integration/#transaction">transaction integration instructions</a>.</p></section>
+      <section id="transport"><h2>Send through the host API</h2><p>Use your existing authenticated API client, idempotency key, retry policy, and request-size controls. The SDK performs no network request.</p><div class="button-row"><a class="button" href="../backend/">Open Django backend guide</a><a class="button secondary" href="../signals/">Choose exact fields</a></div></section>
+    </article>
+  </main>
+  <footer class="site-footer"><div class="container footer-wrap"><div>Examples are starting points, not universal policies.</div><div class="footer-links"><a href="../backend/">Backend</a><a href="../privacy/">Privacy</a><a href="../risk-teams/">Risk teams</a></div></div></footer>
+</body>
+</html>

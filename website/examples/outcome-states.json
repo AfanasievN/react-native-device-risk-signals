@@ -1,0 +1,24 @@
+{
+  "success": {
+    "status": "success",
+    "data": {
+      "exampleBoolean": false,
+      "exampleNumber": 42,
+      "exampleStrings": [
+        "a",
+        "b"
+      ]
+    }
+  },
+  "skipped": {
+    "status": "skipped",
+    "reason": "disabled"
+  },
+  "timeout": {
+    "status": "timeout"
+  },
+  "error": {
+    "status": "error",
+    "error": "native read failed"
+  }
+}

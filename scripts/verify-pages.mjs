@@ -8,6 +8,10 @@ const expectedPages = [
   "index.html",
   "signals/index.html",
   "integration/index.html",
+  "backend/index.html",
+  "recipes/index.html",
+  "compatibility/index.html",
+  "versions/index.html",
   "privacy/index.html",
   "risk-teams/index.html",
   "faq/index.html",
@@ -51,7 +55,18 @@ for (const relativePath of expectedPages) {
   }
 }
 
-for (const asset of ["assets/styles.css", "assets/site.js", "probe-catalog.json", "robots.txt", "sitemap.xml", ".nojekyll"]) {
+for (const asset of [
+  "assets/styles.css",
+  "assets/site.js",
+  "probe-catalog.json",
+  "raw-signal-event.schema.json",
+  "examples/android-event.json",
+  "examples/ios-event.json",
+  "examples/outcome-states.json",
+  "robots.txt",
+  "sitemap.xml",
+  ".nojekyll",
+]) {
   assert(fs.existsSync(path.join(siteRoot, asset)), `Missing website/${asset}`);
 }
 
@@ -59,6 +74,11 @@ const probeCatalog = readProbeCatalog(root);
 const signalsPath = path.join(siteRoot, "signals/index.html");
 if (fs.existsSync(signalsPath)) {
   const signals = fs.readFileSync(signalsPath, "utf8");
+  assert(/type="search"/.test(signals), "Signal catalog must expose a text search");
+  assert(/data-filter="default-on"/.test(signals), "Signal catalog must filter default-on probes");
+  assert(/data-filter="default-off"/.test(signals), "Signal catalog must filter default-off probes");
+  assert(/data-filter="permission"/.test(signals), "Signal catalog must filter permission-aware probes");
+  assert(/data-filter="high"/.test(signals), "Signal catalog must filter high-sensitivity probes");
   const documentedRows = new Map(
     [...signals.matchAll(/<tr\s+data-probe-id="([^"]+)"[^>]*>([\s\S]*?)<\/tr>/g)].map((match) => [match[1], match[2]]),
   );
@@ -69,7 +89,11 @@ if (fs.existsSync(signalsPath)) {
     assert(Boolean(row), `Signal table is missing probe ${descriptor.id}`);
     if (!row) continue;
     for (const field of descriptor.fields) {
-      assert(row.includes(`<code>${field}</code>`), `Signal table is missing ${descriptor.id}.${field}`);
+      assert(row.includes(`data-field-name="${field}"`), `Signal table is missing ${descriptor.id}.${field}`);
+      assert(
+        row.includes(`data-copy-path="probes.${descriptor.id}.data.${field}"`),
+        `Signal table is missing copy path for ${descriptor.id}.${field}`,
+      );
     }
   }
 }
@@ -77,12 +101,67 @@ if (fs.existsSync(signalsPath)) {
 const catalogJsonPath = path.join(siteRoot, "probe-catalog.json");
 if (fs.existsSync(catalogJsonPath)) {
   const publishedCatalog = JSON.parse(fs.readFileSync(catalogJsonPath, "utf8"));
-  assert(publishedCatalog.catalog_version === 1, "Published probe catalog must declare catalog_version 1");
+  assert(publishedCatalog.catalog_version === 2, "Published probe catalog must declare catalog_version 2");
   assert(publishedCatalog.source === "src/probeCatalog.ts", "Published probe catalog must identify its source of truth");
+  assert(publishedCatalog.sdk_version === JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version, "Published probe catalog must identify the SDK version");
+  assert(publishedCatalog.probes.length === probeCatalog.length, "Published probe catalog must include every probe");
+  for (const descriptor of probeCatalog) {
+    const published = publishedCatalog.probes.find((probe) => probe.id === descriptor.id);
+    assert(Boolean(published), `Published probe catalog is missing ${descriptor.id}`);
+    if (!published) continue;
+    assert(JSON.stringify(published.fields) === JSON.stringify(descriptor.fields), `${descriptor.id}: field names drifted`);
+    for (const field of descriptor.fields) {
+      assert(typeof published.fieldTypes?.[field] === "string", `${descriptor.id}.${field}: missing field type`);
+      assert(Boolean(published.fieldSchemas?.[field]), `${descriptor.id}.${field}: missing JSON Schema`);
+    }
+  }
+}
+
+const eventSchemaPath = path.join(siteRoot, "raw-signal-event.schema.json");
+if (fs.existsSync(eventSchemaPath)) {
+  const schema = JSON.parse(fs.readFileSync(eventSchemaPath, "utf8"));
+  assert(schema.$schema === "https://json-schema.org/draft/2020-12/schema", "Event schema must use JSON Schema 2020-12");
+  assert(schema.properties?.probes?.type === "object", "Event schema must describe the probes object");
+  for (const descriptor of probeCatalog) {
+    assert(Boolean(schema.properties.probes.properties?.[descriptor.id]), `Event schema is missing ${descriptor.id}`);
+  }
+}
+
+const siteScriptPath = path.join(siteRoot, "assets/site.js");
+if (fs.existsSync(siteScriptPath)) {
+  const siteScript = fs.readFileSync(siteScriptPath, "utf8");
+  assert(/function revealCatalogFieldFromHash/.test(siteScript), "BUG-R1: catalog deep links must reveal fields inside closed details");
+  assert(/addEventListener\("hashchange", revealCatalogFieldFromHash\)/.test(siteScript), "BUG-R1: catalog deep links must respond to hash changes");
   assert(
-    JSON.stringify(publishedCatalog.probes) === JSON.stringify(probeCatalog),
-    "website/probe-catalog.json must exactly match src/probeCatalog.ts",
+    /if \(disclosure\) disclosure\.open = true;\s+target\.scrollIntoView/.test(siteScript),
+    "BUG-R1: catalog deep links must scroll synchronously after revealing a field",
   );
+}
+
+const backendPath = path.join(siteRoot, "backend/index.html");
+if (fs.existsSync(backendPath)) {
+  const backend = fs.readFileSync(backendPath, "utf8");
+  assert(/POST \/api\/v1\/device-signal-events/.test(backend), "Backend guide must define the ingestion endpoint");
+  assert(/models\.JSONField/.test(backend), "Backend guide must include a Django JSONField model");
+  assert(/class DeviceSignalEventSerializer/.test(backend), "Backend guide must include a DRF serializer");
+  assert(/idempotency/i.test(backend), "Backend guide must document idempotency");
+  assert(/unknown probe/i.test(backend), "Backend guide must document unknown probe handling");
+}
+
+const integrationPath = path.join(siteRoot, "integration/index.html");
+if (fs.existsSync(integrationPath)) {
+  const integration = fs.readFileSync(integrationPath, "utf8");
+  assert(/id="permissions"/.test(integration), "Integration guide must include a permission matrix");
+  for (const permission of [
+    "ACCESS_NETWORK_STATE",
+    "READ_PHONE_STATE",
+    "BLUETOOTH_CONNECT",
+    "DETECT_SCREEN_CAPTURE",
+    "DETECT_SCREEN_RECORDING",
+  ]) {
+    assert(integration.includes(permission), `Permission matrix must document ${permission}`);
+  }
+  assert(/never requests location permission/i.test(integration), "Permission matrix must document location prompt behavior");
 }
 
 const riskGuidePath = path.join(siteRoot, "risk-teams/index.html");
