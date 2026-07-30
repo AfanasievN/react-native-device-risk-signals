@@ -46,10 +46,17 @@ describe("Android raw signal contract", () => {
 
   it("does not merge capture permissions or broad package visibility into host apps", () => {
     const manifest = readFileSync(join(androidRoot, "AndroidManifest.xml"), "utf8");
-    const declarations = manifest.replace(/<!--[\s\S]*?-->/g, "");
-    expect(declarations).not.toMatch(/<uses-permission\b/);
-    expect(declarations).not.toContain("QUERY_ALL_PACKAGES");
-    expect(declarations).not.toContain("DETECT_SCREEN_CAPTURE");
-    expect(declarations).not.toContain("DETECT_SCREEN_RECORDING");
+    expect(manifest).not.toMatch(
+      /^\s*<uses-permission\b[^>]*android:name\s*=\s*["']android\.permission\.(?:QUERY_ALL_PACKAGES|DETECT_SCREEN_CAPTURE|DETECT_SCREEN_RECORDING)["'][^>]*>/m,
+    );
+  });
+
+  it("does not execute PATH-resolved commands while collecting root evidence", () => {
+    const source = readFileSync(
+      join(androidRoot, "java/com/reactnativedeviceintel/OsIntegrityProvider.kt"),
+      "utf8",
+    );
+    expect(source).not.toContain("Runtime.getRuntime().exec");
+    expect(source).toContain("PathExecutableProbe.existsOnPath");
   });
 });

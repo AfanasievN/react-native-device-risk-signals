@@ -36,6 +36,11 @@
     "react-test-renderer": "19.2.3",
     "typescript": "^5.8.3"
   },
+  "overrides": {
+    "brace-expansion": "5.0.8",
+    "fast-xml-parser": "5.10.1",
+    "minimatch": "10.2.6"
+  },
   "engines": {
     "node": ">= 22.11.0"
   }

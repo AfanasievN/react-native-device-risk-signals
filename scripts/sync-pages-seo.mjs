@@ -1,6 +1,11 @@
 import {execFileSync} from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import {
+  collapseBlankLinesAfterMarker,
+  decodeHtmlOnce,
+  serializeJsonForHtmlScript,
+} from "./pages-seo-helpers.mjs";
 
 const root = process.cwd();
 const siteRoot = path.join(root, "website");
@@ -19,19 +24,10 @@ function htmlFiles(directory) {
   });
 }
 
-function decodeHtml(value) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&#39;", "'")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">");
-}
-
 function capture(html, pattern, label, relativePath) {
   const match = html.match(pattern);
   if (!match) throw new Error(`${relativePath}: missing ${label}`);
-  return decodeHtml(match[1]);
+  return decodeHtmlOnce(match[1]);
 }
 
 function breadcrumbItems(canonical, title) {
@@ -119,7 +115,7 @@ function structuredData({canonical, description, relativePath, title, type}) {
     );
   }
 
-  return JSON.stringify({"@context": "https://schema.org", "@graph": graph}, null, 2);
+  return serializeJsonForHtmlScript({"@context": "https://schema.org", "@graph": graph});
 }
 
 function metadataBlock({canonical, description, relativePath, title, type}) {
@@ -173,11 +169,8 @@ for (const pagePath of pages) {
   html = html
     .replace(/\n?  <meta property="og:image"[^>]*>\n?/g, "\n")
     .replace(/\n?  <meta name="twitter:card"[^>]*>\n?/g, "\n")
-    .replace(/(\s*<link rel="icon")/, `\n  ${block}\n$1`)
-    .replace(
-      /<!-- SEO_DISCOVERY_METADATA_END -->\n(?:\s*\n)+(\s*<link rel="icon")/,
-      `<!-- SEO_DISCOVERY_METADATA_END -->\n$1`,
-    );
+    .replace(/(\s*<link rel="icon")/, `\n  ${block}\n$1`);
+  html = collapseBlankLinesAfterMarker(html);
   if (!html.includes(`href="${supportHref}"`)) {
     html = html.replace('<div class="footer-links">', `<div class="footer-links">${supportLink}`);
   }

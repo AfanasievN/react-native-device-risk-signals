@@ -379,8 +379,18 @@ if (fs.existsSync(fundingPath)) {
 const readmePath = path.join(root, "README.md");
 if (fs.existsSync(readmePath)) {
   const readme = fs.readFileSync(readmePath, "utf8");
+  const markdownDestinations = [...readme.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)]
+    .map((match) => match[1]);
+  const hasGitHubSponsorsLink = markdownDestinations.some((destination) => {
+    const url = new URL(destination);
+    return url.protocol === "https:" &&
+      url.hostname === "github.com" &&
+      url.pathname === "/sponsors/AfanasievN" &&
+      url.search === "" &&
+      url.hash === "";
+  });
   assert(
-    readme.includes("https://github.com/sponsors/AfanasievN"),
+    hasGitHubSponsorsLink,
     "README support section must link directly to GitHub Sponsors",
   );
 }

@@ -241,24 +241,16 @@ class OsIntegrityProvider(private val context: Context) {
   // ".../su") — catches an `su` installed on a non-standard mount a fixed list would miss.
   private fun suPathCandidates(): List<String> {
     val fromEnv = safeString { System.getenv("PATH") }
-      ?.split(':')
-      ?.filter { it.isNotEmpty() }
-      ?.map { "${it.trimEnd('/')}/su" }
-      ?: emptyList()
-    return (SU_BINARY_PATHS + EXTRA_SU_BINARY_PATHS + fromEnv).distinct()
+    val pathCandidates = PathExecutableProbe.absoluteCandidates(fromEnv, "su")
+    return (SU_BINARY_PATHS + EXTRA_SU_BINARY_PATHS + pathCandidates).distinct()
   }
 
-  // `which su` — orthogonal to file-existence: it resolves `su` via the process PATH. Returns null
-  // when `which` cannot be executed at all (absent binary / SELinux denial): that is "unknown", and
-  // the caller OMITS the field rather than claiming the PATH is clean.
-  private fun suExistsOnPath(): Boolean? = try {
-    val process = Runtime.getRuntime().exec(arrayOf("which", "su"))
-    val line = process.inputStream.bufferedReader().use { it.readLine() }
-    process.destroy()
-    !line.isNullOrBlank()
-  } catch (e: Throwable) {
-    null
-  }
+  // Inspect absolute PATH candidates directly. A missing PATH or denied filesystem read is unknown,
+  // so the caller omits the field instead of reporting a clean environment.
+  private fun suExistsOnPath(): Boolean? =
+    PathExecutableProbe.existsOnPath(safeString { System.getenv("PATH") }, "su") { candidate ->
+      File(candidate).exists()
+    }
 
   // Stack-probe for hook frameworks: capture the current stack and match Xposed/LSPosed/Substrate
   // bridge frames (+ a re-injected-Zygote tell). Orthogonal to loaded-class and /proc/self/maps scans.
