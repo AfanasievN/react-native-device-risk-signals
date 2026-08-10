@@ -572,7 +572,9 @@ fields but does not manufacture negative values or hand-declare unsupported plat
 sensitivity, permissions, data categories, purpose, notes, and selectable fields.
 
 ```ts
-import {getProbeDescriptor, PROBE_CATALOG} from "react-native-device-risk-signals";
+// Served from its own entry point: the catalog is ~15 KB minified and the collection runtime never
+// reads it, so apps that do not need the metadata do not bundle it (Metro has no tree-shaking).
+import {getProbeDescriptor, PROBE_CATALOG} from "react-native-device-risk-signals/catalog";
 
 const network = getProbeDescriptor("network");
 const enabledByDefault = PROBE_CATALOG.filter((probe) => probe.enabledByDefault);

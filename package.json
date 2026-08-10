@@ -11,6 +11,11 @@
       "react-native": "./src/index.ts",
       "default": "./lib/index.js"
     },
+    "./catalog": {
+      "types": "./lib/catalog.d.ts",
+      "react-native": "./src/catalog.ts",
+      "default": "./lib/catalog.js"
+    },
     "./package.json": "./package.json"
   },
   "author": "AfanasievN (https://github.com/AfanasievN)",

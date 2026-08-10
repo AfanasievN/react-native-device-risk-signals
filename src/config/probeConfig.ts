@@ -1,5 +1,4 @@
 import type {Probe} from "../probes/types";
-import {getProbeDescriptor, PROBE_CATALOG} from "../probeCatalog";
 
 /**
  * Field-level selection for a single probe's collected data. Applied to the TOP-LEVEL keys of the
@@ -46,7 +45,18 @@ export type ProbeConfigIssue = {
   message: string;
 };
 
-function validateAgainstIds(config: ProbeConfig, knownIds: ReadonlySet<string>): ProbeConfigIssue[] {
+/**
+ * Looks up the field names a probe can emit. Supplied by the catalog entry point; omitted on the runtime
+ * path, which deliberately knows nothing about the catalog — importing it would pull the whole descriptor
+ * inventory (~15 KB minified) into every app bundle, and Metro does not tree-shake it back out.
+ */
+export type ProbeFieldLookup = (id: string) => readonly string[] | undefined;
+
+export function validateAgainstIds(
+  config: ProbeConfig,
+  knownIds: ReadonlySet<string>,
+  lookupFields?: ProbeFieldLookup,
+): ProbeConfigIssue[] {
   const issues: ProbeConfigIssue[] = [];
   for (const [id, override] of Object.entries(config.probes)) {
     if (!knownIds.has(id)) {
@@ -62,11 +72,11 @@ function validateAgainstIds(config: ProbeConfig, knownIds: ReadonlySet<string>):
       });
     }
 
-    const descriptor = getProbeDescriptor(id);
-    if (!descriptor || !override.fields) continue;
+    const fields = lookupFields?.(id);
+    if (!fields || !override.fields) continue;
     const selection = "include" in override.fields ? override.fields.include : override.fields.exclude;
     const selectionName = "include" in override.fields ? "include" : "exclude";
-    const knownFields = new Set<string>(descriptor.fields);
+    const knownFields = new Set<string>(fields);
     selection.forEach((field, index) => {
       if (!knownFields.has(field)) {
         issues.push({
@@ -80,9 +90,7 @@ function validateAgainstIds(config: ProbeConfig, knownIds: ReadonlySet<string>):
   return issues;
 }
 
-export function validateProbeConfig(config: ProbeConfig): ProbeConfigIssue[] {
-  return validateAgainstIds(config, new Set(PROBE_CATALOG.map(({id}) => id)));
-}
+
 
 export class ProbeConfigValidationError extends Error {
   constructor(readonly issues: readonly ProbeConfigIssue[]) {
@@ -96,7 +104,7 @@ export function assertKnownProbeIds(config: ProbeConfig, probes: readonly Probe[
   if (issues.length > 0) {
     const error = new ProbeConfigValidationError(issues);
     if (issues.some(({code}) => code === "unknown_probe")) {
-      error.message += " Check PROBE_CATALOG for supported probe ids.";
+      error.message += " Check the probe catalog for supported probe ids.";
     }
     throw error;
   }

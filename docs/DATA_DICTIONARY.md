@@ -47,7 +47,7 @@ Each descriptor in `PROBE_CATALOG` contains its complete top-level `fields` arra
 names accepted by `ProbeOverride.fields.include` and `ProbeOverride.fields.exclude`.
 
 ```ts
-import {getProbeDescriptor, PROBE_CATALOG} from "react-native-device-risk-signals";
+import {getProbeDescriptor, PROBE_CATALOG} from "react-native-device-risk-signals/catalog";
 
 const networkFields = getProbeDescriptor("network")?.fields;
 const highSensitivity = PROBE_CATALOG.filter((probe) => probe.sensitivity === "high");

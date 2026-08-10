@@ -1,6 +1,7 @@
 import type {Probe} from "../probes/types";
 import {assertDefined} from "../testing/assertDefined";
-import {applyConfig, DEFAULT_PROBE_CONFIG, mergeConfigs, validateProbeConfig} from "./probeConfig";
+import {validateProbeConfig} from "../catalog";
+import {applyConfig, DEFAULT_PROBE_CONFIG, mergeConfigs} from "./probeConfig";
 
 function fakeProbe(overrides: Partial<Probe> = {}): Probe {
   return {
