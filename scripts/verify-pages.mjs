@@ -310,6 +310,20 @@ if (fs.existsSync(llmsFullPath)) {
 const integrationPath = path.join(siteRoot, "integration/index.html");
 if (fs.existsSync(integrationPath)) {
   const integration = fs.readFileSync(integrationPath, "utf8");
+  assert(/id="expo"/.test(integration), "Integration guide must include the Expo section");
+  assert(
+    integration.includes("npx expo install react-native-device-risk-signals"),
+    "Expo guide must use the Expo package installer",
+  );
+  assert(/Expo Go cannot load the TurboModule/.test(integration), "Expo guide must document the Expo Go limitation");
+  assert(
+    integration.includes("npx expo prebuild --clean"),
+    "Expo guide must recommend a clean prebuild for CNG-managed native directories",
+  );
+  assert(
+    /deletes and recreates[^<]+<code>android\/<\/code> and <code>ios\/<\/code>/i.test(integration),
+    "Expo guide must warn that clean prebuild recreates both native directories",
+  );
   assert(/id="permissions"/.test(integration), "Integration guide must include a permission matrix");
   for (const permission of [
     "ACCESS_NETWORK_STATE",

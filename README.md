@@ -179,6 +179,10 @@ Install CocoaPods dependencies after adding the package to an iOS app:
 npx pod-install
 ```
 
+Expo projects should follow the
+[Expo prebuild and development-build guide](https://afanasievn.github.io/react-native-device-risk-signals/integration/#expo).
+Expo Go cannot load this package because it contains native code.
+
 The package supports React Native 0.76 and newer with the New Architecture. Android defaults to API
 24 or newer.
 
