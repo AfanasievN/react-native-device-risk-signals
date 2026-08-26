@@ -2,6 +2,11 @@
 
 Thank you for helping improve React Native Device Risk Signals.
 
+The repository is gradually becoming the platform-neutral Device Risk Signals monorepo. Read the
+[ecosystem architecture](docs/ECOSYSTEM_ARCHITECTURE.md) before moving native code or adding a new
+binding. Native SDKs must not depend on framework bindings, and bindings should not duplicate signal
+logic.
+
 By participating, you agree to follow the project [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Before opening a change
@@ -12,6 +17,8 @@ By participating, you agree to follow the project [Code of Conduct](CODE_OF_COND
 - Add tests for new behavior and platform-specific fallbacks.
 - Keep risk verdicts and scoring logic out of the client library.
 - Keep `src/probeCatalog.ts` and `docs/DATA_DICTIONARY.md` synchronized with probe behavior.
+- Run `npm run docs:sync` when the public contract changes; generated files in `contract/` and
+  `website/` must remain identical.
 - Keep transport, authentication, retries, and backend-specific serialization in the host app.
 
 Open an issue before introducing a new sensitive signal category or a breaking public API change.

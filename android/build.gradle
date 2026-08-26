@@ -41,6 +41,7 @@ android {
   sourceSets {
     main {
       java.srcDirs += ["${project.buildDir}/generated/source/codegen/java"]
+      java.srcDirs += [file("../sdks/android/src/main/kotlin")]
     }
   }
 

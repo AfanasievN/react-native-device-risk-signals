@@ -7,6 +7,8 @@ const root = process.cwd();
 const signalsPath = path.join(root, "website/signals/index.html");
 const jsonPath = path.join(root, "website/probe-catalog.json");
 const schemaPath = path.join(root, "website/raw-signal-event.schema.json");
+const contractJsonPath = path.join(root, "contract/probe-catalog.json");
+const contractSchemaPath = path.join(root, "contract/raw-signal-event.schema.json");
 const examplesPath = path.join(root, "website/examples");
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 const startMarker = "<!-- GENERATED_PROBE_ROWS_START -->";
@@ -167,7 +169,7 @@ function buildEventSchema(catalog, signalContract) {
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: "https://afanasievn.github.io/react-native-device-risk-signals/raw-signal-event.schema.json",
-    title: "React Native Device Risk Signals raw event",
+    title: "Device Risk Signals raw event",
     description: "Exact SDK event envelope. Probe IDs and success data are additive.",
     type: "object",
     properties: {
@@ -211,6 +213,8 @@ const publishedProbes = catalog.map((descriptor) => ({
 }));
 const expectedJson = `${JSON.stringify({
   catalog_version: 2,
+  ecosystem: "device-risk-signals",
+  implementation_package: packageJson.name,
   sdk_version: packageJson.version,
   source: "src/probeCatalog.ts",
   type_source: "src/NativeDeviceIntel.ts and src/probes/runtimeProbe.ts",
@@ -295,6 +299,8 @@ if (shouldWrite) {
   fs.writeFileSync(signalsPath, expectedHtml);
   fs.writeFileSync(jsonPath, expectedJson);
   fs.writeFileSync(schemaPath, expectedSchema);
+  fs.writeFileSync(contractJsonPath, expectedJson);
+  fs.writeFileSync(contractSchemaPath, expectedSchema);
   fs.mkdirSync(examplesPath, {recursive: true});
   for (const [fileName, example] of Object.entries(expectedExamples)) {
     fs.writeFileSync(path.join(examplesPath, fileName), `${JSON.stringify(example, null, 2)}\n`);
@@ -310,6 +316,12 @@ if (!fs.existsSync(jsonPath) || fs.readFileSync(jsonPath, "utf8") !== expectedJs
 }
 if (!fs.existsSync(schemaPath) || fs.readFileSync(schemaPath, "utf8") !== expectedSchema) {
   failures.push("website/raw-signal-event.schema.json is not synchronized");
+}
+if (!fs.existsSync(contractJsonPath) || fs.readFileSync(contractJsonPath, "utf8") !== expectedJson) {
+  failures.push("contract/probe-catalog.json is not synchronized");
+}
+if (!fs.existsSync(contractSchemaPath) || fs.readFileSync(contractSchemaPath, "utf8") !== expectedSchema) {
+  failures.push("contract/raw-signal-event.schema.json is not synchronized");
 }
 for (const [fileName, example] of Object.entries(expectedExamples)) {
   const filePath = path.join(examplesPath, fileName);

@@ -6,6 +6,7 @@ package com.reactnativedeviceintel
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import io.github.afanasievn.devicerisksignals.DeviceRiskSignals
 import java.util.UUID
 import java.util.concurrent.Executors
 
@@ -19,14 +20,13 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
 
   override fun getRandomSessionId(): String = UUID.randomUUID().toString()
 
-  private val deviceInfo = DeviceInfoProvider(reactContext)
+  private val androidSignals = DeviceRiskSignals(reactContext)
   private val application = ApplicationInfoProvider(reactContext)
   private val hardware = HardwareInfoProvider(reactContext)
   private val osIntegrity = OsIntegrityProvider(reactContext)
   private val fridaScan = FridaScanProvider()
   private val network = NetworkInfoProvider(reactContext)
   private val telephony = TelephonyInfoProvider(reactContext)
-  private val locale = LocaleInfoProvider(reactContext)
   private val geolocation = GeolocationInfoProvider(reactContext)
   private val mediaBluetoothApps = MediaBluetoothAppsInfoProvider(reactContext)
   private val gpuBenchmark = GpuBenchmarkProvider()
@@ -36,7 +36,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   private val numericConsistency = NumericConsistencyProvider()
 
   override fun getDeviceIdentity(promise: Promise) {
-    resolveOrReject(promise, "getDeviceIdentity") { deviceInfo.getDeviceIdentity() }
+    resolveOrReject(promise, "getDeviceIdentity") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectDeviceIdentity().toRawMap())
+    }
   }
 
   override fun getHardwareSignals(promise: Promise) {
@@ -76,7 +78,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getLocaleSignals(promise: Promise) {
-    resolveOrReject(promise, "getLocaleSignals") { locale.getLocaleSignals() }
+    resolveOrReject(promise, "getLocaleSignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectLocale().toRawMap())
+    }
   }
 
   override fun getGeolocationSignals(promise: Promise) {

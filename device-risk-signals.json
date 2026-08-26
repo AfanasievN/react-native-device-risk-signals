@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "name": "device-risk-signals",
+  "productName": "Device Risk Signals",
+  "description": "Raw, local-first device and runtime observations across mobile and web platforms.",
+  "contractPath": "contract",
+  "components": [
+    {
+      "id": "android",
+      "libraryName": "android-device-risk-signals",
+      "kind": "sdk",
+      "status": "in-development",
+      "platforms": ["android"],
+      "path": "sdks/android",
+      "distribution": {
+        "registry": "maven-central",
+        "name": "io.github.afanasievn:android-device-risk-signals",
+        "published": false
+      },
+      "dependsOn": []
+    },
+    {
+      "id": "ios",
+      "libraryName": "ios-device-risk-signals",
+      "kind": "sdk",
+      "status": "planned",
+      "platforms": ["ios", "mac-catalyst"],
+      "path": "sdks/ios",
+      "distribution": {
+        "registry": "swift-package-manager",
+        "name": "ios-device-risk-signals",
+        "productName": "IOSDeviceRiskSignals",
+        "published": false
+      },
+      "dependsOn": []
+    },
+    {
+      "id": "web",
+      "libraryName": "web-device-risk-signals",
+      "kind": "sdk",
+      "status": "planned",
+      "platforms": ["web"],
+      "path": "sdks/web",
+      "distribution": {
+        "registry": "npm",
+        "name": "web-device-risk-signals",
+        "published": false
+      },
+      "dependsOn": []
+    },
+    {
+      "id": "react-native",
+      "libraryName": "react-native-device-risk-signals",
+      "kind": "binding",
+      "status": "active",
+      "platforms": ["android", "ios"],
+      "path": ".",
+      "futurePath": "bindings/react-native",
+      "distribution": {
+        "registry": "npm",
+        "name": "react-native-device-risk-signals"
+      },
+      "dependsOn": [],
+      "targetDependsOn": ["android", "ios"]
+    },
+    {
+      "id": "flutter",
+      "libraryName": "flutter-device-risk-signals",
+      "kind": "binding",
+      "status": "planned",
+      "platforms": ["android", "ios"],
+      "path": "bindings/flutter",
+      "distribution": {
+        "registry": "pub.dev",
+        "name": "flutter_device_risk_signals",
+        "published": false
+      },
+      "dependsOn": ["android", "ios"]
+    },
+    {
+      "id": "capacitor",
+      "libraryName": "capacitor-device-risk-signals",
+      "kind": "binding",
+      "status": "planned",
+      "platforms": ["android", "ios", "web"],
+      "path": "bindings/capacitor",
+      "distribution": {
+        "registry": "npm",
+        "name": "capacitor-device-risk-signals",
+        "published": false
+      },
+      "dependsOn": ["android", "ios", "web"]
+    }
+  ]
+}

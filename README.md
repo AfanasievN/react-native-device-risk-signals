@@ -4,6 +4,12 @@
 
 # React Native Device Risk Signals
 
+> This package is the active React Native binding of **Device Risk Signals**, an evolving
+> platform-neutral ecosystem for Android, iOS, Web, React Native, Flutter, and Capacitor. The npm
+> name and current API remain unchanged during the migration. See the
+> [ecosystem architecture](docs/ECOSYSTEM_ARCHITECTURE.md) and
+> [machine-readable component map](device-risk-signals.json).
+
 Open-source React Native TurboModule for collecting raw device intelligence and fraud-prevention
 signals on Android and iOS: root and jailbreak indicators, emulator detection, debugger and Frida
 traces, VPN and proxy state, hardware, locale, application, and runtime data.
@@ -36,6 +42,33 @@ application owns transport, authentication, storage, scoring, and policy.
 [Support ☕](#support-this-project)
 
 **Zero runtime dependencies. No vendor backend. No persistent device ID. No client-side risk score.**
+
+## Ecosystem roadmap
+
+```text
+Native Android SDK ─┬─ React Native
+                    ├─ Flutter
+                    ├─ Capacitor
+                    └─ Native Android apps
+
+Native iOS SDK ─────┬─ React Native
+                    ├─ Flutter
+                    ├─ Capacitor
+                    └─ Native iOS apps
+
+Web SDK ────────────┬─ Browser apps
+                    └─ Capacitor
+```
+
+Today, `react-native-device-risk-signals` is the production distribution. Android core extraction is
+in development with device identity and locale already using standalone typed Kotlin models; the
+Maven artifact is not published yet. iOS, Web, Flutter, and Capacitor remain planned. All surfaces
+share the generated [raw-signal contract](contract/README.md).
+
+All distributables follow `<platform>-device-risk-signals`: `android-device-risk-signals`,
+`ios-device-risk-signals`, `web-device-risk-signals`, `react-native-device-risk-signals`,
+`flutter-device-risk-signals`, and `capacitor-device-risk-signals`. Flutter installs as
+`flutter_device_risk_signals` because pub.dev package identifiers use underscores.
 
 ## Support this project
 

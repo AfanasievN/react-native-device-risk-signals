@@ -32,6 +32,8 @@ npm-debug.log
 dist/
 lib/
 android/build/
+/sdks/android/.gradle/
+/sdks/android/build/
 
 # testing
 /junit.xml
