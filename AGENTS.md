@@ -44,6 +44,26 @@ observations have been calibrated on representative physical devices.
   Catalog, README, and example app consistent.
 - An API removal or incompatible event/configuration change requires a documented breaking release.
 
+## Monorepo architecture
+
+- `docs/ECOSYSTEM_ARCHITECTURE.md` and `device-risk-signals.json` are normative for component
+  boundaries, naming, dependencies, lifecycle, and releases.
+- Android collection logic belongs in `sdks/android/`; React Native conversion belongs in `android/`.
+  Standalone Android source must not import `com.facebook.react`.
+- iOS collection logic will move to `sdks/ios/`; Objective-C++ React Native code must remain a thin
+  adapter and new providers should avoid React Native types.
+- Web collection belongs in `sdks/web/`. Bindings under `bindings/` must not duplicate platform
+  detection logic or depend on another binding.
+- A package rename, new component, reversed dependency, or shared-contract breaking change requires
+  an ADR plus synchronized architecture and ecosystem-manifest updates.
+- Do not enable workspaces or component-prefixed release tags until the migration gates documented
+  in the architecture are satisfied.
+- Component names/statuses, registry coordinates, permissions, compatibility, and contract changes
+  must update the relevant GitHub Pages surfaces in the same change. Planned components must never
+  be documented with install commands that imply an unpublished artifact exists.
+- Treat the Pages URL/repository rename checklist in `docs/ECOSYSTEM_ARCHITECTURE.md` as a release
+  gate; preserve canonical schema/catalog URLs and existing documentation routes during migration.
+
 ## Verification
 
 Use RED -> GREEN -> REFACTOR for behavior changes. Run the narrow test first, then the full checks:
@@ -57,3 +77,27 @@ npx --prefix example tsc --noEmit -p example/tsconfig.json
 ```
 
 Do not weaken TypeScript, lint, CodeQL, native build, or privacy checks to make CI pass.
+
+## AI attribution
+
+### Commits
+When you author a commit, end the message with one trailer identifying
+yourself and your model:
+
+```
+Assisted-by: <Tool>:<model>
+```
+
+Example: `Assisted-by: Codex:gpt-5.2-codex`. Put it on the last line of the
+message, after one blank line. Add it to every commit you author, including
+fixups. Never state or estimate token usage anywhere — you do not have
+access to real numbers.
+
+### Merge requests
+When you create a merge request, declare AI involvement with exactly one
+label, using a quick action on its own line in the MR description:
+
+- `/label ~"ai::agent"` — you authored the commits in this MR end-to-end
+- `/label ~"ai::assisted"` — you helped (plan, code, review); a human authored the commits
+
+Do not set `ai::none` — that label is for humans to declare.
