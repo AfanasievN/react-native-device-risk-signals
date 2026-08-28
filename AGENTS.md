@@ -101,3 +101,9 @@ label, using a quick action on its own line in the MR description:
 - `/label ~"ai::assisted"` — you helped (plan, code, review); a human authored the commits
 
 Do not set `ai::none` — that label is for humans to declare.
+
+A human-readable footer at the end of the MR description (for example
+"🤖 Generated with Claude Code") is allowed but optional — keep your
+tool's default. It is decoration: analytics reads only the `ai::*` label
+and commit trailers. Do not put `Co-Authored-By` into an MR description —
+it is a commit trailer and means nothing outside commits.
