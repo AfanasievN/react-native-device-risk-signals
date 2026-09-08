@@ -1,6 +1,6 @@
 # Device Risk Signals migration checklist
 
-Last reviewed: 2026-09-08, including explicit Android transaction sessions.
+Last reviewed: 2026-09-08, including Android GPU extraction and resource cleanup.
 
 This is the remaining-work checklist for the [ecosystem architecture](ECOSYSTEM_ARCHITECTURE.md).
 It describes repository implementation, not a claim that local commits have been pushed, deployed,
@@ -14,7 +14,7 @@ historical test evidence.
 | Area | Implemented | Still missing |
 | --- | --- | --- |
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
-| Android | Fifteen typed collections, explicit transaction sessions, native example, AAR build and CI checks | GPU, active-scan decision, lifecycle/device QA and Maven publication |
+| Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU, native example and CI checks | Active-scan decision, lifecycle/GL/device QA and Maven publication |
 | iOS | Existing providers under `ios/` used by RN | Standalone SDK, package/consumer integration and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
@@ -25,9 +25,9 @@ historical test evidence.
 Android currently exposes `collectDeviceIdentity`, `collectLocale`, `collectRuntimeTiming`,
 `collectNumericConsistency`, `collectAudioLatency`, `collectApplication`, `collectHardware`,
 `collectFonts`, `collectOsIntegrity`, `collectNetwork`, `collectTelephony`, `collectGeolocation`,
-`collectMediaBluetoothApps`, `collectDeviceSecurityPosture`, and `collectTransactionSafety`.
+`collectMediaBluetoothApps`, `collectDeviceSecurityPosture`, `collectTransactionSafety`, and `collectGpuBenchmark`.
 `createTransactionObservationSession()` supplies a separate explicit lifecycle API.
-The fifteen collection calls are not full parity with
+The sixteen collection calls are not full parity with
 the 19-method React Native TurboModule contract. Some native methods are platform stubs or utilities;
 do not use these counts as a migration percentage.
 
@@ -37,7 +37,6 @@ Work in this order unless an implementation dependency justifies a change:
 
 | Remaining work | Current source under `android/src/main/java/com/reactnativedeviceintel/` | Completion condition |
 | --- | --- | --- |
-| GPU benchmark | `GpuBenchmarkProvider.kt` | Core API with identical skip/results behavior, bounded work and GL resource cleanup; preserve disabled default |
 | Legacy active Frida scan | `FridaScanProvider.kt` | Resolve the architecture/contract decision below before claiming extraction complete |
 
 For each provider:
@@ -62,7 +61,7 @@ Media/Bluetooth/finite app audit and point-in-time device security posture are a
 Host-owned visibility and Bluetooth permissions, finite lists and existing fallbacks are unchanged.
 The native posture call does not attach transaction observers or authenticate the user.
 
-### Transaction lifecycle implemented; GPU execution next
+### Transaction lifecycle and GPU implemented; device QA remains
 
 The in-development SDK now implements `TransactionObservationSession` with explicit main-thread
 `attach(activity)`, `detach()`, immutable thread-safe `snapshot()` and terminal/idempotent `close()`.
@@ -81,15 +80,15 @@ for compatibility changes and the difference between queue cancellation and inte
 - [ ] Add instrumented/physical tests for no activity, repeated attach, activity switch/destroy,
   nested wrappers, registration failure, permissions, API 24/28/29/34/35 gates and collect/dispose
   races. Pure-state/queue regressions and successful compilation do not cover Android framework behavior.
-- [ ] Define a GPU execution API that owns a worker thread or documents/enforces an equivalent
-  safe execution boundary. Current cleanup clears the calling thread's EGL binding instead of
-  restoring a pre-existing context/surfaces; native callers must not lose their rendering context.
-- [ ] Test EGL setup failures, shader/program failure cleanup, repeated/concurrent calls and
-  optional result fields. Some shader failure paths rely on context destruction for cleanup;
-  source review alone does not establish a persistent resource leak.
-- [ ] Document the GPU loop's 50 ms target as a budget, not a hard deadline: setup and a single
-  `glFinish()` can overrun it, and the JS timeout does not cancel native execution. Validate GL,
-  camera/video coexistence and cleanup on physical devices before releasing this native API.
+- [x] Add `collectGpuBenchmark()` with UI-thread rejection and documented dedicated-worker ownership.
+  Cleanup attempts to restore a changed EGL binding and never terminates the shared display.
+- [x] Test shader/program failure ownership, independent cleanup order, unchanged-binding behavior
+  and raw model omissions using pure fake-driver/model tests. Do not equate this with driver QA.
+- [x] Document the 50 ms draw-loop target as a budget, not a deadline; driver/setup overruns and
+  caller timeouts do not cancel native work.
+- [ ] Exercise real EGL setup/restoration failures, repeated/concurrent calls, GL/camera/video
+  coexistence and Activity teardown on physical devices. Restoration is best-effort; dedicated
+  workers must not own application rendering state.
 
 ### Android release gates
 
@@ -201,8 +200,9 @@ for compatibility changes and the difference between queue cancellation and inte
 - [ ] Introduce independent component releases only with registry smoke tests and publication
   credentials configured outside the repository. Keep failed/partial publication recoverable.
 
-The next implementation slice is **GPU execution and cleanup**. Transaction device/lifecycle QA is
-still a release gate. Keep the active Frida architecture decision separate. Each slice should end
+The next Android step is **resolving the legacy active Frida boundary**, followed by standalone
+lint/package-content and physical-device QA gates. The shared-contract and iOS work can proceed
+independently; Android publication is not implied by collector extraction. Each slice should end
 with typed core APIs, thin RN delegation, native-consumer checks, updated documentation and recorded
 RED/GREEN evidence. The full monorepo migration remains incomplete until all relevant
 platform, binding, contract, documentation and publication gates above are satisfied.

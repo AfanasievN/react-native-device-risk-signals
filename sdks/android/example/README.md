@@ -4,9 +4,9 @@ This development app consumes `android-device-risk-signals` directly through `im
 It has no React Native dependency. The SDK is partially extracted and unpublished; this example is
 a local integration reference, not an instruction to install a Maven release.
 
-The app exposes fifteen collection buttons: identity, locale, runtime timing, native numeric vectors,
+The app exposes sixteen collection buttons: identity, locale, runtime timing, native numeric vectors,
 audio properties, application metadata, hardware, fonts, passive OS integrity, network, telephony,
-cached location, media/Bluetooth/finite app audit, device security posture and transaction snapshot.
+cached location, media/Bluetooth/finite app audit, device security posture, transaction snapshot and GPU.
 Three additional controls explicitly start, read and stop transaction observation. Collection starts
 only when a button is pressed. Results are local raw observations;
 the app does not upload them or calculate a risk score.
@@ -73,6 +73,12 @@ pressing Start again to reattach. Stop closes and discards the session, so the n
 history. Capture permissions are not declared: touch observations are available, capture fields
 remain unavailable. See the [explicit session API](../README.md#transaction-observation-session).
 The complete React Native probe set is not yet available from this standalone facade.
+
+The GPU button executes on a dedicated single worker and is disabled until that run finishes.
+Destroying the Activity shuts down the worker and suppresses later UI updates; it cannot forcibly
+stop a GPU driver call already running. No benchmark runs automatically. Its 50 ms draw-loop target
+is not a hard end-to-end deadline. Use [the GPU execution guide](../README.md#gpu-execution) before
+enabling this high-entropy workload in a real application.
 
 ## Build
 

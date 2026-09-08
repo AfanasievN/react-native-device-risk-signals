@@ -377,7 +377,7 @@ export const PROBE_CATALOG = [
       "operationTimeCoefficientOfVariation",
       "warmupSlope",
     ],
-    notes: "Disabled by default because it is high entropy and requires device-lab calibration.",
+    notes: "Disabled by default because it is high entropy and requires device-lab calibration. Standalone Android requires a worker thread. The 50 ms Android draw-loop target is not an end-to-end deadline; driver work can overrun and caller timeouts do not cancel it. EGL restoration and cleanup are best-effort.",
   },
   {
     id: "audio_latency",

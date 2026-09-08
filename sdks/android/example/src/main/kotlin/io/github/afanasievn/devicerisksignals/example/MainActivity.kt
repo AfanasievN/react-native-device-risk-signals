@@ -9,10 +9,12 @@ import android.widget.TextView
 import io.github.afanasievn.devicerisksignals.DeviceRiskSignals
 import io.github.afanasievn.devicerisksignals.TransactionObservationSession
 import org.json.JSONObject
+import java.util.concurrent.Executors
 
 /** Native consumer: only the SDK public API and system Android classes are available here. */
 class MainActivity : Activity() {
   private var transactionSession: TransactionObservationSession? = null
+  private val gpuWorker = Executors.newSingleThreadExecutor()
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val signals = DeviceRiskSignals(applicationContext)
@@ -64,6 +66,25 @@ class MainActivity : Activity() {
     action("Runtime timing (optional)") { signals.collectRuntimeTiming().toRawMap() }
     action("Numeric consistency (optional)") { signals.collectNumericConsistency().toRawMap() }
     action("Audio latency (optional)") { signals.collectAudioLatency().toRawMap() }
+    content.addView(Button(this).apply {
+      text = "GPU benchmark (optional, worker thread)"
+      setOnClickListener {
+        isEnabled = false
+        gpuWorker.execute {
+          val result = try {
+            JSONObject(signals.collectGpuBenchmark().toRawMap()).toString(2)
+          } catch (error: Exception) {
+            "Collection failed: ${error.javaClass.simpleName}"
+          }
+          runOnUiThread {
+            if (!isDestroyed) {
+              output.text = result
+              isEnabled = true
+            }
+          }
+        }
+      }
+    })
     content.addView(output)
     setContentView(ScrollView(this).apply { addView(content) })
   }
@@ -74,6 +95,7 @@ class MainActivity : Activity() {
   }
 
   override fun onDestroy() {
+    gpuWorker.shutdownNow() // Does not forcibly cancel a GPU driver call already running.
     transactionSession?.close()
     transactionSession = null
     super.onDestroy()

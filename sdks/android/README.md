@@ -42,6 +42,13 @@ the host's existing `DETECT_SCREEN_CAPTURE`/`DETECT_SCREEN_RECORDING` declaratio
 the SDK and example add neither. Ordinary point-in-time collection never starts a session.
 Accessibility counts and finite remote-access package matches remain sensitive and visibility-limited.
 
+GPU extraction preserves high-entropy renderer/vendor/version strings and timing statistics.
+Invoke it explicitly only for a documented purpose after consent/retention review. It uses a small
+off-screen surface, not camera, screen capture or visible rendering. The native caller must supply
+a worker thread; no permission or network operation is needed. A 50 ms draw-loop target is not a
+hard timeout: driver setup and `glFinish()` may take longer. Caller timeouts do not cancel a driver
+call. Keep this workload disabled by default until physical-device calibration.
+
 Currently extracted:
 
 - `DeviceRiskSignals.collectDeviceIdentity()`
@@ -59,6 +66,7 @@ Currently extracted:
 - `DeviceRiskSignals.collectMediaBluetoothApps()`
 - `DeviceRiskSignals.collectDeviceSecurityPosture()`
 - `DeviceRiskSignals.collectTransactionSafety()`
+- `DeviceRiskSignals.collectGpuBenchmark()` (worker thread only)
 
 ```kotlin
 val signals = DeviceRiskSignals(applicationContext)
@@ -130,7 +138,7 @@ need separate compatibility work and must not be interpreted as confirmed absenc
 advertised hardware features, not enrollment or a successful authentication check. Transaction
 touch/capture observation uses the separate session described below.
 
-All fifteen collection methods run only when called. They add no permissions, prompts, transport, or automatic
+All sixteen collection methods run only when called. They add no permissions, prompts, transport, or automatic
 collection. See the [native Android example](example/README.md) for a consumer that has no React
 Native dependency and exposes a separate collection button for each method.
 
@@ -161,6 +169,31 @@ per-payment boundary. React Native keeps lazy opt-in and owns UI dispatch/lifecy
 cancels queued-but-not-started work, not a running Android API call. These migration semantics are
 documented in [ADR-0002](../../docs/adr/0002-explicit-android-transaction-session.md) and require release
 notes and physical-device QA before publication. The transaction probe remains disabled by default.
+
+## GPU execution
+
+Call `collectGpuBenchmark()` from a dedicated background worker, never the UI/render thread.
+The facade rejects UI-thread calls with `IllegalStateException` before GPU work starts; it does not
+create a worker or schedule collection for the host. React Native already dispatches native probes
+to background workers. The example uses a single worker and disables its GPU button while running.
+
+```kotlin
+// Inside the host's worker, after explicit opt-in:
+val gpu: GpuBenchmarkSignals = signals.collectGpuBenchmark()
+val raw = gpu.toRawMap()
+```
+
+The existing emulator skip, partial identity on failure, 32x32 pbuffer and 50 ms draw-loop target
+are retained. Setup/driver calls can exceed that target; neither a JS timeout nor interruption can
+forcibly stop a driver call. Repeated/concurrent calls can interfere with measured performance:
+hosts should serialize their benchmark runs and calibrate with their actual rendering workload.
+
+Cleanup attempts to delete owned GL objects while their context is current, then restore the
+calling thread's prior EGL binding and destroy only the created surface/context. An unchanged
+binding is not touched, and the shared display is never terminated. Restoration is best-effort:
+a driver failure can prevent it, so use a dedicated worker without application rendering state.
+Independent cleanup attempts and partial shader/program failures are tested with a fake driver;
+this does not replace physical GL/camera/video coexistence and resource-lifetime QA.
 
 ## Development distribution
 

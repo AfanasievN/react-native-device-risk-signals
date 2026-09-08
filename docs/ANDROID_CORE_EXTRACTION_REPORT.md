@@ -276,3 +276,50 @@ physical-device QA, including nested wrappers, permission changes and activity r
 No version bump, registry publication or deployment was performed. GPU extraction, active Frida
 boundary resolution and native release gates remain outstanding. Transaction behavior corrections
 must appear in the next breaking migration release notes, not an undocumented patch.
+
+## Eighth increment: worker-only GPU execution and resource cleanup
+
+`collectGpuBenchmark()` brings the standalone facade to sixteen synchronous collections. The React
+Native module deletes `GpuBenchmarkProvider.kt` and delegates `getGpuBenchmark()` to the core
+through the shared value converter. `GpuBenchmarkSignals` keeps all fifteen existing raw keys, the
+emulator/unsupported/error skip reasons, partial GPU identity on late failure, the 32x32 pbuffer,
+GLES 2.0 configuration and the 50 ms draw-loop budget. No probe default, permission, dependency or
+network behavior changed; the probe stays disabled pending device-lab calibration.
+
+Execution ownership is now explicit. `GpuExecutionPolicy.requireWorker()` rejects UI-thread calls
+with `IllegalStateException` before any GPU work starts, and the SDK neither creates a worker nor
+schedules collection. React Native already dispatches native probes to background workers; the
+native example uses one single-thread executor, disables its GPU button while running and shuts the
+worker down in `onDestroy()`. Shutdown does not cancel a driver call that has already started.
+
+Cleanup is separated into testable ownership boundaries. `GpuProgramBuilder` transfers only a
+successfully linked program and deletes every other object it created, including a compiled vertex
+shader after a fragment failure and a program that failed to link. `GpuResourceCleanup` deletes the
+GL program while its context is current, restores the calling thread's previous EGL binding only
+when the collector actually changed it, then releases the owned surface and context. Each step is
+independent, so one driver failure cannot block the rest, and the process-shared display is never
+terminated. Restoration is best-effort: a driver can refuse it, in which case the collector at least
+clears its own binding, so hosts must use a worker that owns no application rendering state.
+
+RED: the native example failed compilation on the missing facade method, and the standalone suite
+failed compilation on the missing GPU model, policy and cleanup types. GREEN: both targets pass.
+Thirteen new pure tests cover raw-map omissions and full field mapping, UI-thread rejection, program
+ownership transfer, shader/link failure cleanup, unowned-object protection, cleanup ordering,
+unchanged-binding behavior and survival of failures in each cleanup step. These use a fake driver
+and carry no claim about real GL behavior.
+
+The 50 ms target is documented as a draw-loop budget, not an end-to-end deadline: setup, a single
+`glFinish()` and driver work can overrun it, and a caller or JS timeout does not cancel native
+execution. Repeated or concurrent runs can distort measurements, so hosts must serialize benchmarks
+and calibrate against their own rendering workload.
+
+Checks passed: 99 standalone JVM tests, release AAR, native example debug APK, React Native Android
+compilation and JVM tests, full root verification (Jest and Node suites, 19-method native parity,
+package/ecosystem validation and 24 Pages), `npm pack --dry-run`, and example tests, lint and
+TypeScript. Existing AGP compile-SDK and Gradle deprecation warnings remain.
+
+No percentage coverage is claimed. Real EGL setup and restoration failures, repeated/concurrent
+calls, GL/camera/video coexistence and Activity teardown still require instrumented and
+physical-device QA, which remains a release gate. The legacy active Frida boundary, standalone
+lint/package-content gates and Maven publication remain outstanding; no version bump, registry
+publication or Pages deployment was performed.

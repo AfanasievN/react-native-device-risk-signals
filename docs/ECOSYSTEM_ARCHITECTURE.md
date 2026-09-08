@@ -57,7 +57,7 @@ logic after extraction is complete.
 | --- | --- | --- |
 | `contract/` | Active | Generated, platform-neutral probe catalog and event schema |
 | `android/`, `ios/`, `src/` | Active/transitional | Current React Native package implementation |
-| `sdks/android/` | In development | Fifteen standalone collections plus explicit transaction sessions: identity, locale, timing, numeric vectors, audio properties, application, hardware, fonts, passive integrity, network, telephony, cached location, media/app audit, device posture, transaction snapshot |
+| `sdks/android/` | In development | Sixteen standalone collections plus explicit transaction sessions: identity, locale, timing, numeric vectors, audio properties, application, hardware, fonts, passive integrity, network, telephony, cached location, media/app audit, device posture, transaction snapshot, worker-only GPU |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
 | `sdks/ios/` | Planned | Standalone iOS Swift Package with optional Mac Catalyst support |
 | `sdks/web/` | Planned | Browser SDK |
@@ -76,7 +76,7 @@ directories intentionally contain no package manifests so they cannot be publish
 | Probe ids, fields, privacy metadata | `src/probeCatalog.ts` | Versioned shared contract tooling |
 | TypeScript event/native contract | `src/NativeDeviceIntel.ts` | Shared contract plus binding-specific generated types |
 | Generated catalog/schema | `contract/` and `website/` | `contract/` with published documentation mirrors |
-| Android identity, locale, timing, numeric vectors, audio, application, hardware, fonts, integrity, network, telephony, cached location, media/app audit, device posture and transaction observations | `sdks/android/` | `android-device-risk-signals` |
+| Android identity, locale, timing, numeric vectors, audio, application, hardware, fonts, integrity, network, telephony, cached location, media/app audit, device posture, transaction observations and GPU | `sdks/android/` | `android-device-risk-signals` |
 | Remaining Android providers | `android/` | `android-device-risk-signals` |
 | iOS providers | `ios/` | `ios-device-risk-signals` |
 | React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
@@ -300,12 +300,14 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
 - Introduce Kotlin result models that contain no React Native types. **Started:** device identity,
   Android build, locale, native runtime timing, numeric vector, audio property, application, hardware,
   font, OS integrity, network, telephony, cached geolocation, media/app audit and device posture models
-  are available, along with transaction snapshot/session models.
+  are available, along with transaction snapshot/session and GPU models.
 - Move property, artifact, hook, and provider logic into the Android SDK. **Started:** identity and
   locale, native runtime timing, numeric vector, audio property, application, hardware, font, and passive OS integrity
   collectors are extracted, along with network, telephony, cached geolocation, media/Bluetooth/finite
   app audit and point-in-time device security posture. Transaction snapshots and explicit sessions
-  now live in the core; RN retains lifecycle/UI dispatch and map conversion. Network reads
+  now live in the core; RN retains lifecycle/UI dispatch and map conversion. GPU collection also
+  lives in the core with UI-thread rejection and best-effort restoration of a changed EGL binding;
+  hosts own worker dispatch and calibration. Network reads
   system state without sending requests. Telephony/location preserve host permission checks and
   cached-only location reads; the SDK and native example add no permission declarations or prompts.
   JavaScript timing, JS-to-native call duration, and JavaScript/native numeric comparisons remain in
@@ -324,8 +326,9 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
 - Keep a small TurboModule adapter that converts SDK models to React Native maps. **Implemented:**
   the shared value converter is now the boundary for extracted probes.
 - Add native Android consumer tests before publishing the Maven artifact. **Started:**
-  `sdks/android/example/` depends directly on the SDK Gradle project and exposes fifteen explicit
+  `sdks/android/example/` depends directly on the SDK Gradle project and exposes sixteen explicit
   collection buttons plus start/read/stop transaction session controls without React Native.
+  The GPU button uses a dedicated worker; its 50 ms loop target is not a hard deadline.
   Its debug APK can be built alongside the release AAR;
   physical-device validation and the remaining publication gates still apply.
 - Add an Android section to GitHub Pages before Maven publication, clearly labeled `in development`

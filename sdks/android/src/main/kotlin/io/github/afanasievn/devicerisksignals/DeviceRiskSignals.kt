@@ -1,6 +1,7 @@
 package io.github.afanasievn.devicerisksignals
 
 import android.content.Context
+import android.os.Looper
 
 /**
  * Standalone Android entry point. Collection is local and synchronous, never requests permissions,
@@ -57,4 +58,10 @@ class DeviceRiskSignals(context: Context) {
 
   /** Audio output properties only; does not start audio playback or record sound. */
   fun collectAudioLatency(): AudioLatencySignals = AudioLatencyCollector(applicationContext).collect()
+
+  /** Explicit high-entropy workload. Use a dedicated worker; the 50 ms target is not a deadline. */
+  fun collectGpuBenchmark(): GpuBenchmarkSignals {
+    GpuExecutionPolicy.requireWorker(Looper.myLooper() == Looper.getMainLooper())
+    return GpuBenchmarkCollector().collect()
+  }
 }

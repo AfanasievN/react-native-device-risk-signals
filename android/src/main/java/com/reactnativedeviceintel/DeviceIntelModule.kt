@@ -22,7 +22,6 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
 
   private val androidSignals = DeviceRiskSignals(reactContext)
   private val fridaScan = FridaScanProvider()
-  private val gpuBenchmark = GpuBenchmarkProvider()
   private val securityPosture = SecurityPostureProvider(reactContext)
 
   override fun getDeviceIdentity(promise: Promise) {
@@ -98,7 +97,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getGpuBenchmark(promise: Promise) {
-    resolveOrReject(promise, "getGpuBenchmark") { gpuBenchmark.getGpuBenchmark() }
+    resolveOrReject(promise, "getGpuBenchmark") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectGpuBenchmark().toRawMap())
+    }
   }
 
   override fun getAudioLatency(promise: Promise) {

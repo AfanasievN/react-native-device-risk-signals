@@ -69,7 +69,8 @@ in development with device identity, locale, native runtime timing, native numer
 property estimates, application metadata, hardware, fonts, passive OS integrity, network, telephony,
 cached geolocation, media/Bluetooth/finite app audit, and device security posture using standalone
 typed Kotlin models. Transaction collection now has a point-in-time snapshot and an explicitly
-owned native observation session; remaining native extraction covers GPU and the active-scan decision.
+owned native observation session. GPU collection also uses the core, with worker-only execution
+and best-effort EGL restoration; the legacy active-scan boundary remains unresolved.
 A [native Android example](sdks/android/example/README.md)
 consumes this partial SDK without React Native; the Maven artifact is not published yet.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.

@@ -237,6 +237,13 @@ remain part of the React Native probe, not the standalone Android result.
 
 `gpu_benchmark` additionally returns per-operation p50, p95, median absolute deviation, coefficient
 of variation, and warm-up slope. It remains disabled and must not be interpreted from one run.
+Android now collects these values in the standalone SDK. `collectGpuBenchmark()` rejects UI-thread
+calls; use a dedicated worker without application rendering state. The 50 ms target applies to the
+draw loop, not setup/driver calls or the total collection duration. Caller timeouts do not cancel
+native GPU work. Existing emulator/unsupported/error results and partial identity are retained.
+Cleanup attempts to restore a previously changed EGL binding and releases only owned resources;
+driver failure can prevent restoration. No shared-display termination, permissions or new runtime
+dependencies are introduced. Instrumented and physical-device GL/coexistence QA remains necessary.
 
 ## Data minimization guidance
 
