@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 internal object PathExecutableProbe {
   fun absoluteCandidates(pathValue: String?, executableName: String): List<String> {

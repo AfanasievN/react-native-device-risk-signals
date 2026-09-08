@@ -7,7 +7,8 @@ import java.net.Socket
 
 /**
  * ACTIVE tamper probe: attempts a TCP connect to frida-server's default listener (127.0.0.1:27042).
- * Isolated from the fast [OsIntegrityProvider] bundle because it does BLOCKING socket I/O — the
+ * Legacy RN-only scan, isolated from the standalone passive integrity collector because it performs
+ * BLOCKING socket I/O — the
  * matching JS probe (`os_integrity_frida_scan`) gives it a longer timeout and its own kill-switch.
  *
  * TurboModule promise methods do not run on the main/UI thread, so this connect does not trip
@@ -22,8 +23,7 @@ class FridaScanProvider {
     val probe = probePort("127.0.0.1", FRIDA_DEFAULT_PORT, CONNECT_TIMEOUT_MS)
     map.putBoolean("defaultPortOpen", probe.open)
     // A plain connect only says "something listens on 27042"; the D-Bus/frida AUTH handshake below
-    // confirms it is actually frida-server (it answers "REJECT"), distinguishing it from any other
-    // service that happens to bind that port.
+    // records a REJECT-like protocol response. This is not proof of the service's identity.
     map.putBoolean("fridaHandshakeReject", probe.handshakeReject)
     return map
   }

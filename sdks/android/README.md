@@ -14,6 +14,7 @@ Currently extracted:
 - `DeviceRiskSignals.collectApplication()`
 - `DeviceRiskSignals.collectHardware()`
 - `DeviceRiskSignals.collectFonts()`
+- `DeviceRiskSignals.collectOsIntegrity()`
 
 ```kotlin
 val signals = DeviceRiskSignals(applicationContext)
@@ -27,6 +28,7 @@ val application: ApplicationSignals = signals.collectApplication()
 val hardware: HardwareSignals = signals.collectHardware()
 // Optional, expensive, high-entropy observation; collect only for a documented purpose.
 val fonts: FontsSignals = signals.collectFonts()
+val integrity: OsIntegritySignals = signals.collectOsIntegrity()
 ```
 
 The current React Native package compiles these same sources and converts `toRawMap()` results only
@@ -59,7 +61,15 @@ it introduces no additional data collection or permissions.
 collection can be expensive: call it explicitly only for a documented purpose and apply the host
 application's consent and retention policy. The existing React Native probe default is unchanged.
 
-All eight methods run only when called. They add no permissions, prompts, transport, or automatic
+`collectOsIntegrity()` preserves the existing passive debugger, emulator, root-artifact, hook, and
+process-local Frida observations, including `/proc`, mapped libraries, thread names, and pipe
+evidence. It returns raw fields, not an integrity verdict. Finite known-package observations depend
+on the host application's package visibility: `false` can mean not visible, not necessarily absent.
+The standalone SDK manifest adds no package queries; the React Native manifest keeps its existing
+queries. The legacy React Native localhost TCP Frida scan remains in its adapter and is an
+unresolved exception to the no-network architecture; the standalone SDK exposes no scan method.
+
+All nine methods run only when called. They add no permissions, prompts, transport, or automatic
 collection. See the [native Android example](example/README.md) for a consumer that has no React
 Native dependency and exposes a separate collection button for each method.
 

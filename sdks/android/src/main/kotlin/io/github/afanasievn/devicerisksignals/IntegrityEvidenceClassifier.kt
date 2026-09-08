@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 /** Pure classification helpers kept separate so unavailable reads never become negative evidence. */
 internal object IntegrityEvidenceClassifier {

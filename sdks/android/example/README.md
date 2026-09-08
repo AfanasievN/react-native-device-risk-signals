@@ -4,8 +4,9 @@ This development app consumes `android-device-risk-signals` directly through `im
 It has no React Native dependency. The SDK is partially extracted and unpublished; this example is
 a local integration reference, not an instruction to install a Maven release.
 
-The app exposes eight separate buttons: identity, locale, runtime timing, native numeric vectors,
-audio properties, application metadata, hardware, and fonts. Collection starts only when a button is pressed. Results are local raw observations;
+The app exposes nine separate buttons: identity, locale, runtime timing, native numeric vectors,
+audio properties, application metadata, hardware, fonts, and passive OS integrity. Collection starts
+only when a button is pressed. Results are local raw observations;
 the app does not upload them or calculate a risk score.
 
 ## Using the SDK
@@ -25,6 +26,7 @@ val application = signals.collectApplication()
 val hardware = signals.collectHardware()
 // Optional, expensive, high-entropy collection.
 val fonts = signals.collectFonts()
+val integrity = signals.collectOsIntegrity()
 
 // Convert a typed result when the host application needs a raw map.
 val rawIdentity = identity.toRawMap()
@@ -40,6 +42,9 @@ Application metadata describes only this app's package, including available sign
 fields. Hardware includes the existing Android storage observations. Font collection is expensive
 and high entropy; its dedicated button makes collection explicit. The existing React Native fonts
 probe default is unchanged. This extraction adds no permissions or new categories of observations.
+OS integrity includes process-local Frida evidence but no localhost TCP scan. Finite package checks
+are constrained by host package visibility; `false` does not establish that a package is absent.
+The standalone SDK adds no package queries.
 
 Host applications own any event envelope, serialization, consent policy, storage, and transport.
 The complete React Native probe set is not yet available from this standalone facade.

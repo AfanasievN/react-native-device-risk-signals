@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 import android.app.ActivityManager
 import android.content.Context
@@ -8,9 +8,6 @@ import android.os.Build
 import android.os.Debug
 import android.os.Environment
 import android.provider.Settings
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.WritableArray
-import com.facebook.react.bridge.WritableMap
 import java.io.File
 
 private data class SensorEvidence(
@@ -29,16 +26,16 @@ private data class SystemPropertySnapshot(
 /**
  * Multi-method root / hook / emulator detection — the FAST, synchronous, permission-free bundle.
  * Each check returns a RAW observation; there is NO on-device verdict (the risk backend fuses them).
- * The active socket scan (frida port) lives in [FridaScanProvider] because it does blocking I/O.
+ * Active socket scanning is not part of this collector.
  *
- * Every individual check is wrapped so it can never throw out of [getOsIntegrity]: on a locked-down
- * kernel SELinux routinely denies these reads with SecurityException, and "couldn't read" is a valid
- * (omitted) observation, not a crash.
+ * Preserves the existing per-check failure handling. Some unavailable observations are omitted;
+ * legacy booleans and presence lists retain their original fallback behavior. Callers must not
+ * interpret an empty or false observation as proof that an inaccessible artifact is absent.
  */
-class OsIntegrityProvider(private val context: Context) {
+internal class OsIntegrityCollector(private val context: Context) {
 
-  fun getOsIntegrity(): WritableMap {
-    val map = Arguments.createMap()
+  fun collect(): OsIntegritySignals {
+    val map = OsIntegritySignals.Builder()
 
     val bstSharedFolder = safeString {
       "${Environment.getExternalStorageDirectory()?.absolutePath}/windows/BstSharedFolder"
@@ -68,91 +65,88 @@ class OsIntegrityProvider(private val context: Context) {
     )
 
     // ── Baseline (kept required for backward-compat with the skeleton contract) ──────────────────
-    map.putBoolean("isEmulator", emulatorEvidence.isStrongEmulatorEvidence)
-    map.putBoolean("isDebuggerAttached", safeBool { Debug.isDebuggerConnected() })
-    map.putBoolean("isDebuggerWaiting", safeBool { Debug.waitingForDebugger() })
+    map.isEmulator = emulatorEvidence.isStrongEmulatorEvidence
+    map.isDebuggerAttached = safeBool { Debug.isDebuggerConnected() }
+    map.isDebuggerWaiting = safeBool { Debug.waitingForDebugger() }
     // Developer Options remains readable. Settings.Global.ADB_ENABLED is not a trustworthy
     // third-party observation on modern Android: ordinary apps receive 0. Keep its optional public
     // field reserved, but omit it rather than translating "unavailable" into "ADB disabled".
-    map.putBoolean("developerModeEnabled", isGlobalSettingEnabled(Settings.Global.DEVELOPMENT_SETTINGS_ENABLED))
+    map.developerModeEnabled = isGlobalSettingEnabled(Settings.Global.DEVELOPMENT_SETTINGS_ENABLED)
 
     // ── Root: files / binaries / packages ────────────────────────────────────────────────────────
     val suFound = suPathCandidates().filter { safeExists(it) }
     val rootFilesFound = ROOT_FILE_PATHS.filter { safeExists(it) }
     val allSuspiciousPaths = (suFound + rootFilesFound).distinct()
-    map.putBoolean("suBinaryFound", suFound.isNotEmpty())
-    suExistsOnPath()?.let { map.putBoolean("suOnPath", it) }
-    map.putBoolean("rootManagementAppFound", anyPackageInstalled(KnownAppLists.rootManagementPackages))
-    map.putBoolean("dangerousAppFound", anyPackageInstalled(KnownAppLists.potentiallyDangerousAppPackages))
-    map.putBoolean("rootCloakingAppFound", anyPackageInstalled(KnownAppLists.rootCloakingPackages))
-    map.putBoolean("suspiciousFilePathsFound", allSuspiciousPaths.isNotEmpty())
-    map.putArray("suspiciousFilePaths", toStringArray(allSuspiciousPaths))
-    map.putInt("suspiciousPathCount", allSuspiciousPaths.size)
-    map.putBoolean("writableSystemPathFound", writableSystemPaths().isNotEmpty())
+    map.suBinaryFound = suFound.isNotEmpty()
+    suExistsOnPath()?.let { map.suOnPath = it }
+    map.rootManagementAppFound = anyPackageInstalled(KnownAppLists.rootManagementPackages)
+    map.dangerousAppFound = anyPackageInstalled(KnownAppLists.potentiallyDangerousAppPackages)
+    map.rootCloakingAppFound = anyPackageInstalled(KnownAppLists.rootCloakingPackages)
+    map.suspiciousFilePathsFound = allSuspiciousPaths.isNotEmpty()
+    map.suspiciousFilePaths = allSuspiciousPaths
+    map.suspiciousPathCount = allSuspiciousPaths.size
+    map.writableSystemPathFound = writableSystemPaths().isNotEmpty()
     val rootProperties = systemProperties(ROOT_RELEVANT_SYSTEM_PROPERTIES)
     if (rootProperties.available) {
       val dangerousProperties = IntegrityEvidenceClassifier.dangerousSystemProperties(rootProperties.values)
-      map.putBoolean("dangerousPropsPresent", dangerousProperties.isNotEmpty())
-      map.putArray("dangerousSystemProperties", toStringArray(dangerousProperties))
+      map.dangerousPropsPresent = dangerousProperties.isNotEmpty()
+      map.dangerousSystemProperties = dangerousProperties
     }
 
     // ── Hooks / injection ────────────────────────────────────────────────────────────────────────
     val injected = suspiciousMappedLibraries()
     val loadedHookClasses = loadedHookClassNames()
     val hookStackFrames = hookStackFrameEvidence()
-    map.putBoolean("injectedLibrariesFound", injected.isNotEmpty())
-    map.putArray("injectedLibraryNames", toStringArray(injected))
-    map.putInt("injectedLibraryCount", injected.size)
-    map.putArray("loadedHookClassNames", toStringArray(loadedHookClasses))
-    map.putBoolean("hookStackFrameFound", hookStackFrames.isNotEmpty())
-    map.putArray("hookStackFrames", toStringArray(hookStackFrames))
-    map.putBoolean(
-      "hookFrameworkFound",
-      injected.isNotEmpty() || loadedHookClasses.isNotEmpty() || hookStackFrames.isNotEmpty() ||
-        anyPackageInstalled(KnownAppLists.hookFrameworkPackages),
-    )
+    map.injectedLibrariesFound = injected.isNotEmpty()
+    map.injectedLibraryNames = injected
+    map.injectedLibraryCount = injected.size
+    map.loadedHookClassNames = loadedHookClasses
+    map.hookStackFrameFound = hookStackFrames.isNotEmpty()
+    map.hookStackFrames = hookStackFrames
+    map.hookFrameworkFound = injected.isNotEmpty() || loadedHookClasses.isNotEmpty() || hookStackFrames.isNotEmpty() ||
+        anyPackageInstalled(KnownAppLists.hookFrameworkPackages)
 
     // ── Android integrity properties ────────────────────────────────────────────────────────────
-    map.putBoolean("magiskMountsFound", magiskMountsFound())
-    map.putBoolean("suspiciousMountsFound", suspiciousMountsFound())
-    map.putBoolean("zygiskIndicatorsFound", zygiskIndicatorsFound())
+    map.magiskMountsFound = magiskMountsFound()
+    map.suspiciousMountsFound = suspiciousMountsFound()
+    map.zygiskIndicatorsFound = zygiskIndicatorsFound()
     // Magisk DenyList/Shamiko-resistant tells (still read from the app process — a future isolated-process
     // re-check would harden these further; see docs/native-security-borrowed-signals.md).
     // Every one of these reads can be denied by SELinux on a stock device. "Could not read" is a
     // DIFFERENT observation from "read it and found nothing", so an unavailable read OMITS the field
     // instead of reporting false — otherwise a denial would look like a clean device to the backend.
-    magiskAbstractSocketFound()?.let { map.putBoolean("magiskAbstractSocketFound", it) }
-    magicMountModuleCount()?.let { map.putBoolean("magicMountModulesFound", it > 0) }
+    magiskAbstractSocketFound()?.let { map.magiskAbstractSocketFound = it }
+    magicMountModuleCount()?.let { map.magicMountModulesFound = it > 0 }
     // Frida evidence beyond the port connect + maps-basename scan.
-    fridaThreadNames()?.let { map.putArray("fridaThreadNamesFound", toStringArray(it)) }
-    fridaInjectorPipeFound()?.let { map.putBoolean("fridaInjectorPipeFound", it) }
-    fridaListenerFound()?.let { map.putBoolean("fridaListenerPortFound", it) }
-    map.putBoolean("suspiciousExecutableMappingsFound", suspiciousExecutableMappingsFound())
+    fridaThreadNames()?.let { map.fridaThreadNamesFound = it }
+    fridaInjectorPipeFound()?.let { map.fridaInjectorPipeFound = it }
+    fridaListenerFound()?.let { map.fridaListenerPortFound = it }
+    map.suspiciousExecutableMappingsFound = suspiciousExecutableMappingsFound()
     val tracerPid = tracerPid()
     if (tracerPid != null) {
-      map.putInt("tracerPid", tracerPid)
-      map.putBoolean("tracedByOtherProcess", tracerPid > 0)
+      map.tracerPid = tracerPid
+      map.tracedByOtherProcess = tracerPid > 0
     }
-    map.putBoolean("testKeysBuild", (Build.TAGS ?: "").contains("test-keys", ignoreCase = true))
+    map.testKeysBuild = (Build.TAGS ?: "").contains("test-keys", ignoreCase = true)
     val suspiciousEnvironment = suspiciousEnvironmentVariableNames()
-    map.putBoolean("suspiciousEnvironmentVariablesFound", suspiciousEnvironment.isNotEmpty())
-    map.putArray("suspiciousEnvironmentVariableNames", toStringArray(suspiciousEnvironment))
-    getSystemProperty("ro.boot.verifiedbootstate")?.let { map.putString("verifiedBootState", it) }
-    getSystemProperty("ro.boot.flash.locked")?.let { map.putBoolean("bootloaderLocked", it == "1") }
-    selinuxEnforcing()?.let { map.putBoolean("selinuxEnforcing", it) }
+    map.suspiciousEnvironmentVariablesFound = suspiciousEnvironment.isNotEmpty()
+    map.suspiciousEnvironmentVariableNames = suspiciousEnvironment
+    getSystemProperty("ro.boot.verifiedbootstate")?.let { map.verifiedBootState = it }
+    getSystemProperty("ro.boot.flash.locked")?.let { map.bootloaderLocked = it == "1" }
+    selinuxEnforcing()?.let { map.selinuxEnforcing = it }
     val ldPreload = safeString { System.getenv("LD_PRELOAD") }
-    map.putBoolean("ldPreloadSet", !ldPreload.isNullOrEmpty())
-    if (!ldPreload.isNullOrEmpty()) map.putString("ldPreloadValue", ldPreload)
-    hiddenApiPolicy()?.let { map.putString("hiddenApiPolicy", it) }
+    map.ldPreloadSet = !ldPreload.isNullOrEmpty()
+    if (!ldPreload.isNullOrEmpty()) map.ldPreloadValue = ldPreload
+    hiddenApiPolicy()?.let { map.hiddenApiPolicy = it }
 
     // ── Emulator / device-farm heuristics ─────────────────────────────────────────────────────────
-    map.putBoolean("emulatorFingerprintMatch", emulatorEvidence.hasStrongBuildEvidence)
-    map.putBoolean("emulatorFilesFound", emulatorEvidence.filePaths.isNotEmpty())
-    map.putArray("emulatorBuildMarkers", toStringArray(emulatorEvidence.buildMarkers))
-    map.putArray("emulatorFilePaths", toStringArray(emulatorEvidence.filePaths))
-    map.putArray("emulatorSystemPropertyMarkers", toStringArray(emulatorEvidence.systemPropertyMarkers))
-    map.putArray("emulatorCpuMarkers", toStringArray(emulatorEvidence.cpuMarkers))
-    map.putArray("emulatorVendorMarkers", toStringArray(emulatorEvidence.emulatorVendorMarkers))
+    map.emulatorFingerprintMatch = emulatorEvidence.hasStrongBuildEvidence
+    map.emulatorFilesFound = emulatorEvidence.filePaths.isNotEmpty()
+    map.emulatorBuildMarkers = emulatorEvidence.buildMarkers
+    map.emulatorFilePaths = emulatorEvidence.filePaths
+    map.emulatorSystemPropertyMarkers = emulatorEvidence.systemPropertyMarkers
+    map.emulatorCpuMarkers = emulatorEvidence.cpuMarkers
+    map.emulatorVendorMarkers = emulatorEvidence.emulatorVendorMarkers
     val deviceFarmMarkers = emulatorEvidence.deviceFarmMarkers.toMutableList()
     val emulatorChecksPerformed = mutableListOf("build", "file_paths")
     if (emulatorProperties.available) emulatorChecksPerformed.add("system_properties")
@@ -160,23 +154,23 @@ class OsIntegrityProvider(private val context: Context) {
     val sensors = sensorEvidence()
     if (sensors != null) {
       emulatorChecksPerformed.add("sensors")
-      map.putInt("sensorCount", sensors.count)
-      map.putBoolean("hasAccelerometer", sensors.hasAccelerometer)
-      map.putBoolean("hasGyroscope", sensors.hasGyroscope)
-      map.putBoolean("hasMagnetometer", sensors.hasMagnetometer)
-      map.putBoolean("hasProximitySensor", sensors.hasProximitySensor)
+      map.sensorCount = sensors.count
+      map.hasAccelerometer = sensors.hasAccelerometer
+      map.hasGyroscope = sensors.hasGyroscope
+      map.hasMagnetometer = sensors.hasMagnetometer
+      map.hasProximitySensor = sensors.hasProximitySensor
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       emulatorChecksPerformed.add("test_harness")
       val isRunningInUserTestHarness = safeBool { ActivityManager.isRunningInUserTestHarness() }
-      map.putBoolean("isRunningInUserTestHarness", isRunningInUserTestHarness)
+      map.isRunningInUserTestHarness = isRunningInUserTestHarness
       if (isRunningInUserTestHarness) deviceFarmMarkers.add("android_test_harness")
     }
-    map.putArray("deviceFarmMarkers", toStringArray(deviceFarmMarkers.distinct()))
-    map.putArray("emulatorChecksPerformed", toStringArray(emulatorChecksPerformed))
-    (Build.SUPPORTED_ABIS?.firstOrNull())?.let { map.putString("abi", it) }
+    map.deviceFarmMarkers = deviceFarmMarkers.distinct()
+    map.emulatorChecksPerformed = emulatorChecksPerformed
+    (Build.SUPPORTED_ABIS?.firstOrNull())?.let { map.abi = it }
 
-    return map
+    return map.build()
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────────────────────────
@@ -439,12 +433,6 @@ class OsIntegrityProvider(private val context: Context) {
   // the platform, not something the wrapper can recover. That is acceptable for the path LISTS
   // (suspiciousFilePaths is evidence-by-presence), but never build an "everything is clean" claim on it.
   private fun safeExists(path: String): Boolean = safeBool { File(path).exists() }
-
-  private fun toStringArray(values: List<String>): WritableArray {
-    val arr = Arguments.createArray()
-    for (v in values) arr.pushString(v)
-    return arr
-  }
 
   /**
    * Collapses a throwing read to `false`. ONLY use this where `false` is a truthful observation on

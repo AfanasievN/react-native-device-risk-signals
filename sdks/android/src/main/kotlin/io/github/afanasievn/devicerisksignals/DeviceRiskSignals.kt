@@ -23,6 +23,9 @@ class DeviceRiskSignals(context: Context) {
   /** Explicit font-directory read, kept separate from hardware collection. */
   fun collectFonts(): FontsSignals = HardwareCollector(applicationContext).collectFonts()
 
+  /** Passive process/device observations. Does not connect to localhost or open network sockets. */
+  fun collectOsIntegrity(): OsIntegritySignals = OsIntegrityCollector(applicationContext).collect()
+
   /** Explicit opt-in measurement: reads the monotonic clock 257 times synchronously. */
   fun collectRuntimeTiming(): RuntimeTimingSignals = RuntimeTimingCollector().collect()
 

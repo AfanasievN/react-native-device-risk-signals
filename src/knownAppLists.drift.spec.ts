@@ -6,7 +6,7 @@ import {assertDefined} from "./testing/assertDefined";
 // unless it is declared in <queries>. KnownAppLists.kt (what the detector queries) and the
 // AndroidManifest <queries> block MUST list the exact same packages, or root/hook detection
 // silently misses installed managers. This asserts set-equality in BOTH directions.
-const PACKAGE_DIR = join(__dirname, "../android/src/main/java/com/reactnativedeviceintel");
+const PACKAGE_DIR = join(__dirname, "../sdks/android/src/main/kotlin/io/github/afanasievn/devicerisksignals");
 const KNOWN_APP_LISTS_PATH = join(PACKAGE_DIR, "KnownAppLists.kt");
 const MANIFEST_PATH = join(__dirname, "../android/src/main/AndroidManifest.xml");
 

@@ -117,3 +117,39 @@ React Native Android compilation/JVM tests, the root verification ring (107 Jest
 tests, native contract parity, package/ecosystem checks, and 24 Pages), npm pack dry run, and example
 tests/lint/TypeScript. Existing deprecated Android display API warnings remain; the extraction does
 not replace these APIs or change their returned observations.
+
+## Fourth increment: passive OS integrity
+
+`collectOsIntegrity()` is the ninth standalone collection. Its 58 fields preserve the original
+Android provider's raw observations, expressions, field types, conditional omissions, artifact
+lists, and helper logic. Integrity, emulator, and PATH helpers and their tests now live in the core.
+`KnownAppLists` also moved to the core and is shared with the remaining React Native app-audit and
+transaction providers. The existing RN manifest queries are unchanged; standalone consumers own
+their finite visibility declarations. A package-presence flag of false can mean not visible as
+well as absent.
+
+RED: relocated JVM tests failed on missing core model/helpers; the two JS native-source/manifest
+drift tests failed on the missing relocated files. GREEN: the same targets pass, including 58-field
+serialization, one-field-at-a-time builder mapping, false/zero/empty values, omission, and the
+existing evidence-classifier tests. The standalone suite now has 54 tests. Native example
+compilation, release AAR, and debug APK builds passed. Post-GREEN cleanup clarified comments about
+legacy fallback behavior; no collection semantics were changed.
+
+The active Frida TCP collector remains in the React Native adapter. Review found a conflict between
+its existing localhost connect/AUTH exchange and the repository's no-network boundary. This
+increment does not copy that socket behavior into the standalone SDK or expose it in the native
+example. Passive Frida observations from existing mapped-library, thread, pipe, and procfs reads
+are included in `collectOsIntegrity()`.
+
+The legacy active scan still has its existing defaults and limitations: REJECT-like bytes are
+protocol evidence rather than service identity; one socket read can receive only part of a response;
+connection/handshake errors collapse into false flags; separate connect/read timeouts are not a
+single collection deadline. Documentation now describes these limitations accurately. Resolving
+the active scanner's architecture, result contract, and defaults is separate follow-up work.
+No active Frida scan was executed during verification. Native collectors were compiled, while
+the JVM tests exercised pure models/helpers rather than collecting device observations.
+
+Final checks passed: standalone tests/AAR/native APK, RN Android compilation and JVM tests, root
+verification (107 Jest tests, three Node tests, 19-method native parity, package/ecosystem and all
+24 Pages), npm pack dry run, and example tests/lint/TypeScript. No publication or physical-device
+QA was performed.

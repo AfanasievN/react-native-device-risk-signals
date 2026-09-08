@@ -1,5 +1,7 @@
 package com.reactnativedeviceintel
 
+import io.github.afanasievn.devicerisksignals.KnownAppLists
+
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.pm.PackageManager

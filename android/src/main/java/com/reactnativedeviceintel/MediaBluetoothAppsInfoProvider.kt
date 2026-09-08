@@ -1,5 +1,7 @@
 package com.reactnativedeviceintel
 
+import io.github.afanasievn.devicerisksignals.KnownAppLists
+
 import android.annotation.SuppressLint
 import android.Manifest
 import android.bluetooth.BluetoothManager

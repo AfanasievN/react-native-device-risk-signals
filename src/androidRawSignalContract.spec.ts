@@ -53,7 +53,7 @@ describe("Android raw signal contract", () => {
 
   it("does not execute PATH-resolved commands while collecting root evidence", () => {
     const source = readFileSync(
-      join(androidRoot, "java/com/reactnativedeviceintel/OsIntegrityProvider.kt"),
+      join(__dirname, "../sdks/android/src/main/kotlin/io/github/afanasievn/devicerisksignals/OsIntegrityCollector.kt"),
       "utf8",
     );
     expect(source).not.toContain("Runtime.getRuntime().exec");

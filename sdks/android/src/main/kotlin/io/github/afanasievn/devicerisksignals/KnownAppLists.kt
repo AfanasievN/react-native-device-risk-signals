@@ -1,16 +1,17 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 /**
  * Canonical, single source of truth for the security-relevant Android package names the SDK looks
- * for. Used by [OsIntegrityProvider] (root-manager / hook-framework detection) today, and by the
+ * for. Used by the OS integrity collector (root-manager / hook-framework observations), and by the
  * app-audit (RAT / remote-access apps).
  *
  * IMPORTANT — package visibility: on Android 11+ (API 30) `PackageManager.getPackageInfo` cannot see
  * an arbitrary installed package unless it is declared in a `<queries>` block in the merged manifest
  * (and we deliberately do NOT request the `QUERY_ALL_PACKAGES` sensitive permission — it triggers a
- * Play Console policy review). So every package name here MUST also appear under `<queries>` in
+ * Play Console policy review). In the React Native distribution, every package name here also appears under `<queries>` in
  * `android/src/main/AndroidManifest.xml`. `knownAppLists.drift.spec.ts` fails CI if the two ever
- * diverge.
+ * diverge. The standalone SDK does not merge these queries automatically: native hosts own their
+ * finite visibility declarations. A package not found may be absent or invisible to the caller.
  */
 object KnownAppLists {
   /** Superuser / root-manager apps. */

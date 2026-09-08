@@ -142,7 +142,13 @@ Frida evidence beyond the port connect covers worker-thread names (`fridaThreadN
 (`fridaListenerPortFound`), and the D-Bus `AUTH` handshake reply (`fridaHandshakeReject`). Every one of
 those `/proc`-derived fields — plus `suOnPath` — is **omitted when its source cannot be read**, because
 SELinux routinely denies these paths to third-party apps; an absent field means unknown and must not be
-defaulted to `false`. On iOS,
+defaulted to `false`. The separate legacy RN active scan's `fridaHandshakeReject` is not a
+`/proc` field: it records a REJECT-like response prefix, not service identity. Its current socket
+errors/timeouts collapse into false flags rather than distinct unavailable outcomes. This active
+TCP scan remains outside the standalone Android SDK while the no-network architecture boundary is
+resolved. `collectOsIntegrity()` in the standalone SDK includes passive observations only and does
+not add package-visibility declarations; package presence flags are limited by the native host's
+visibility and false does not prove absence. On iOS,
 `parentPidUnexpected`, `jailbreakBypassDetected` (the Shadow tweak), `mainExecutableEncrypted` (Mach-O
 cryptid), and `openReverseEngineeringPorts` are additional raw observations. iOS Lockdown Mode is
 deliberately not collected: its only read path (`NSUserDefaults`) is an Apple Required-Reason API

@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

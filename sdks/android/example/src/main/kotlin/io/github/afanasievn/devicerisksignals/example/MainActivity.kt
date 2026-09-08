@@ -39,6 +39,7 @@ class MainActivity : Activity() {
     action("Application") { signals.collectApplication().toRawMap() }
     action("Hardware") { signals.collectHardware().toRawMap() }
     action("Fonts (optional)") { signals.collectFonts().toRawMap() }
+    action("OS integrity (passive)") { signals.collectOsIntegrity().toRawMap() }
     action("Runtime timing (optional)") { signals.collectRuntimeTiming().toRawMap() }
     action("Numeric consistency (optional)") { signals.collectNumericConsistency().toRawMap() }
     action("Audio latency (optional)") { signals.collectAudioLatency().toRawMap() }

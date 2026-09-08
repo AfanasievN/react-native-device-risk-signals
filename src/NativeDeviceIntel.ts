@@ -335,7 +335,7 @@ export type TransactionSafetySignals = {
 export type FridaScanSignals = {
   scanPerformed: boolean; // false on iOS (stub) or when the probe was skipped.
   defaultPortOpen?: boolean; // TCP connect to 127.0.0.1:27042 (frida-server default) succeeded.
-  fridaHandshakeReject?: boolean; // Android: the D-Bus/frida AUTH handshake on 27042 answered "REJECT" (genuine frida).
+  fridaHandshakeReject?: boolean; // Android: the AUTH response began with "REJECT"; protocol evidence, not service identity.
   scannedPort?: number; // The port that was probed (27042), echoed for traceability.
 };
 

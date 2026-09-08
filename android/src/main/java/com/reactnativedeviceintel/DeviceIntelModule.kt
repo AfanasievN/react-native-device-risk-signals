@@ -21,7 +21,6 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   override fun getRandomSessionId(): String = UUID.randomUUID().toString()
 
   private val androidSignals = DeviceRiskSignals(reactContext)
-  private val osIntegrity = OsIntegrityProvider(reactContext)
   private val fridaScan = FridaScanProvider()
   private val network = NetworkInfoProvider(reactContext)
   private val telephony = TelephonyInfoProvider(reactContext)
@@ -55,7 +54,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getOsIntegrity(promise: Promise) {
-    resolveOrReject(promise, "getOsIntegrity") { osIntegrity.getOsIntegrity() }
+    resolveOrReject(promise, "getOsIntegrity") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectOsIntegrity().toRawMap())
+    }
   }
 
   override fun getFridaScanSignals(promise: Promise) {

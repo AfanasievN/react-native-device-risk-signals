@@ -63,10 +63,12 @@ Web SDK ────────────┬─ Browser apps
 
 Today, `react-native-device-risk-signals` is the production distribution. Android core extraction is
 in development with device identity, locale, native runtime timing, native numeric vectors, audio
-property estimates, application metadata, hardware, and fonts using standalone typed Kotlin models.
+property estimates, application metadata, hardware, fonts, and passive OS integrity using standalone typed Kotlin models.
 A [native Android example](sdks/android/example/README.md)
 consumes this partial SDK without React Native; the Maven artifact is not published yet.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.
+OS integrity includes existing process-local Frida evidence. The separate legacy React Native
+localhost Frida scan remains outside the core pending resolution of the no-network boundary.
 iOS, Web, Flutter, and Capacitor remain planned. All surfaces
 share the generated [raw-signal contract](contract/README.md).
 

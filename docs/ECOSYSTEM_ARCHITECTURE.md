@@ -54,7 +54,7 @@ logic after extraction is complete.
 | --- | --- | --- |
 | `contract/` | Active | Generated, platform-neutral probe catalog and event schema |
 | `android/`, `ios/`, `src/` | Active/transitional | Current React Native package implementation |
-| `sdks/android/` | In development | Standalone Kotlin/Android library; identity, locale, native runtime timing, numeric vectors, audio properties, application, hardware, and fonts extracted |
+| `sdks/android/` | In development | Standalone Kotlin/Android library; identity, locale, native runtime timing, numeric vectors, audio properties, application, hardware, fonts, and passive OS integrity extracted |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
 | `sdks/ios/` | Planned | Standalone iOS Swift Package with optional Mac Catalyst support |
 | `sdks/web/` | Planned | Browser SDK |
@@ -73,7 +73,7 @@ directories intentionally contain no package manifests so they cannot be publish
 | Probe ids, fields, privacy metadata | `src/probeCatalog.ts` | Versioned shared contract tooling |
 | TypeScript event/native contract | `src/NativeDeviceIntel.ts` | Shared contract plus binding-specific generated types |
 | Generated catalog/schema | `contract/` and `website/` | `contract/` with published documentation mirrors |
-| Android identity, locale, native runtime timing, numeric vectors, audio properties, application, hardware, and fonts | `sdks/android/` | `android-device-risk-signals` |
+| Android identity, locale, native runtime timing, numeric vectors, audio properties, application, hardware, fonts, and passive OS integrity | `sdks/android/` | `android-device-risk-signals` |
 | Remaining Android providers | `android/` | `android-device-risk-signals` |
 | iOS providers | `ios/` | `ios-device-risk-signals` |
 | React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
@@ -290,9 +290,9 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
 
 - Introduce Kotlin result models that contain no React Native types. **Started:** device identity,
   Android build, locale, native runtime timing, numeric vector, audio property, application, hardware,
-  and font models are available.
+  font, and OS integrity models are available.
 - Move property, artifact, hook, and provider logic into the Android SDK. **Started:** identity and
-  locale, native runtime timing, numeric vector, audio property, application, hardware, and font
+  locale, native runtime timing, numeric vector, audio property, application, hardware, font, and passive OS integrity
   collectors are extracted.
   JavaScript timing, JS-to-native call duration, and JavaScript/native numeric comparisons remain in
   the React Native binding; other Android providers still need extraction. Audio latency is a
@@ -301,10 +301,16 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
   fields, including the `installerPackage` alias. Hardware retains existing Android storage reads;
   no new permissions or observations are introduced. Font collection remains explicit, expensive,
   and high entropy in the standalone facade; the existing React Native probe default is unchanged.
+  Passive integrity includes existing process-local Frida evidence and shared finite package lists.
+  Package observations depend on host visibility; `false` does not prove absence. The core manifest
+  adds no queries and the React Native manifest retains its existing queries.
+  The legacy `FridaScanProvider` localhost TCP scan remains in the React Native adapter as an
+  unresolved exception to the no-network architecture. It must be resolved before completing the
+  extraction; no TCP scan is exposed by the standalone SDK or its example.
 - Keep a small TurboModule adapter that converts SDK models to React Native maps. **Implemented:**
   the shared value converter is now the boundary for extracted probes.
 - Add native Android consumer tests before publishing the Maven artifact. **Started:**
-  `sdks/android/example/` depends directly on the SDK Gradle project and exposes eight explicit
+  `sdks/android/example/` depends directly on the SDK Gradle project and exposes nine explicit
   collection buttons without React Native. Its debug APK can be built alongside the release AAR;
   physical-device validation and the remaining publication gates still apply.
 - Add an Android section to GitHub Pages before Maven publication, clearly labeled `in development`
