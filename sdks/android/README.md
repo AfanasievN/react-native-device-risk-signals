@@ -4,6 +4,36 @@ Standalone Android SDK under active extraction. It adds no runtime libraries bey
 Kotlin runtime, performs no network requests, and exposes typed Kotlin models rather than React
 Native bridge containers. JUnit is used only for local unit tests and is not shipped in the AAR.
 
+Remaining provider extraction and release gates are tracked in the
+[migration checklist](../../docs/MIGRATION_ROADMAP.md#1-finish-android-extraction).
+
+Network, telephony and cached-location collections preserve the existing observations. These
+include sensitive local addresses, carrier/SIM metadata and coordinates. Native hosts must decide
+their collection purpose, consent and retention before calling them. This migration adds no
+permissions to the SDK manifest and never opens a permission prompt.
+
+| Host permission | Existing observation scope |
+| --- | --- |
+| `ACCESS_NETWORK_STATE` | Active connectivity/capabilities and link properties; other local observations may remain available without it |
+| `READ_PHONE_STATE` | Active SIM count when already granted; no IMEI or persistent identifier is collected |
+| `ACCESS_COARSE_LOCATION` or `ACCESS_FINE_LOCATION` | Last-known cached fix only; no location subscription or fresh-fix request |
+
+Permission-gated observations remain unavailable without the host's grant. Location/mock fields
+are omitted when no cached fix exists. Host permission requests, if needed for its product, remain
+outside the SDK and the native example.
+
+The media/app-audit collection preserves sensitive accessibility service component names and
+matches against the existing finite `KnownAppLists` package list. Collect them only for a documented
+purpose with appropriate consent and retention; an empty list is not proof that no service or app
+exists. Host package visibility constrains matches, and the standalone manifest adds no queries.
+Bluetooth collection reads only the bonded-device count, never names or addresses. It requires the
+host's existing `BLUETOOTH_CONNECT` grant on Android 12+ or legacy `BLUETOOTH` permission on older
+versions; neither the SDK nor example declares or requests them. No Bluetooth discovery occurs.
+Point-in-time device security posture reads lock state, advertised biometric hardware features,
+StrongBox support, clock settings and provisioning state. It does not authenticate the user, test
+biometric enrollment, create a key or install transaction/screenshot observers. Existing raw field
+names and fallback behavior are preserved during extraction; none represents a trust verdict.
+
 Currently extracted:
 
 - `DeviceRiskSignals.collectDeviceIdentity()`
@@ -15,6 +45,11 @@ Currently extracted:
 - `DeviceRiskSignals.collectHardware()`
 - `DeviceRiskSignals.collectFonts()`
 - `DeviceRiskSignals.collectOsIntegrity()`
+- `DeviceRiskSignals.collectNetwork()`
+- `DeviceRiskSignals.collectTelephony()`
+- `DeviceRiskSignals.collectGeolocation()`
+- `DeviceRiskSignals.collectMediaBluetoothApps()`
+- `DeviceRiskSignals.collectDeviceSecurityPosture()`
 
 ```kotlin
 val signals = DeviceRiskSignals(applicationContext)
@@ -29,6 +64,12 @@ val hardware: HardwareSignals = signals.collectHardware()
 // Optional, expensive, high-entropy observation; collect only for a documented purpose.
 val fonts: FontsSignals = signals.collectFonts()
 val integrity: OsIntegritySignals = signals.collectOsIntegrity()
+val network: NetworkSignals = signals.collectNetwork()
+val telephony: TelephonySignals = signals.collectTelephony()
+val geolocation: GeolocationSignals = signals.collectGeolocation()
+// Sensitive finite app/accessibility observations; invoke only for a documented purpose.
+val media: MediaBluetoothAppsSignals = signals.collectMediaBluetoothApps()
+val posture: DeviceSecurityPostureSignals = signals.collectDeviceSecurityPosture()
 ```
 
 The current React Native package compiles these same sources and converts `toRawMap()` results only
@@ -69,7 +110,17 @@ The standalone SDK manifest adds no package queries; the React Native manifest k
 queries. The legacy React Native localhost TCP Frida scan remains in its adapter and is an
 unresolved exception to the no-network architecture; the standalone SDK exposes no scan method.
 
-All nine methods run only when called. They add no permissions, prompts, transport, or automatic
+`collectMediaBluetoothApps()` preserves audio-route/music state, bonded Bluetooth count, display
+counts, finite known-package matches and enabled accessibility service names. Its legacy
+`installedFlaggedApps` name denotes list matches, not a risk verdict. Accessibility read failures
+still collapse into an empty list; music-read failures still become false. These inherited fallbacks
+need separate compatibility work and must not be interpreted as confirmed absence.
+
+`collectDeviceSecurityPosture()` exposes only point-in-time reads. `biometryAvailable` denotes
+advertised hardware features, not enrollment or a successful authentication check. Transaction
+touch/capture observation and its lifecycle remain in the React Native provider for now.
+
+All fourteen methods run only when called. They add no permissions, prompts, transport, or automatic
 collection. See the [native Android example](example/README.md) for a consumer that has no React
 Native dependency and exposes a separate collection button for each method.
 

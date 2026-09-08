@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 import android.annotation.SuppressLint
 import android.Manifest
@@ -6,38 +6,31 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.WritableMap
 
 /**
- * telephony — opportunistic reads only. This library does not request READ_PHONE_STATE or trigger a
- * prompt, and IMEI is deliberately NOT attempted (READ_PRIVILEGED_PHONE_STATE is not
- * available to third-party apps since API 29 — it would only ever return null / throw). Everything
- * here is a getter that works without a runtime prompt; each is wrapped so a vendor quirk can't
- * throw the probe.
+ * Opportunistic telephony reads only. Protected SIM-count collection requires an already granted
+ * READ_PHONE_STATE permission. This library never requests permission or reads persistent identifiers
+ * such as IMEI. Individual getter failures omit the corresponding observation.
  */
-class TelephonyInfoProvider(private val context: Context) {
+internal class TelephonyCollector(private val context: Context) {
 
-  fun getTelephonySignals(): WritableMap {
-    val map = Arguments.createMap()
+  fun collect(): TelephonySignals {
     val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-      ?: return map
+      ?: return TelephonySignals()
 
-    putStringIfPresent(map, "phoneType", safe { phoneTypeName(tm.phoneType) })
-    putStringIfPresent(map, "networkOperatorName", safe { tm.networkOperatorName })
-    putStringIfPresent(map, "simOperatorName", safe { tm.simOperatorName })
-    putStringIfPresent(map, "networkCountryIso", safe { tm.networkCountryIso })
-    putStringIfPresent(map, "simCountryIso", safe { tm.simCountryIso })
-    putStringIfPresent(map, "simState", safe { simStateName(tm.simState) })
-    putStringIfPresent(map, "dataState", safe { dataStateName(tm.dataState) })
-
-    safe { tm.hasIccCard() }?.let { map.putBoolean("hasIccCard", it) }
-    safe { tm.isNetworkRoaming }?.let { map.putBoolean("isNetworkRoaming", it) }
-    activeSimCount()?.let { map.putInt("simCount", it) }
-
-    // imei intentionally omitted (see class doc) — the TS contract keeps the optional field so the
-    // absence is explicit downstream.
-    return map
+    // Persistent identifiers are intentionally outside this collection's scope.
+    return TelephonySignals(
+      phoneType = safe { phoneTypeName(tm.phoneType) }?.takeIf(String::isNotEmpty),
+      networkOperatorName = safe { tm.networkOperatorName }?.takeIf(String::isNotEmpty),
+      simOperatorName = safe { tm.simOperatorName }?.takeIf(String::isNotEmpty),
+      networkCountryIso = safe { tm.networkCountryIso }?.takeIf(String::isNotEmpty),
+      simCountryIso = safe { tm.simCountryIso }?.takeIf(String::isNotEmpty),
+      simState = safe { simStateName(tm.simState) }?.takeIf(String::isNotEmpty),
+      dataState = safe { dataStateName(tm.dataState) }?.takeIf(String::isNotEmpty),
+      hasIccCard = safe { tm.hasIccCard() },
+      isNetworkRoaming = safe { tm.isNetworkRoaming },
+      simCount = activeSimCount(),
+    )
   }
 
   @SuppressLint("MissingPermission")
@@ -75,10 +68,6 @@ class TelephonyInfoProvider(private val context: Context) {
     TelephonyManager.DATA_CONNECTED -> "connected"
     TelephonyManager.DATA_SUSPENDED -> "suspended"
     else -> "unknown"
-  }
-
-  private fun putStringIfPresent(map: WritableMap, key: String, value: String?) {
-    if (!value.isNullOrEmpty()) map.putString(key, value)
   }
 
   private inline fun <T> safe(block: () -> T): T? = try {

@@ -4,8 +4,9 @@ This development app consumes `android-device-risk-signals` directly through `im
 It has no React Native dependency. The SDK is partially extracted and unpublished; this example is
 a local integration reference, not an instruction to install a Maven release.
 
-The app exposes nine separate buttons: identity, locale, runtime timing, native numeric vectors,
-audio properties, application metadata, hardware, fonts, and passive OS integrity. Collection starts
+The app exposes fourteen separate buttons: identity, locale, runtime timing, native numeric vectors,
+audio properties, application metadata, hardware, fonts, passive OS integrity, network, telephony,
+cached location, media/Bluetooth/finite app audit, and device security posture. Collection starts
 only when a button is pressed. Results are local raw observations;
 the app does not upload them or calculate a risk score.
 
@@ -27,6 +28,12 @@ val hardware = signals.collectHardware()
 // Optional, expensive, high-entropy collection.
 val fonts = signals.collectFonts()
 val integrity = signals.collectOsIntegrity()
+val network = signals.collectNetwork()
+val telephony = signals.collectTelephony()
+val geolocation = signals.collectGeolocation()
+// Sensitive finite package matches and accessibility component names.
+val media = signals.collectMediaBluetoothApps()
+val posture = signals.collectDeviceSecurityPosture()
 
 // Convert a typed result when the host application needs a raw map.
 val rawIdentity = identity.toRawMap()
@@ -45,6 +52,18 @@ probe default is unchanged. This extraction adds no permissions or new categorie
 OS integrity includes process-local Frida evidence but no localhost TCP scan. Finite package checks
 are constrained by host package visibility; `false` does not establish that a package is absent.
 The standalone SDK adds no package queries.
+
+Network reads local system observations; it performs no connectivity request. Carrier/SIM and
+cached-location fields depend on the host's existing permissions. This example adds no permissions
+or prompts; protected values therefore remain unavailable unless its host configuration is changed.
+See the [SDK permission table](../README.md). No cached fix means no coordinate or mock-provider
+fields, rather than a false assertion that the location is genuine.
+
+The media button reads only a bonded Bluetooth count, never device names or addresses, and performs
+no discovery. Bluetooth permissions and finite package visibility remain host-owned; this example
+adds neither. Accessibility service names and package-list matches are sensitive, and empty results
+can reflect unavailable reads or visibility limits. Device security posture reads hardware features
+and settings without authenticating the user or attaching transaction observers.
 
 Host applications own any event envelope, serialization, consent policy, storage, and transport.
 The complete React Native probe set is not yet available from this standalone facade.

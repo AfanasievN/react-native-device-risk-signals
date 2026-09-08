@@ -4,11 +4,8 @@ import io.github.afanasievn.devicerisksignals.KnownAppLists
 
 import android.app.KeyguardManager
 import android.content.Context
-import android.content.pm.PackageManager
 import android.media.AudioManager
-import android.os.Build
 import android.os.PowerManager
-import android.os.UserManager
 import android.provider.Settings
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
@@ -16,37 +13,6 @@ import com.facebook.react.bridge.WritableMap
 
 class SecurityPostureProvider(private val context: ReactApplicationContext) {
   private val transactionObserver = TransactionSafetyObserver(context)
-
-  fun getDeviceSecurityPosture(): WritableMap = Arguments.createMap().apply {
-    val keyguard = context.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-    safe { keyguard?.isDeviceSecure }?.let { putBoolean("hasSecureLockScreen", it) }
-    safe { keyguard?.isDeviceLocked }?.let { putBoolean("isDeviceLocked", it) }
-    val users = context.getSystemService(Context.USER_SERVICE) as? UserManager
-    safe { users?.isUserUnlocked }?.let { putBoolean("isUserUnlocked", it) }
-
-    val pm = context.packageManager
-    val fingerprint = pm.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)
-    val face = pm.hasSystemFeature(PackageManager.FEATURE_FACE)
-    val iris = pm.hasSystemFeature(PackageManager.FEATURE_IRIS)
-    putBoolean("fingerprintHardwarePresent", fingerprint)
-    putBoolean("faceHardwarePresent", face)
-    putBoolean("biometryAvailable", fingerprint || face || iris)
-    putString("biometryType", when {
-      face -> "face"
-      fingerprint -> "fingerprint"
-      iris -> "iris"
-      else -> "none"
-    })
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-      putBoolean("strongBoxAvailable", pm.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE))
-    }
-    globalSettingEnabled(Settings.Global.AUTO_TIME)?.let { putBoolean("automaticTimeEnabled", it) }
-    globalSettingEnabled(Settings.Global.AUTO_TIME_ZONE)?.let { putBoolean("automaticTimeZoneEnabled", it) }
-    globalSettingEnabled(Settings.Global.DEVICE_PROVISIONED)?.let { putBoolean("deviceProvisioned", it) }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SECURITY_PATCH.isNotEmpty()) {
-      putString("securityPatch", Build.VERSION.SECURITY_PATCH)
-    }
-  }
 
   fun getTransactionSafetySignals(): WritableMap = Arguments.createMap().apply {
     val keyguard = context.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
@@ -94,9 +60,6 @@ class SecurityPostureProvider(private val context: ReactApplicationContext) {
       putBoolean("isScreenCaptured", it)
     }
   }
-
-  private fun globalSettingEnabled(key: String): Boolean? =
-    safe { Settings.Global.getInt(context.contentResolver, key) != 0 }
 
   private fun enabledAccessibilityServices(): List<String>? = try {
     Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)

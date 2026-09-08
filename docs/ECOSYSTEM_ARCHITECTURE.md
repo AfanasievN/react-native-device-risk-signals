@@ -1,9 +1,11 @@
 # Device Risk Signals ecosystem architecture
 
 - **Status:** normative
-- **Last updated:** 2026-08-26
+- **Last updated:** 2026-09-08
 - **Machine-readable companion:** [`device-risk-signals.json`](../device-risk-signals.json)
 - **Accepted decision:** [ADR-0001](adr/0001-platform-sdk-monorepo.md)
+- **Remaining work:** [Migration checklist](MIGRATION_ROADMAP.md)
+- **Platform discovery:** [SEO and platform content plan](PLATFORM_SEO_PLAN.md)
 
 This document defines how the repository is organized and operated. If a placeholder README or an
 implementation detail disagrees with this document, this document and `device-risk-signals.json`
@@ -54,7 +56,7 @@ logic after extraction is complete.
 | --- | --- | --- |
 | `contract/` | Active | Generated, platform-neutral probe catalog and event schema |
 | `android/`, `ios/`, `src/` | Active/transitional | Current React Native package implementation |
-| `sdks/android/` | In development | Standalone Kotlin/Android library; identity, locale, native runtime timing, numeric vectors, audio properties, application, hardware, fonts, and passive OS integrity extracted |
+| `sdks/android/` | In development | Fourteen standalone collections: identity, locale, timing, numeric vectors, audio properties, application, hardware, fonts, passive integrity, network, telephony, cached location, media/Bluetooth/finite app audit, device security posture |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
 | `sdks/ios/` | Planned | Standalone iOS Swift Package with optional Mac Catalyst support |
 | `sdks/web/` | Planned | Browser SDK |
@@ -73,7 +75,7 @@ directories intentionally contain no package manifests so they cannot be publish
 | Probe ids, fields, privacy metadata | `src/probeCatalog.ts` | Versioned shared contract tooling |
 | TypeScript event/native contract | `src/NativeDeviceIntel.ts` | Shared contract plus binding-specific generated types |
 | Generated catalog/schema | `contract/` and `website/` | `contract/` with published documentation mirrors |
-| Android identity, locale, native runtime timing, numeric vectors, audio properties, application, hardware, fonts, and passive OS integrity | `sdks/android/` | `android-device-risk-signals` |
+| Android identity, locale, timing, numeric vectors, audio, application, hardware, fonts, integrity, network, telephony, cached location, media/app audit and device posture | `sdks/android/` | `android-device-risk-signals` |
 | Remaining Android providers | `android/` | `android-device-risk-signals` |
 | iOS providers | `ios/` | `ios-device-risk-signals` |
 | React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
@@ -98,6 +100,12 @@ Every distributable uses the public pattern `<platform>-device-risk-signals`:
 
 Flutter is the only spelling exception at installation time: Dart package names must be valid
 `lowercase_with_underscores` identifiers. The product and documentation name still uses hyphens.
+
+These names are the confirmed distributable identities; the umbrella repository name
+`device-risk-signals` does not replace them. Future platforms follow the same naming pattern and
+the component/ADR process. Documentation and SEO pages must lead with the matching platform package,
+its audience and actual availability; unpublished registry names are intended coordinates, not
+proof of reservation or installation availability.
 
 ## Dependency rules
 
@@ -290,10 +298,15 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
 
 - Introduce Kotlin result models that contain no React Native types. **Started:** device identity,
   Android build, locale, native runtime timing, numeric vector, audio property, application, hardware,
-  font, and OS integrity models are available.
+  font, OS integrity, network, telephony, cached geolocation, media/app audit and device posture models
+  are available.
 - Move property, artifact, hook, and provider logic into the Android SDK. **Started:** identity and
   locale, native runtime timing, numeric vector, audio property, application, hardware, font, and passive OS integrity
-  collectors are extracted.
+  collectors are extracted, along with network, telephony, cached geolocation, media/Bluetooth/finite
+  app audit and point-in-time device security posture. Transaction observation stays in the binding
+  until its explicit native lifecycle API is designed and tested. Network reads
+  system state without sending requests. Telephony/location preserve host permission checks and
+  cached-only location reads; the SDK and native example add no permission declarations or prompts.
   JavaScript timing, JS-to-native call duration, and JavaScript/native numeric comparisons remain in
   the React Native binding; other Android providers still need extraction. Audio latency is a
   property-derived buffer estimate, not a measured loopback observation.
@@ -310,7 +323,7 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
 - Keep a small TurboModule adapter that converts SDK models to React Native maps. **Implemented:**
   the shared value converter is now the boundary for extracted probes.
 - Add native Android consumer tests before publishing the Maven artifact. **Started:**
-  `sdks/android/example/` depends directly on the SDK Gradle project and exposes nine explicit
+  `sdks/android/example/` depends directly on the SDK Gradle project and exposes fourteen explicit
   collection buttons without React Native. Its debug APK can be built alongside the release AAR;
   physical-device validation and the remaining publication gates still apply.
 - Add an Android section to GitHub Pages before Maven publication, clearly labeled `in development`

@@ -1,10 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <!-- This package deliberately declares NO <uses-permission>. NetworkInfoProvider's
-       ConnectivityManager reads use ACCESS_NETWORK_STATE, which is ALREADY present in the merged
-       app manifest. We do not add it ourselves, and if it is absent the capabilities read degrades
-       gracefully (interface/getifaddrs reads still work). This SDK adds zero permissions to the host
-       app. -->
+  <!-- This package deliberately declares NO <uses-permission>. The core NetworkCollector's
+       ConnectivityManager reads require host-owned ACCESS_NETWORK_STATE. We do not add it
+       ourselves; without its grant, guarded capability reads are omitted. Local interface reads
+       remain opportunistic. This SDK adds zero permissions to the host app. -->
 
   <!-- Package visibility (Android 11+/API 30): PackageManager.getPackageInfo cannot see these unless
        they are declared here. We deliberately do NOT request QUERY_ALL_PACKAGES (a Play Console

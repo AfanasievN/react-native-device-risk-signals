@@ -46,6 +46,9 @@ application owns transport, authentication, storage, scoring, and policy.
 
 ## Ecosystem roadmap
 
+See the [remaining migration checklist](docs/MIGRATION_ROADMAP.md) for current coverage, the next
+Android providers, iOS/Web and binding work, publication gates, and GitHub Pages changes.
+
 ```text
 Native Android SDK ─┬─ React Native
                     ├─ Flutter
@@ -63,7 +66,9 @@ Web SDK ────────────┬─ Browser apps
 
 Today, `react-native-device-risk-signals` is the production distribution. Android core extraction is
 in development with device identity, locale, native runtime timing, native numeric vectors, audio
-property estimates, application metadata, hardware, fonts, and passive OS integrity using standalone typed Kotlin models.
+property estimates, application metadata, hardware, fonts, passive OS integrity, network, telephony,
+cached geolocation, media/Bluetooth/finite app audit, and device security posture using standalone
+typed Kotlin models.
 A [native Android example](sdks/android/example/README.md)
 consumes this partial SDK without React Native; the Maven artifact is not published yet.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.
@@ -72,10 +77,20 @@ localhost Frida scan remains outside the core pending resolution of the no-netwo
 iOS, Web, Flutter, and Capacitor remain planned. All surfaces
 share the generated [raw-signal contract](contract/README.md).
 
-All distributables follow `<platform>-device-risk-signals`: `android-device-risk-signals`,
-`ios-device-risk-signals`, `web-device-risk-signals`, `react-native-device-risk-signals`,
-`flutter-device-risk-signals`, and `capacitor-device-risk-signals`. Flutter installs as
-`flutter_device_risk_signals` because pub.dev package identifiers use underscores.
+`device-risk-signals` is the umbrella project. Choose the package for your application framework:
+
+| Your application | Library name | Repository status |
+| --- | --- | --- |
+| React Native | `react-native-device-risk-signals` | Published npm package |
+| Flutter | `flutter-device-risk-signals` | Planned; intended pub.dev coordinate `flutter_device_risk_signals` |
+| Native Android | `android-device-risk-signals` | In development; Maven artifact unpublished |
+| Native iOS | `ios-device-risk-signals` | Planned Swift Package |
+| Capacitor | `capacitor-device-risk-signals` | Planned npm package |
+| Browser | `web-device-risk-signals` | Planned npm package |
+
+Future libraries follow the same `<platform>-device-risk-signals` naming pattern. Flutter's
+underscore spelling is the registry coordinate, not a different product name. Planned names do
+not imply a published or reserved registry artifact.
 
 ## Support this project
 

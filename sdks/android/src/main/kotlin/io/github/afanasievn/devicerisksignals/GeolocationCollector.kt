@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 import android.annotation.SuppressLint
 import android.Manifest
@@ -7,43 +7,42 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.WritableMap
 
 /**
- * geolocation — OPPORTUNISTIC. Never requests permission: reads a last-known fix only if COARSE is
- * already granted, and always reports the mock-provider flag on whatever fix exists. Coarse is fine —
- * the fraud value is the mock-location tell and coordinate-vs-claimed-address mismatch.
+ * Opportunistic cached-location reads with an already granted COARSE or FINE permission.
+ * Never requests permission or a fresh fix. Coordinates and mock-provider observations are emitted
+ * only when a cached fix exists; interpretation belongs to the caller.
  */
-class GeolocationInfoProvider(private val context: Context) {
+internal class GeolocationCollector(private val context: Context) {
 
-  fun getGeolocationSignals(): WritableMap {
-    val map = Arguments.createMap()
-
+  fun collect(): GeolocationSignals {
     val hasCoarse = hasPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
     val hasFine = hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-    map.putBoolean("hasCoarsePermission", hasCoarse)
-    map.putString("authorizationStatus", if (hasCoarse || hasFine) "granted" else "denied")
-    locationServicesEnabled()?.let { map.putBoolean("locationServicesEnabled", it) }
-    map.putBoolean(
-      "gnssSupported",
-      safeBool { context.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS) },
+    val servicesEnabled = locationServicesEnabled()
+    val gnss = safeBool { context.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS) }
+    val observations = GeolocationSignals(
+      hasCoarsePermission = hasCoarse,
+      authorizationStatus = if (hasCoarse || hasFine) "granted" else "denied",
+      locationServicesEnabled = servicesEnabled,
+      gnssSupported = gnss,
     )
 
     if (hasCoarse || hasFine) {
       val location = freshestLastKnownLocation()
       if (location != null) {
-        map.putDouble("latitude", location.latitude)
-        map.putDouble("longitude", location.longitude)
-        if (location.hasAccuracy()) map.putDouble("accuracyMeters", location.accuracy.toDouble())
-        if (location.hasAltitude()) map.putDouble("altitudeMeters", location.altitude)
-        location.provider?.let { map.putString("provider", it) }
-        map.putBoolean("isFromMockProvider", isMock(location))
-        map.putInt("locationAgeMs", (System.currentTimeMillis() - location.time).coerceAtLeast(0).toInt())
+        return observations.copy(
+          latitude = location.latitude,
+          longitude = location.longitude,
+          accuracyMeters = if (location.hasAccuracy()) location.accuracy.toDouble() else null,
+          altitudeMeters = if (location.hasAltitude()) location.altitude else null,
+          provider = location.provider,
+          isFromMockProvider = isMock(location),
+          locationAgeMs = (System.currentTimeMillis() - location.time).coerceAtLeast(0).toInt(),
+        )
       }
     }
 
-    return map
+    return observations
   }
 
   @SuppressLint("MissingPermission")

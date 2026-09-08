@@ -22,10 +22,6 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
 
   private val androidSignals = DeviceRiskSignals(reactContext)
   private val fridaScan = FridaScanProvider()
-  private val network = NetworkInfoProvider(reactContext)
-  private val telephony = TelephonyInfoProvider(reactContext)
-  private val geolocation = GeolocationInfoProvider(reactContext)
-  private val mediaBluetoothApps = MediaBluetoothAppsInfoProvider(reactContext)
   private val gpuBenchmark = GpuBenchmarkProvider()
   private val securityPosture = SecurityPostureProvider(reactContext)
 
@@ -72,11 +68,15 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getNetworkSignals(promise: Promise) {
-    resolveOrReject(promise, "getNetworkSignals") { network.getNetworkSignals() }
+    resolveOrReject(promise, "getNetworkSignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectNetwork().toRawMap())
+    }
   }
 
   override fun getTelephonySignals(promise: Promise) {
-    resolveOrReject(promise, "getTelephonySignals") { telephony.getTelephonySignals() }
+    resolveOrReject(promise, "getTelephonySignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectTelephony().toRawMap())
+    }
   }
 
   override fun getLocaleSignals(promise: Promise) {
@@ -86,11 +86,15 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getGeolocationSignals(promise: Promise) {
-    resolveOrReject(promise, "getGeolocationSignals") { geolocation.getGeolocationSignals() }
+    resolveOrReject(promise, "getGeolocationSignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectGeolocation().toRawMap())
+    }
   }
 
   override fun getMediaBluetoothAppsSignals(promise: Promise) {
-    resolveOrReject(promise, "getMediaBluetoothAppsSignals") { mediaBluetoothApps.getMediaBluetoothAppsSignals() }
+    resolveOrReject(promise, "getMediaBluetoothAppsSignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectMediaBluetoothApps().toRawMap())
+    }
   }
 
   override fun getGpuBenchmark(promise: Promise) {
@@ -104,7 +108,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getDeviceSecurityPosture(promise: Promise) {
-    resolveOrReject(promise, "getDeviceSecurityPosture") { securityPosture.getDeviceSecurityPosture() }
+    resolveOrReject(promise, "getDeviceSecurityPosture") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectDeviceSecurityPosture().toRawMap())
+    }
   }
 
   override fun getTransactionSafetySignals(promise: Promise) {

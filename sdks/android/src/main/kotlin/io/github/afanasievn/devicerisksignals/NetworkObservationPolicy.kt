@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 internal data class BaseConnectivityObservation(
   val isConnected: Boolean,

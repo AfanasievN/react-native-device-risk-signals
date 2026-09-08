@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -9,21 +9,14 @@ import android.net.LinkProperties
 import android.net.NetworkCapabilities
 import android.net.TrafficStats
 import android.os.Build
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.WritableArray
-import com.facebook.react.bridge.WritableMap
 import java.net.NetworkInterface
 
 /**
- * network — connectivity type, VPN/proxy presence, interface topology, and cumulative traffic
- * counters. Permission-free (this package declares no permission; ACCESS_NETWORK_STATE is already in
- * the merged app manifest via netinfo/Firebase/etc., and the reads degrade gracefully without it).
- * No SSID: the
- * app removes ACCESS_FINE_LOCATION (`tools:node="remove"`) by existing decision, and the modern
- * WifiManager SSID read requires it — so `wifiSsid`/`wifiBssid` are intentionally omitted here
- * rather than returning the "<unknown ssid>" placeholder the OS hands back.
+ * Passive connectivity, proxy, interface topology, and cumulative traffic observations.
+ * The host may declare ACCESS_NETWORK_STATE; guarded reads are omitted without its grant.
+ * SSID/BSSID are intentionally not collected. No permission prompt or network request is made.
  */
-class NetworkInfoProvider(private val context: Context) {
+internal class NetworkCollector(private val context: Context) {
 
   private data class ActiveNetworkSnapshot(
     val activeNetworkPresent: Boolean?,
@@ -32,8 +25,8 @@ class NetworkInfoProvider(private val context: Context) {
     val linkProperties: LinkProperties?,
   )
 
-  fun getNetworkSignals(): WritableMap {
-    val map = Arguments.createMap()
+  fun collect(): NetworkSignals {
+    val map = NetworkSignals.Builder()
 
     val hasNetworkState =
       context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED
@@ -48,30 +41,21 @@ class NetworkInfoProvider(private val context: Context) {
       snapshot?.capabilitiesPresent,
     )
       ?.let { observation ->
-        map.putBoolean("isConnected", observation.isConnected)
+        map.isConnected = observation.isConnected
         val type = observation.connectionType ?: caps?.let(::connectionType)
-        type?.let { map.putString("connectionType", it) }
+        type?.let { map.connectionType = it }
       }
 
     if (caps != null) {
-      map.putBoolean(
-        "isMetered",
-        !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED),
-      )
-      map.putBoolean("isVpnActive", caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN))
-      map.putBoolean(
-        "isInternetValidated",
-        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
-      )
-      map.putBoolean(
-        "hasCaptivePortal",
-        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL),
-      )
-      map.putArray("networkTransportTypes", toStringArray(networkTransportTypes(caps)))
+      map.isMetered = !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+      map.isVpnActive = caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+      map.isInternetValidated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+      map.hasCaptivePortal = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)
+      map.networkTransportTypes = networkTransportTypes(caps)
       val down = caps.linkDownstreamBandwidthKbps
       val up = caps.linkUpstreamBandwidthKbps
-      if (down > 0) map.putInt("linkDownstreamKbps", down)
-      if (up > 0) map.putInt("linkUpstreamKbps", up)
+      if (down > 0) map.linkDownstreamKbps = down
+      if (up > 0) map.linkUpstreamKbps = up
     }
 
     linkProperties?.let { addLinkProperties(map, it) }
@@ -79,11 +63,11 @@ class NetworkInfoProvider(private val context: Context) {
     // Interface topology — reveals tun/tap/ppp VPN overlays regardless of the capabilities read.
     val inventory = interfaceInventory()
     inventory?.let { (names, addresses) ->
-      map.putArray("interfaceNames", toStringArray(names))
-      map.putArray("localIpAddresses", toStringArray(addresses))
+      map.interfaceNames = names
+      map.localIpAddresses = addresses
       if (caps == null) {
         // Interface state remains observable without ACCESS_NETWORK_STATE.
-        map.putBoolean("isVpnActive", names.any(::isVpnInterfaceName))
+        map.isVpnActive = names.any(::isVpnInterfaceName)
       }
     }
 
@@ -92,17 +76,17 @@ class NetworkInfoProvider(private val context: Context) {
     if (proxyHostRead.isSuccess) {
       val proxyHost = proxyHostRead.getOrNull()
       val proxyConfigured = !proxyHost.isNullOrEmpty()
-      map.putBoolean("isProxyConfigured", proxyConfigured)
+      map.isProxyConfigured = proxyConfigured
       if (proxyConfigured) {
-        map.putString("proxyHost", proxyHost)
+        map.proxyHost = proxyHost
         safeString { System.getProperty("http.proxyPort") }
           ?.toIntOrNull()
-          ?.let { map.putInt("proxyPort", it) }
+          ?.let { map.proxyPort = it }
       }
     }
 
     addTrafficCounters(map)
-    return map
+    return map.build()
   }
 
   /**
@@ -131,22 +115,22 @@ class NetworkInfoProvider(private val context: Context) {
     )
   }
 
-  private fun addLinkProperties(map: WritableMap, properties: LinkProperties) {
+  private fun addLinkProperties(map: NetworkSignals.Builder, properties: LinkProperties) {
     safe {
       val dns = properties.dnsServers.mapNotNull { it.hostAddress }.distinct()
-      map.putArray("dnsServerAddresses", toStringArray(dns))
+      map.dnsServerAddresses = dns
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
       safe { properties.isPrivateDnsActive }
-        ?.let { map.putBoolean("isPrivateDnsActive", it) }
+        ?.let { map.isPrivateDnsActive = it }
       safe { properties.privateDnsServerName }
         ?.takeIf(String::isNotEmpty)
-        ?.let { map.putString("privateDnsServerName", it) }
+        ?.let { map.privateDnsServerName = it }
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       safe { properties.mtu }
         ?.takeIf { it > 0 }
-        ?.let { map.putInt("activeNetworkMtu", it) }
+        ?.let { map.activeNetworkMtu = it }
     }
   }
 
@@ -170,19 +154,19 @@ class NetworkInfoProvider(private val context: Context) {
    * TrafficStats cumulative byte counters SINCE BOOT (not a rate). Wifi = total − mobile. Returns
    * TrafficStats.UNSUPPORTED (-1) on devices without stats — guard and omit. Permission-free.
    */
-  private fun addTrafficCounters(map: WritableMap) {
+  private fun addTrafficCounters(map: NetworkSignals.Builder) {
     val mobileRx = safeLong { TrafficStats.getMobileRxBytes() }
     val mobileTx = safeLong { TrafficStats.getMobileTxBytes() }
     val totalRx = safeLong { TrafficStats.getTotalRxBytes() }
     val totalTx = safeLong { TrafficStats.getTotalTxBytes() }
 
-    if (mobileRx != null && mobileRx >= 0) map.putDouble("mobileRxBytes", mobileRx.toDouble())
-    if (mobileTx != null && mobileTx >= 0) map.putDouble("mobileTxBytes", mobileTx.toDouble())
+    if (mobileRx != null && mobileRx >= 0) map.mobileRxBytes = mobileRx.toDouble()
+    if (mobileTx != null && mobileTx >= 0) map.mobileTxBytes = mobileTx.toDouble()
     if (totalRx != null && totalRx >= 0 && mobileRx != null && mobileRx >= 0) {
-      map.putDouble("wifiRxBytes", (totalRx - mobileRx).coerceAtLeast(0).toDouble())
+      map.wifiRxBytes = (totalRx - mobileRx).coerceAtLeast(0).toDouble()
     }
     if (totalTx != null && totalTx >= 0 && mobileTx != null && mobileTx >= 0) {
-      map.putDouble("wifiTxBytes", (totalTx - mobileTx).coerceAtLeast(0).toDouble())
+      map.wifiTxBytes = (totalTx - mobileTx).coerceAtLeast(0).toDouble()
     }
   }
 
@@ -223,12 +207,6 @@ class NetworkInfoProvider(private val context: Context) {
       return null
     }
     return Pair(names, addresses)
-  }
-
-  private fun toStringArray(values: List<String>): WritableArray {
-    val arr = Arguments.createArray()
-    for (v in values) arr.pushString(v)
-    return arr
   }
 
   private inline fun safeString(block: () -> String?): String? = try {

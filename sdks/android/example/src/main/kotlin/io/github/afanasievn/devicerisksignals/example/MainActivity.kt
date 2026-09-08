@@ -40,6 +40,11 @@ class MainActivity : Activity() {
     action("Hardware") { signals.collectHardware().toRawMap() }
     action("Fonts (optional)") { signals.collectFonts().toRawMap() }
     action("OS integrity (passive)") { signals.collectOsIntegrity().toRawMap() }
+    action("Network (local observations)") { signals.collectNetwork().toRawMap() }
+    action("Telephony") { signals.collectTelephony().toRawMap() }
+    action("Cached location") { signals.collectGeolocation().toRawMap() }
+    action("Media / finite app audit (optional)") { signals.collectMediaBluetoothApps().toRawMap() }
+    action("Device security posture") { signals.collectDeviceSecurityPosture().toRawMap() }
     action("Runtime timing (optional)") { signals.collectRuntimeTiming().toRawMap() }
     action("Numeric consistency (optional)") { signals.collectNumericConsistency().toRawMap() }
     action("Audio latency (optional)") { signals.collectAudioLatency().toRawMap() }

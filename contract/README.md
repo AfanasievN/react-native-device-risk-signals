@@ -12,3 +12,6 @@ both this neutral contract and the GitHub Pages copies. Do not edit generated JS
 
 The contract contains observations and collection outcomes only. It deliberately contains no risk
 score, trusted/untrusted verdict, persistent identifier, transport, or vendor endpoint.
+
+Independent contract authoring, versioning and cross-SDK conformance are still pending; see the
+[shared-contract checklist](../docs/MIGRATION_ROADMAP.md#3-make-the-shared-contract-independent).

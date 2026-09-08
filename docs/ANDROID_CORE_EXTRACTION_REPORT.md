@@ -153,3 +153,83 @@ Final checks passed: standalone tests/AAR/native APK, RN Android compilation and
 verification (107 Jest tests, three Node tests, 19-method native parity, package/ecosystem and all
 24 Pages), npm pack dry run, and example tests/lint/TypeScript. No publication or physical-device
 QA was performed.
+
+## Fifth increment: network, telephony, and cached location
+
+`collectNetwork()`, `collectTelephony()`, and `collectGeolocation()` bring the standalone facade
+to twelve explicit collections. The RN module delegates through the existing value converter;
+the native example now offers all twelve calls. Existing network observation policy and its tests
+move to the core, with no React Native imports in the new collectors or models.
+
+Field inventory comparison against the previous providers found identical raw key sets: 22 network,
+10 telephony, and 11 geolocation fields. Platform gates, numeric representation, permission checks,
+cached-provider selection and exception scopes are preserved. Network reads observe local platform
+state without making requests. Telephony does not collect IMEI. Location never requests a fresh fix;
+without a cached fix it does not emit coordinates or the mock-provider flag.
+
+Host permission and privacy requirements were documented before extraction. No permissions, package
+queries, runtime dependencies or native frameworks were added. Protected reads use already granted
+host permissions; no permission prompts occur. Inherited limitations remain explicit follow-ups:
+some geolocation helpers collapse failures into false, and `locationAgeMs` retains its 32-bit
+narrowing (overflow is possible after roughly 24.86 days). Fixing those semantics requires separate
+regression and compatibility work, not an undocumented change during a provider move.
+
+RED: new model/policy tests failed on missing core types; the native example failed on missing facade
+methods. GREEN: those same targets pass after extraction. Tests cover omitted values, false/zero,
+empty arrays, complete raw maps, every network builder assignment and existing connectivity policy.
+Post-GREEN cleanup made collector comments platform-neutral and corrected permission descriptions;
+the narrow standalone tests and native builds passed again. There are now 64 standalone JVM tests.
+These tests validate pure models/helpers, not physical-device permission or provider behavior.
+
+Final verification passed: standalone JVM tests, release AAR, native example debug APK, RN Android
+compilation/JVM tests, root verification (107 Jest tests, three Node tests, 19-method native parity,
+package/ecosystem checks and 24 Pages), npm pack dry run, and example tests/lint/TypeScript.
+Existing AGP compile-SDK and deprecated Android/Gradle API warnings remain. Physical-device QA,
+registry publication and deployment remain outstanding.
+
+The migration checklist now identifies media/Bluetooth/finite app audit and device security posture
+as the next extraction slice. Confirmed public package names and an editorial platform SEO plan
+are documented separately; drafts do not imply live platform pages or available registry releases.
+
+## Sixth increment: media/app audit and point-in-time device posture
+
+`collectMediaBluetoothApps()` and `collectDeviceSecurityPosture()` extend the standalone facade
+to fourteen calls. Two implementation subagents worked on independent providers while the parent
+integrated the facade, RN conversion and native example. A third subagent performed a read-only
+audit of the remaining transaction/GPU boundaries. No additional component was activated or renamed.
+
+The media collector preserves seven raw fields: audio route/music state, bonded Bluetooth count,
+two display counts, finite known-package matches and enabled accessibility service component names.
+It adds no Bluetooth discovery, device names/addresses, package queries or permissions. Existing
+list contents/order, route priority, permission gates and read-failure behavior remain unchanged.
+In particular, empty accessibility/app lists and false music observations retain legacy ambiguity;
+they are not proof of absence or a risk verdict.
+
+The posture collector preserves all twelve existing raw keys, platform gates, read order and
+failure scopes. It does not test biometric enrollment, authenticate the user, create a key or attach
+transaction observers. The transaction methods, observation state and lifecycle are unchanged in
+the RN provider; only its posture method, now-unused helper and imports were removed.
+
+RED: the native example failed compilation on both missing facade methods. Standalone tests then
+failed compilation on the missing media/posture models before production implementation began.
+GREEN: the same example and test targets pass after extraction. Six new model tests cover omissions,
+false, numeric zeroes where applicable, empty lists and all field mappings. Source inventory
+comparison found identical 7-field media and 12-field posture key sets. Post-GREEN cleanup clarified
+the media collector's host-permission/count-only comments; the same targets and native builds
+passed again. The standalone suite now has 70 JVM tests.
+
+No percentage coverage claim is made: this slice tests pure models and compiles platform reads,
+but does not add an instrumented Android test harness or execute permission/lifecycle/device APIs
+on physical devices. Representative device QA remains a release gate. The implementation does not
+add runtime dependencies, permissions, frameworks, prompts, queries or change RN probe defaults.
+
+Final checks passed: standalone JVM suite, release AAR and native example APK; RN Android compile
+and JVM tests; root verification (107 Jest tests, three Node tests, 19-method native parity,
+package/ecosystem validation and 24 Pages); npm pack dry run; example tests, lint and TypeScript.
+Existing AGP compile-SDK and Gradle deprecation warnings remain. No registry publication or Pages
+deployment was performed.
+
+The roadmap now records the proposed explicit transaction-session boundary and concrete source-review
+risks: queued attachment after timeout/disposal, stale capture availability, unsupported partial-touch
+false values, wrapped callbacks, EGL restoration and GPU budget/cleanup limits. Those findings are
+not fixes delivered by this extraction; they require dedicated regression and compatibility work.

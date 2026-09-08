@@ -1,6 +1,4 @@
-package com.reactnativedeviceintel
-
-import io.github.afanasievn.devicerisksignals.KnownAppLists
+package io.github.afanasievn.devicerisksignals
 
 import android.annotation.SuppressLint
 import android.Manifest
@@ -12,50 +10,47 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
 import android.provider.Settings
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.WritableArray
-import com.facebook.react.bridge.WritableMap
 
 /**
- * media_bluetooth_apps (Android side, one class per the plan's accepted asymmetry). Covers: audio
- * route + music state, bonded Bluetooth devices (permissions already granted at app level), an
- * app-audit against [KnownAppLists], and enabled accessibility services (a device-farm automation
- * tell). Screen-capture is intentionally omitted on Android — there is no point-in-time query API
- * before API 35 (registerScreenCaptureCallback is lifecycle, not a snapshot). iOS reports it.
+ * Local Android observations: audio route/music state, bonded Bluetooth count with host permissions,
+ * a finite app audit against [KnownAppLists], and enabled accessibility services. Screen-capture is omitted:
+ * this collector does not register lifecycle callbacks or infer a capture state.
  */
-class MediaBluetoothAppsInfoProvider(private val context: Context) {
+internal class MediaBluetoothAppsCollector(private val context: Context) {
 
-  fun getMediaBluetoothAppsSignals(): WritableMap {
-    val map = Arguments.createMap()
+  fun collect(): MediaBluetoothAppsSignals {
+    var signals = MediaBluetoothAppsSignals()
 
     // ── Audio ──
     val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
     if (audio != null) {
-      safeBool { audio.isMusicActive }.let { map.putBoolean("isMusicActive", it) }
-      audioOutputRoute(audio)?.let { map.putString("audioOutputRoute", it) }
+      safeBool { audio.isMusicActive }.let { signals = signals.copy(isMusicActive = it) }
+      audioOutputRoute(audio)?.let { signals = signals.copy(audioOutputRoute = it) }
     }
 
     // ── Bluetooth (bonded devices) ──
-    addBondedBluetooth(map)
+    signals = addBondedBluetooth(signals)
 
     // ── Display topology ──
-    addDisplayTopology(map)
+    signals = addDisplayTopology(signals)
 
     // ── App audit ──
     val flagged = KnownAppLists.allQueriedPackages.filter { isInstalled(it) }
-    map.putArray("installedFlaggedApps", toStringArray(flagged))
+    signals = signals.copy(installedFlaggedApps = flagged)
 
     // ── Accessibility services (raw enumeration) ──
-    map.putArray("enabledAccessibilityServices", toStringArray(enabledAccessibilityServices()))
+    signals = signals.copy(enabledAccessibilityServices = enabledAccessibilityServices())
 
-    return map
+    return signals
   }
 
-  private fun addDisplayTopology(map: WritableMap) {
-    val manager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager ?: return
-    safe { manager.displays.size }?.let { map.putInt("displayCount", it) }
+  private fun addDisplayTopology(initial: MediaBluetoothAppsSignals): MediaBluetoothAppsSignals {
+    val manager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager ?: return initial
+    var signals = initial
+    safe { manager.displays.size }?.let { signals = signals.copy(displayCount = it) }
     safe { manager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION).size }
-      ?.let { map.putInt("presentationDisplayCount", it) }
+      ?.let { signals = signals.copy(presentationDisplayCount = it) }
+    return signals
   }
 
   private fun audioOutputRoute(audio: AudioManager): String? = safe {
@@ -72,23 +67,23 @@ class MediaBluetoothAppsInfoProvider(private val context: Context) {
   }
 
   @SuppressLint("MissingPermission")
-  private fun addBondedBluetooth(map: WritableMap) {
+  private fun addBondedBluetooth(signals: MediaBluetoothAppsSignals): MediaBluetoothAppsSignals {
     try {
       if (
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
         context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
-      ) return
+      ) return signals
 
-      val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager ?: return
-      val adapter = manager.adapter ?: return
-      // COUNT only. bondedDevices requires BLUETOOTH_CONNECT (already granted at app level); guard
-      // anyway since a user can revoke it. We deliberately do NOT read device.name — the bonded device
-      // NAMES are PII (names of the user's other devices/peripherals). Compliance minimization.
-      val bonded = adapter.bondedDevices ?: return
-      map.putInt("bluetoothBondedDeviceCount", bonded.size)
+      val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager ?: return signals
+      val adapter = manager.adapter ?: return signals
+      // Count only; never read peripheral names or addresses. Android 12+ grants are checked above;
+      // legacy permissions and revocation failures are handled by the surrounding catch.
+      val bonded = adapter.bondedDevices ?: return signals
+      return signals.copy(bluetoothBondedDeviceCount = bonded.size)
     } catch (e: Exception) {
       // BT off, unsupported, or permission revoked — omit the fields.
     }
+    return signals
   }
 
   private fun enabledAccessibilityServices(): List<String> {
@@ -103,12 +98,6 @@ class MediaBluetoothAppsInfoProvider(private val context: Context) {
     true
   } catch (e: Exception) {
     false
-  }
-
-  private fun toStringArray(values: List<String>): WritableArray {
-    val arr = Arguments.createArray()
-    for (v in values) arr.pushString(v)
-    return arr
   }
 
   private inline fun safeBool(block: () -> Boolean): Boolean = try {

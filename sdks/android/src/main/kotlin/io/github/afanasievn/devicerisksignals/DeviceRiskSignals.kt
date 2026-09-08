@@ -3,8 +3,8 @@ package io.github.afanasievn.devicerisksignals
 import android.content.Context
 
 /**
- * Standalone Android entry point. Collection is local, synchronous, permission-free for the methods
- * currently exposed here, and returns raw observations rather than a risk verdict.
+ * Standalone Android entry point. Collection is local and synchronous, never requests permissions,
+ * and returns raw observations rather than a risk verdict. Protected fields require host grants.
  */
 class DeviceRiskSignals(context: Context) {
   private val applicationContext = context.applicationContext
@@ -25,6 +25,22 @@ class DeviceRiskSignals(context: Context) {
 
   /** Passive process/device observations. Does not connect to localhost or open network sockets. */
   fun collectOsIntegrity(): OsIntegritySignals = OsIntegrityCollector(applicationContext).collect()
+
+  /** Reads local connectivity/interface state; does not send a network request. */
+  fun collectNetwork(): NetworkSignals = NetworkCollector(applicationContext).collect()
+
+  fun collectTelephony(): TelephonySignals = TelephonyCollector(applicationContext).collect()
+
+  /** Reads cached fixes only when the host already has a location grant. */
+  fun collectGeolocation(): GeolocationSignals = GeolocationCollector(applicationContext).collect()
+
+  /** Sensitive finite app/accessibility observations; Bluetooth reads bonded count only. */
+  fun collectMediaBluetoothApps(): MediaBluetoothAppsSignals =
+    MediaBluetoothAppsCollector(applicationContext).collect()
+
+  /** Point-in-time platform reads only; does not start transaction observers. */
+  fun collectDeviceSecurityPosture(): DeviceSecurityPostureSignals =
+    DeviceSecurityPostureCollector(applicationContext).collect()
 
   /** Explicit opt-in measurement: reads the monotonic clock 257 times synchronously. */
   fun collectRuntimeTiming(): RuntimeTimingSignals = RuntimeTimingCollector().collect()
