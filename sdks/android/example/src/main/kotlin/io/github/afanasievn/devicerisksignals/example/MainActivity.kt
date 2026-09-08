@@ -7,10 +7,12 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import io.github.afanasievn.devicerisksignals.DeviceRiskSignals
+import io.github.afanasievn.devicerisksignals.TransactionObservationSession
 import org.json.JSONObject
 
 /** Native consumer: only the SDK public API and system Android classes are available here. */
 class MainActivity : Activity() {
+  private var transactionSession: TransactionObservationSession? = null
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val signals = DeviceRiskSignals(applicationContext)
@@ -45,10 +47,35 @@ class MainActivity : Activity() {
     action("Cached location") { signals.collectGeolocation().toRawMap() }
     action("Media / finite app audit (optional)") { signals.collectMediaBluetoothApps().toRawMap() }
     action("Device security posture") { signals.collectDeviceSecurityPosture().toRawMap() }
+    action("Transaction snapshot (optional)") { signals.collectTransactionSafety().toRawMap() }
+    action("Start transaction observation (optional)") {
+      val session = transactionSession ?: signals.createTransactionObservationSession().also {
+        transactionSession = it
+      }
+      session.attach(this)
+      session.snapshot()?.toRawMap().orEmpty()
+    }
+    action("Read transaction observation") { transactionSession?.snapshot()?.toRawMap().orEmpty() }
+    action("Stop transaction observation") {
+      transactionSession?.close()
+      transactionSession = null
+      emptyMap()
+    }
     action("Runtime timing (optional)") { signals.collectRuntimeTiming().toRawMap() }
     action("Numeric consistency (optional)") { signals.collectNumericConsistency().toRawMap() }
     action("Audio latency (optional)") { signals.collectAudioLatency().toRawMap() }
     content.addView(output)
     setContentView(ScrollView(this).apply { addView(content) })
+  }
+
+  override fun onStop() {
+    transactionSession?.detach()
+    super.onStop()
+  }
+
+  override fun onDestroy() {
+    transactionSession?.close()
+    transactionSession = null
+    super.onDestroy()
   }
 }

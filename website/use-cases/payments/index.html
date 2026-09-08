@@ -111,7 +111,7 @@ const paymentIntel = new DeviceIntel({
     },
   },
 });</code></pre></div><p>Field projection limits the returned event, but native data is collected before projection. Disable an entire probe when its collection itself is outside the approved purpose.</p></section>
-      <section id="window"><h2>Two-stage transaction window</h2><p>On Android, the first enabled <code>transaction_safety</code> collection starts lazy screenshot and obscured-touch observation. The second collection reads what happened during the protected screen.</p><div class="code-block"><button class="copy-button" type="button" data-copy="payment-window">Copy</button><pre id="payment-window"><code>// When the confirmation screen opens:
+      <section id="window"><h2>Two-stage transaction window</h2><p>On Android, the first enabled <code>transaction_safety</code> collection starts lazy screenshot and obscured-touch observation. The second collection reads accumulated observations, which are not automatically reset for each payment. Observation detaches on host pause/destroy and reattaches on a later enabled collection; history may span gaps. Standalone Android hosts use explicitly owned sessions for independent histories.</p><div class="code-block"><button class="copy-button" type="button" data-copy="payment-window">Copy</button><pre id="payment-window"><code>// When the confirmation screen opens:
 await paymentIntel.collect({
   sessionId: paymentAttempt.id,
 });

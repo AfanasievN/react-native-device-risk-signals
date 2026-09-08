@@ -42,6 +42,13 @@ class DeviceRiskSignals(context: Context) {
   fun collectDeviceSecurityPosture(): DeviceSecurityPostureSignals =
     DeviceSecurityPostureCollector(applicationContext).collect()
 
+  /** Point-in-time transaction context only; never starts touch/capture observation. */
+  fun collectTransactionSafety(): TransactionSafetySignals = TransactionSafetyCollector(applicationContext).collect()
+
+  /** Creates an inactive session. The host owns main-thread attach/detach/close. */
+  fun createTransactionObservationSession(): TransactionObservationSession =
+    TransactionObservationSession(applicationContext)
+
   /** Explicit opt-in measurement: reads the monotonic clock 257 times synchronously. */
   fun collectRuntimeTiming(): RuntimeTimingSignals = RuntimeTimingCollector().collect()
 

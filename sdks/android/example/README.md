@@ -4,9 +4,10 @@ This development app consumes `android-device-risk-signals` directly through `im
 It has no React Native dependency. The SDK is partially extracted and unpublished; this example is
 a local integration reference, not an instruction to install a Maven release.
 
-The app exposes fourteen separate buttons: identity, locale, runtime timing, native numeric vectors,
+The app exposes fifteen collection buttons: identity, locale, runtime timing, native numeric vectors,
 audio properties, application metadata, hardware, fonts, passive OS integrity, network, telephony,
-cached location, media/Bluetooth/finite app audit, and device security posture. Collection starts
+cached location, media/Bluetooth/finite app audit, device security posture and transaction snapshot.
+Three additional controls explicitly start, read and stop transaction observation. Collection starts
 only when a button is pressed. Results are local raw observations;
 the app does not upload them or calculate a risk score.
 
@@ -34,6 +35,7 @@ val geolocation = signals.collectGeolocation()
 // Sensitive finite package matches and accessibility component names.
 val media = signals.collectMediaBluetoothApps()
 val posture = signals.collectDeviceSecurityPosture()
+val transaction = signals.collectTransactionSafety() // Does not attach UI observers.
 
 // Convert a typed result when the host application needs a raw map.
 val rawIdentity = identity.toRawMap()
@@ -66,6 +68,10 @@ can reflect unavailable reads or visibility limits. Device security posture read
 and settings without authenticating the user or attaching transaction observers.
 
 Host applications own any event envelope, serialization, consent policy, storage, and transport.
+The native example detaches its session on stop and closes on destroy; returning to the app requires
+pressing Start again to reattach. Stop closes and discards the session, so the next Start begins new
+history. Capture permissions are not declared: touch observations are available, capture fields
+remain unavailable. See the [explicit session API](../README.md#transaction-observation-session).
 The complete React Native probe set is not yet available from this standalone facade.
 
 ## Build

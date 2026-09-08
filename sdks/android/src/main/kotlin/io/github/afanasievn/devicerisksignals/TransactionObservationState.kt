@@ -1,22 +1,9 @@
-package com.reactnativedeviceintel
-
-internal data class TransactionObservationSnapshot(
-  val startedElapsedMs: Long,
-  val observedTouchCount: Int,
-  val obscuredTouchObserved: Boolean?,
-  val partiallyObscuredTouchObserved: Boolean?,
-  val lastObscuredTouchElapsedMs: Long?,
-  val lastPartiallyObscuredTouchElapsedMs: Long?,
-  val screenshotObservationActive: Boolean,
-  val screenshotDetectedSinceObservationStart: Boolean?,
-  val lastScreenshotDetectedElapsedMs: Long?,
-  val isVisibleInScreenRecording: Boolean?,
-)
+package io.github.afanasievn.devicerisksignals
 
 internal class TransactionObservationState(private val startedElapsedMs: Long) {
   private var observedTouchCount = 0
   private var obscuredTouchObserved = false
-  private var partiallyObscuredTouchObserved = false
+  private var partiallyObscuredTouchObserved: Boolean? = null
   private var lastObscuredTouchElapsedMs: Long? = null
   private var lastPartiallyObscuredTouchElapsedMs: Long? = null
   private var screenshotObservationActive = false
@@ -25,21 +12,28 @@ internal class TransactionObservationState(private val startedElapsedMs: Long) {
   private var isVisibleInScreenRecording: Boolean? = null
 
   @Synchronized
-  fun recordTouch(isObscured: Boolean, isPartiallyObscured: Boolean, elapsedMs: Long) {
+  fun recordTouch(isObscured: Boolean, isPartiallyObscured: Boolean?, elapsedMs: Long) {
     observedTouchCount += 1
     if (isObscured) {
       obscuredTouchObserved = true
       lastObscuredTouchElapsedMs = elapsedMs
     }
-    if (isPartiallyObscured) {
+    if (isPartiallyObscured == true) {
       partiallyObscuredTouchObserved = true
       lastPartiallyObscuredTouchElapsedMs = elapsedMs
+    } else if (isPartiallyObscured == false && partiallyObscuredTouchObserved == null) {
+      partiallyObscuredTouchObserved = false
     }
   }
 
   @Synchronized
   fun markScreenshotObservationActive() {
-    screenshotObservationActive = true
+    setScreenshotObservationActive(true)
+  }
+
+  @Synchronized
+  fun setScreenshotObservationActive(active: Boolean) {
+    screenshotObservationActive = active
   }
 
   @Synchronized
@@ -50,7 +44,7 @@ internal class TransactionObservationState(private val startedElapsedMs: Long) {
   }
 
   @Synchronized
-  fun setScreenRecordingVisibility(isVisible: Boolean) {
+  fun setScreenRecordingVisibility(isVisible: Boolean?) {
     isVisibleInScreenRecording = isVisible
   }
 
@@ -59,11 +53,11 @@ internal class TransactionObservationState(private val startedElapsedMs: Long) {
     startedElapsedMs = startedElapsedMs,
     observedTouchCount = observedTouchCount,
     obscuredTouchObserved = if (observedTouchCount > 0) obscuredTouchObserved else null,
-    partiallyObscuredTouchObserved = if (observedTouchCount > 0) partiallyObscuredTouchObserved else null,
+    partiallyObscuredTouchObserved = partiallyObscuredTouchObserved,
     lastObscuredTouchElapsedMs = lastObscuredTouchElapsedMs,
     lastPartiallyObscuredTouchElapsedMs = lastPartiallyObscuredTouchElapsedMs,
     screenshotObservationActive = screenshotObservationActive,
-    screenshotDetectedSinceObservationStart = if (screenshotObservationActive) screenshotDetected else null,
+    screenshotDetectedSinceObservationStart = if (screenshotDetected || screenshotObservationActive) screenshotDetected else null,
     lastScreenshotDetectedElapsedMs = lastScreenshotDetectedElapsedMs,
     isVisibleInScreenRecording = isVisibleInScreenRecording,
   )

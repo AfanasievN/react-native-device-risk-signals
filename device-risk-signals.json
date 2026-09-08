@@ -6,6 +6,10 @@
   "contractPath": "contract",
   "repository": {
     "model": "incremental-monorepo",
+    "architectureDecisions": [
+      "docs/adr/0001-platform-sdk-monorepo.md",
+      "docs/adr/0002-explicit-android-transaction-session.md"
+    ],
     "versioning": "independent",
     "currentPublishedComponent": "react-native",
     "currentTagPattern": "v{version}",

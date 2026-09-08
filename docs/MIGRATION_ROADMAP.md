@@ -1,6 +1,6 @@
 # Device Risk Signals migration checklist
 
-Last reviewed: 2026-09-08, including the media/app-audit and device-posture extraction.
+Last reviewed: 2026-09-08, including explicit Android transaction sessions.
 
 This is the remaining-work checklist for the [ecosystem architecture](ECOSYSTEM_ARCHITECTURE.md).
 It describes repository implementation, not a claim that local commits have been pushed, deployed,
@@ -14,7 +14,7 @@ historical test evidence.
 | Area | Implemented | Still missing |
 | --- | --- | --- |
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
-| Android | Fourteen typed collections, native example, AAR build and CI checks | Transaction lifecycle, GPU, active-scan decision, device QA and Maven publication |
+| Android | Fifteen typed collections, explicit transaction sessions, native example, AAR build and CI checks | GPU, active-scan decision, lifecycle/device QA and Maven publication |
 | iOS | Existing providers under `ios/` used by RN | Standalone SDK, package/consumer integration and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
@@ -25,8 +25,9 @@ historical test evidence.
 Android currently exposes `collectDeviceIdentity`, `collectLocale`, `collectRuntimeTiming`,
 `collectNumericConsistency`, `collectAudioLatency`, `collectApplication`, `collectHardware`,
 `collectFonts`, `collectOsIntegrity`, `collectNetwork`, `collectTelephony`, `collectGeolocation`,
-`collectMediaBluetoothApps`, and `collectDeviceSecurityPosture`.
-This is fourteen standalone API calls, not full parity with
+`collectMediaBluetoothApps`, `collectDeviceSecurityPosture`, and `collectTransactionSafety`.
+`createTransactionObservationSession()` supplies a separate explicit lifecycle API.
+The fifteen collection calls are not full parity with
 the 19-method React Native TurboModule contract. Some native methods are platform stubs or utilities;
 do not use these counts as a migration percentage.
 
@@ -36,7 +37,6 @@ Work in this order unless an implementation dependency justifies a change:
 
 | Remaining work | Current source under `android/src/main/java/com/reactnativedeviceintel/` | Completion condition |
 | --- | --- | --- |
-| Transaction observations | `SecurityPostureProvider.kt`, `TransactionSafetyObserver.kt`, `TransactionObservationState.kt` | Public native lifecycle API using Android types; RN supplies its activity/lifecycle; callbacks and state cleaned up on detach/dispose |
 | GPU benchmark | `GpuBenchmarkProvider.kt` | Core API with identical skip/results behavior, bounded work and GL resource cleanup; preserve disabled default |
 | Legacy active Frida scan | `FridaScanProvider.kt` | Resolve the architecture/contract decision below before claiming extraction complete |
 
@@ -62,27 +62,25 @@ Media/Bluetooth/finite app audit and point-in-time device security posture are a
 Host-owned visibility and Bluetooth permissions, finite lists and existing fallbacks are unchanged.
 The native posture call does not attach transaction observers or authenticate the user.
 
-### Next slice: transaction lifecycle and GPU execution
+### Transaction lifecycle implemented; GPU execution next
 
-The following is a source-review proposal, not a shipped API. Design a native
-`TransactionObservationSession` with explicit main-thread `attach(activity)`, `detach()`, immutable
-`snapshot()` and idempotent terminal `close()`. Construction must be inactive. The binding owns
-`currentActivity`, framework lifecycle and error translation; the core owns Android observation.
-Decide whether evidence continues across activity recreation or is reset for a new transaction.
-Changing current observation/default/omission behavior requires regression tests and compatibility
-notes, even if addressed alongside extraction.
+The in-development SDK now implements `TransactionObservationSession` with explicit main-thread
+`attach(activity)`, `detach()`, immutable thread-safe `snapshot()` and terminal/idempotent `close()`.
+Construction is inactive. The binding owns `currentActivity`, lifecycle and dispatch; the core owns
+Android observation. Evidence continues across detach/reattach; a new native session resets history.
+This is implemented locally, not a published API. See [ADR-0002](adr/0002-explicit-android-transaction-session.md)
+for compatibility changes and the difference between queue cancellation and interrupting running work.
 
-- [ ] Prevent queued UI work from attaching after timeout or disposal. The current observer's
-  one-second wait does not cancel its posted block, and disposal has no terminal guard.
-- [ ] Separate current screenshot coverage from historical evidence. Detach currently closes the
-  registration without resetting the state's active flag; a later registration failure can leave
-  stale availability and negative evidence.
-- [ ] Omit unsupported partial-obscuration observations below API 29 instead of recording false
-  after a touch. Keep absent-before-first-touch and observed-false states distinct.
-- [ ] Deactivate detached touch wrappers even when a third-party callback wraps them. Preserve
-  forwarding/return values without overwriting another callback or counting a touch twice.
-- [ ] Test no activity, repeated attach, activity switch/destroy, close twice, late callbacks,
-  registration failure, permissions, API 24/28/29/34/35 gates and collect/dispose races.
+- [x] Cancel queued UI attachment on timeout/interruption; disposal blocks new attachment and queues
+  uncancelled close. Running platform calls are not forcibly canceled.
+- [x] Separate current screenshot coverage from historical evidence and clear recording visibility
+  on detach. Model regression tests preserve positive history while omitting unavailable negatives.
+- [x] Omit unsupported partial-obscuration below API 29; preserve false after an observable clean touch.
+- [x] Invalidate detached callback generations, including wrappers retained by a third party, and
+  keep input forwarding unchanged. Pure lifecycle tests cover stale tokens and terminal close.
+- [ ] Add instrumented/physical tests for no activity, repeated attach, activity switch/destroy,
+  nested wrappers, registration failure, permissions, API 24/28/29/34/35 gates and collect/dispose
+  races. Pure-state/queue regressions and successful compilation do not cover Android framework behavior.
 - [ ] Define a GPU execution API that owns a worker thread or documents/enforces an equivalent
   safe execution boundary. Current cleanup clears the calling thread's EGL binding instead of
   restoring a pre-existing context/surfaces; native callers must not lose their rendering context.
@@ -203,8 +201,8 @@ notes, even if addressed alongside extraction.
 - [ ] Introduce independent component releases only with registry smoke tests and publication
   credentials configured outside the repository. Keep failed/partial publication recoverable.
 
-The next implementation slice is **the explicit transaction observer lifecycle**, followed by GPU
-execution and cleanup. Keep the active Frida architecture decision separate. Each slice should end
+The next implementation slice is **GPU execution and cleanup**. Transaction device/lifecycle QA is
+still a release gate. Keep the active Frida architecture decision separate. Each slice should end
 with typed core APIs, thin RN delegation, native-consumer checks, updated documentation and recorded
 RED/GREEN evidence. The full monorepo migration remains incomplete until all relevant
 platform, binding, contract, documentation and publication gates above are satisfied.

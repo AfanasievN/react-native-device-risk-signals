@@ -68,7 +68,8 @@ Today, `react-native-device-risk-signals` is the production distribution. Androi
 in development with device identity, locale, native runtime timing, native numeric vectors, audio
 property estimates, application metadata, hardware, fonts, passive OS integrity, network, telephony,
 cached geolocation, media/Bluetooth/finite app audit, and device security posture using standalone
-typed Kotlin models.
+typed Kotlin models. Transaction collection now has a point-in-time snapshot and an explicitly
+owned native observation session; remaining native extraction covers GPU and the active-scan decision.
 A [native Android example](sdks/android/example/README.md)
 consumes this partial SDK without React Native; the Maven artifact is not published yet.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.
@@ -738,6 +739,12 @@ const actionContext = await deviceIntel.collect({config: transactionConfig});
 
 `obscuredTouchObserved` and `partiallyObscuredTouchObserved` are omitted until a real `ACTION_DOWN`
 has been observed. `observedTouchCount: 0` is therefore different from a clean observed touch.
+Partial obscuration is unavailable below Android 10/API 29 and is omitted there. Android observation
+detaches on host pause/destroy and reattaches on the next enabled collection after resume; history
+can span gaps and is not automatically reset for each payment. Current capture coverage is cleared
+on detach, while historical positive events remain. Standalone Android hosts explicitly create,
+attach and close their own sessions. See the [native session guide](sdks/android/README.md#transaction-observation-session)
+and [migration compatibility notes](docs/adr/0002-explicit-android-transaction-session.md).
 
 For Android 14 screenshot events or Android 15 screen-recording visibility, the host application may
 opt in with install-time permissions in its own manifest:

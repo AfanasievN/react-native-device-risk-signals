@@ -308,13 +308,13 @@ export type TransactionSafetySignals = {
   isScreenCaptured?: boolean; // iOS snapshot; Android 15+ aliases isVisibleInScreenRecording.
   isScreenMirrored?: boolean;
   isVisibleInScreenRecording?: boolean; // Android 15+, when host declares DETECT_SCREEN_RECORDING.
-  screenshotObservationActive?: boolean; // Android 14+, callback registered by host opt-in.
+  screenshotObservationActive?: boolean; // Android 14+, currently registered by host opt-in; omitted after detach.
   screenshotDetectedSinceObservationStart?: boolean; // False only while observation is active.
   lastScreenshotDetectedElapsedMs?: number; // Android elapsedRealtime time base, not wall-clock time.
   transactionObservationStartedElapsedMs?: number; // Android elapsedRealtime when lazy observation began.
   observedTouchCount?: number; // ACTION_DOWN events observed after transaction observation began.
   obscuredTouchObserved?: boolean; // Direct FLAG_WINDOW_IS_OBSCURED observation; omitted before a touch.
-  partiallyObscuredTouchObserved?: boolean; // Direct FLAG_WINDOW_IS_PARTIALLY_OBSCURED observation.
+  partiallyObscuredTouchObserved?: boolean; // Android 10+ direct flag; omitted on older APIs and before a touch.
   lastObscuredTouchElapsedMs?: number;
   lastPartiallyObscuredTouchElapsedMs?: number;
   accessibilityRunning?: boolean;

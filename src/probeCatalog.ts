@@ -507,7 +507,7 @@ export const PROBE_CATALOG = [
       "audioMode",
       "isCallActive",
     ],
-    notes: "Ships disabled until physical-device calibration. Android UI observation starts lazily on the first collection; collect once when the protected flow starts and again immediately before its action. The library declares neither capture permission and never prompts.",
+    notes: "Ships disabled until physical-device calibration. React Native Android UI observation starts lazily on collection, detaches on host pause/destroy and resumes only on a subsequent collection; historical evidence can span gaps. Standalone Android uses an explicit session. Partial obscuration is omitted below Android 10; unavailable capture coverage is omitted. The library declares neither capture permission and never prompts.",
   },
   {
     id: "runtime",

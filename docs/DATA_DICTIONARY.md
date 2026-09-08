@@ -185,8 +185,19 @@ immediately before the protected action to obtain observations accumulated insid
 `obscuredTouchObserved` and `partiallyObscuredTouchObserved` come directly from Android
 `MotionEvent` flags and remain omitted until at least one `ACTION_DOWN` event has been observed.
 Their `last*ElapsedMs` values use the monotonic `SystemClock.elapsedRealtime` time base, not epoch
-time. The observer does not enumerate overlay-capable applications and is removed when the native
-module is invalidated.
+time. Partial-obscuration fields are omitted below Android 10/API 29. The observer does not enumerate
+overlay-capable applications. React Native detaches on host pause/destroy, reattaches only on the next
+enabled collection after resume, and closes on module invalidation. Timed-out work still queued on
+the UI thread is canceled; work already executing is not forcibly interrupted.
+
+Standalone Android separates `collectTransactionSafety()` (no observers) from an explicitly owned
+`TransactionObservationSession`. Attach/detach/close run on the main thread; snapshot is thread-safe.
+Detach retains historical touches/screenshot positives but clears current capture coverage and
+recording visibility. An unobserved screenshot negative is omitted without active coverage.
+History can span observation gaps; the start timestamp does not establish continuous coverage.
+Create a new native session for a fresh history. RN has no public per-transaction reset API.
+See [ADR-0002](adr/0002-explicit-android-transaction-session.md) for intentional behavior corrections
+and breaking migration release notes; these changes are not an already published 0.8.1 patch.
 
 Android 14 screenshot observation is active only if the host declares `DETECT_SCREEN_CAPTURE`; the
 OS displays its standard screenshot-detection notice. Android 15 screen-recording visibility is

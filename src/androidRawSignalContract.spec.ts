@@ -25,7 +25,7 @@ describe("Android raw signal contract", () => {
 
   it("keeps transaction observation fields backed by Android native code", () => {
     const source = readFileSync(
-      join(androidRoot, "java/com/reactnativedeviceintel/SecurityPostureProvider.kt"),
+      join(__dirname, "../sdks/android/src/main/kotlin/io/github/afanasievn/devicerisksignals/TransactionObservationSnapshot.kt"),
       "utf8",
     );
     for (const field of [

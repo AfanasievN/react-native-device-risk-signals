@@ -233,3 +233,46 @@ The roadmap now records the proposed explicit transaction-session boundary and c
 risks: queued attachment after timeout/disposal, stale capture availability, unsupported partial-touch
 false values, wrapped callbacks, EGL restoration and GPU budget/cleanup limits. Those findings are
 not fixes delivered by this extraction; they require dedicated regression and compatibility work.
+
+## Seventh increment: explicit transaction sessions
+
+The SDK now has fifteen synchronous collections plus `createTransactionObservationSession()`.
+`collectTransactionSafety()` preserves the eight point-in-time Android fields without installing
+observers. Public `TransactionObservationSession` owns Android callbacks and a typed snapshot with
+the eleven existing session wire keys. RN retains only lifecycle/UI dispatch and map composition.
+Three subagents independently implemented point-in-time models, state/serialization and the session;
+the parent integrated the bridge, queue cancellation, example, contract notes and documentation.
+
+Sessions are inactive on construction. Attach/detach/close require the main thread; snapshots are
+thread-safe and null before first attachment. Close is terminal and idempotent, while detached/closed
+history remains readable. The native example supplies Start/Read/Stop and stop/destroy cleanup.
+RN attaches lazily only after host resume, detaches on pause/destroy and closes on module invalidation.
+Reattachment is driven by a subsequent collection, not an automatic background schedule.
+
+This increment includes intentional corrections, not just moves: API <29 partial obscuration is
+omitted; detach clears stale screenshot-negative coverage and recording visibility; callback
+generations suppress recording from old wrappers; queued UI work is canceled after timeout or
+interruption. Historical positive touch/screenshot observations are retained across gaps. A wait
+timeout does not forcibly interrupt already executing Android work. No permission declarations,
+network operations, persistent IDs, capture content or runtime dependencies were added.
+[ADR-0002](adr/0002-explicit-android-transaction-session.md) records behavior changes and release gates.
+
+RED evidence: standalone tests failed on missing state, snapshot, lifecycle and point-in-time model
+types; the native example failed on the missing facade/session API; RN tests failed on the missing
+pending-task helper; the JS native-source contract test failed on the missing relocated snapshot.
+Those same targets are GREEN. Pure tests cover exact serialization/aliasing, omission, false/zero,
+unsupported partial flags, stale coverage, retained history, immutable snapshots, callback generations,
+terminal close, canceled/time-out queue execution, duplicate execution and failed task completion.
+Post-GREEN cleanup made the bridge wait for the initial host-resume notification before attachment;
+the RN compile/test target passed again. Independent review found no additional concrete blocker.
+
+Final checks passed: 86 standalone JVM tests, release AAR, native example debug APK, four RN JVM tests
+and RN Android compilation, full root verification (107 Jest tests, three Node tests, 19-method native
+parity, package/ecosystem and 24 Pages), npm pack dry run, and example tests/lint/TypeScript.
+Existing AGP compile-SDK/deprecation warnings remain. Percentage coverage is not asserted: lifecycle
+helpers are tested, but Android registration/Window integration still requires instrumented and
+physical-device QA, including nested wrappers, permission changes and activity recreation.
+
+No version bump, registry publication or deployment was performed. GPU extraction, active Frida
+boundary resolution and native release gates remain outstanding. Transaction behavior corrections
+must appear in the next breaking migration release notes, not an undocumented patch.

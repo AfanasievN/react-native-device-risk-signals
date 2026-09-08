@@ -34,6 +34,14 @@ StrongBox support, clock settings and provisioning state. It does not authentica
 biometric enrollment, create a key or install transaction/screenshot observers. Existing raw field
 names and fallback behavior are preserved during extraction; none represents a trust verdict.
 
+Transaction observations require explicit host ownership: an inactive session may be attached to an
+Activity only for a documented transaction-context purpose and must be detached/closed by its host.
+It observes touch obscuration flags (not coordinates or text), screenshot events (not image content)
+and app visibility in screen recording (not video content). API 34/35 capture registration requires
+the host's existing `DETECT_SCREEN_CAPTURE`/`DETECT_SCREEN_RECORDING` declarations, respectively;
+the SDK and example add neither. Ordinary point-in-time collection never starts a session.
+Accessibility counts and finite remote-access package matches remain sensitive and visibility-limited.
+
 Currently extracted:
 
 - `DeviceRiskSignals.collectDeviceIdentity()`
@@ -50,6 +58,7 @@ Currently extracted:
 - `DeviceRiskSignals.collectGeolocation()`
 - `DeviceRiskSignals.collectMediaBluetoothApps()`
 - `DeviceRiskSignals.collectDeviceSecurityPosture()`
+- `DeviceRiskSignals.collectTransactionSafety()`
 
 ```kotlin
 val signals = DeviceRiskSignals(applicationContext)
@@ -70,6 +79,7 @@ val geolocation: GeolocationSignals = signals.collectGeolocation()
 // Sensitive finite app/accessibility observations; invoke only for a documented purpose.
 val media: MediaBluetoothAppsSignals = signals.collectMediaBluetoothApps()
 val posture: DeviceSecurityPostureSignals = signals.collectDeviceSecurityPosture()
+val transaction: TransactionSafetySignals = signals.collectTransactionSafety()
 ```
 
 The current React Native package compiles these same sources and converts `toRawMap()` results only
@@ -118,11 +128,41 @@ need separate compatibility work and must not be interpreted as confirmed absenc
 
 `collectDeviceSecurityPosture()` exposes only point-in-time reads. `biometryAvailable` denotes
 advertised hardware features, not enrollment or a successful authentication check. Transaction
-touch/capture observation and its lifecycle remain in the React Native provider for now.
+touch/capture observation uses the separate session described below.
 
-All fourteen methods run only when called. They add no permissions, prompts, transport, or automatic
+All fifteen collection methods run only when called. They add no permissions, prompts, transport, or automatic
 collection. See the [native Android example](example/README.md) for a consumer that has no React
 Native dependency and exposes a separate collection button for each method.
+
+## Transaction observation session
+
+`collectTransactionSafety()` returns lock, interaction, accessibility-count, finite remote-app and
+call/audio observations only. To observe UI events, create an inactive session and explicitly attach
+it on the main thread:
+
+```kotlin
+val session = signals.createTransactionObservationSession() // No callbacks registered.
+session.attach(activity) // Main thread; starts history on first attachment.
+val observations = session.snapshot()?.toRawMap() // Any thread; null before first attach.
+session.detach() // Main thread; stop registrations, retain history.
+session.close() // Main thread; terminal/idempotent. Use a new session for a new history.
+```
+
+Detach when the host pauses/stops and close when its owner is destroyed. Reattachment to the same
+Activity and installed wrapper is a no-op; detach/attach explicitly to retry unavailable registrations.
+Calling attach after close throws. Snapshot remains readable after close but cannot restart collection.
+The session itself never dispatches threads or waits. Registration cleanup is best-effort; invalidated
+callback generations cannot write further observations, even if a host wrapper retains them.
+
+Historical positive touches/screenshots survive observation gaps. Recording visibility and unobserved
+screenshot negatives require current coverage; detach clears them. Partial obscuration is omitted
+below API 29. The snapshot's monotonic start time is not evidence of continuous observation or a
+per-payment boundary. React Native keeps lazy opt-in and owns UI dispatch/lifecycle; its timeout
+cancels queued-but-not-started work, not a running Android API call. These migration semantics are
+documented in [ADR-0002](../../docs/adr/0002-explicit-android-transaction-session.md) and require release
+notes and physical-device QA before publication. The transaction probe remains disabled by default.
+
+## Development distribution
 
 The intended Maven coordinate is `io.github.afanasievn:android-device-risk-signals`. It is not
 published yet, so applications should not declare that coordinate until a release is announced.
