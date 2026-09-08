@@ -62,6 +62,13 @@ Changes to the standalone Android SDK also run:
 example/android/gradlew -p sdks/android testDebugUnitTest assembleRelease --no-daemon
 ```
 
+The instrumented GPU suite needs a booted emulator or a connected device and is not part of CI,
+which only compiles it:
+
+```sh
+example/android/gradlew -p sdks/android :connectedDebugAndroidTest --no-daemon
+```
+
 The example is an independent application. Install and verify it separately:
 
 ```sh

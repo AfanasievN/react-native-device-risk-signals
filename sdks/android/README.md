@@ -192,8 +192,21 @@ Cleanup attempts to delete owned GL objects while their context is current, then
 calling thread's prior EGL binding and destroy only the created surface/context. An unchanged
 binding is not touched, and the shared display is never terminated. Restoration is best-effort:
 a driver failure can prevent it, so use a dedicated worker without application rendering state.
-Independent cleanup attempts and partial shader/program failures are tested with a fake driver;
-this does not replace physical GL/camera/video coexistence and resource-lifetime QA.
+Independent cleanup attempts and partial shader/program failures are tested with a fake driver.
+An instrumented `androidTest` suite additionally runs the real EGL path and asserts that a caller's
+prior binding is restored, that no binding is left behind when the caller had none, that the shared
+display stays usable, and that repeated forced collects keep those invariants. It never asserts a
+timing, draw-call or budget value. Instrumented dependencies are test-only: the release AAR still
+declares no runtime dependency and no permission.
+
+```sh
+# From the repository root, with a booted emulator or connected device:
+example/android/gradlew -p sdks/android :connectedDebugAndroidTest --no-daemon
+```
+
+Emulated GL is not a driver. A driver refusing restoration, a surfaceless or non-default-display
+caller, GL/camera/video coexistence, Activity teardown mid-benchmark and resource growth across
+runs still require physical-device QA, which remains a release gate.
 
 ## Development distribution
 

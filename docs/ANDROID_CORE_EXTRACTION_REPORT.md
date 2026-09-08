@@ -281,7 +281,7 @@ must appear in the next breaking migration release notes, not an undocumented pa
 
 `collectGpuBenchmark()` brings the standalone facade to sixteen synchronous collections. The React
 Native module deletes `GpuBenchmarkProvider.kt` and delegates `getGpuBenchmark()` to the core
-through the shared value converter. `GpuBenchmarkSignals` keeps all fifteen existing raw keys, the
+through the shared value converter. `GpuBenchmarkSignals` keeps all fourteen existing Android raw keys — the catalog's fifteenth GPU field, `gpuTimeMs`, is iOS-only and was never emitted by the Kotlin provider — plus the
 emulator/unsupported/error skip reasons, partial GPU identity on late failure, the 32x32 pbuffer,
 GLES 2.0 configuration and the 50 ms draw-loop budget. No probe default, permission, dependency or
 network behavior changed; the probe stays disabled pending device-lab calibration.
@@ -321,5 +321,75 @@ TypeScript. Existing AGP compile-SDK and Gradle deprecation warnings remain.
 No percentage coverage is claimed. Real EGL setup and restoration failures, repeated/concurrent
 calls, GL/camera/video coexistence and Activity teardown still require instrumented and
 physical-device QA, which remains a release gate. The legacy active Frida boundary, standalone
+lint/package-content gates and Maven publication remain outstanding; no version bump, registry
+publication or Pages deployment was performed.
+
+## Ninth increment: instrumented GPU execution coverage
+
+This increment adds no collection method. It closes the emulator-reachable part of the GPU QA gate
+with an instrumented `androidTest` suite and hardens the execution contract that only source review
+had covered before.
+
+Two implementation subagents authored the instrumented tests against a documented seam while a third
+performed a read-only parity/documentation audit; the parent integrated the Gradle wiring, the
+production seam and the documentation.
+
+Production changes are behavior-preserving for the public facade. `GpuEmulatorHeuristic` is now a
+separate internal object with a pure `(fingerprint, model, hardware)` overload, so the build-string
+decision is unit-testable and the real EGL path can be forced in tests. `GpuBenchmarkCollector` takes
+internal `emulatorObserved` and `mainThread` seams with production defaults. The worker-thread guard
+moved from the facade into `collect()`, so no internal caller can start GL work on the UI thread;
+`DeviceRiskSignals.collectGpuBenchmark()` still throws `IllegalStateException` before any GPU work.
+One intentional correction: an `InterruptedException` now re-raises the thread's interrupt flag
+before the collapsed `error` result, so a host cancelling its worker does not lose the signal. The
+raw key set, skip reasons, statistics omissions and the RN bridge output are unchanged.
+
+Instrumented coverage is ten tests in two files. Execution: UI-thread rejection on a real `Looper`
+produces an exception and no result, a worker call returns a well-formed raw map, three sequential
+calls keep the same decision and field set, two overlapping worker calls both return without
+throwing, and a worker call still works after a rejected UI-thread attempt. EGL ownership, run on
+the forced path: a caller's prior display/context/draw/read binding is restored exactly and its
+context stays usable, no binding is left current when the caller had none, the process-shared
+display remains initializable and still returns a config, three repeated forced collects preserve
+those invariants, and the result shape is either performed with non-negative counters or a documented
+skip reason. No test asserts a duration, draw-call count or budget compliance.
+
+Gradle wiring is test-only: `testInstrumentationRunner`, `androidTest` dependencies on
+`androidx.test:runner`/`androidx.test.ext:junit`/JUnit 4, and a new `gradle.properties` enabling
+`android.useAndroidX` for that runtime. The release AAR was inspected after the change: manifest with
+only `uses-sdk`, no permissions, and no dependency entries. CI now compiles the instrumented sources
+(`:compileDebugAndroidTestKotlin`); it cannot execute them because the runners have no device.
+
+RED: `:compileDebugAndroidTestKotlin` failed on the missing androidTest configuration and the missing
+`GpuEmulatorHeuristic`/collector seam. GREEN: 103 JVM tests (four new heuristic/seam tests) and ten
+instrumented tests pass. The instrumented run used an API 35 arm64 emulator (`ro.hardware=ranchu`,
+`ro.hardware.egl=emulation`). A direct observation on that device confirmed the suite exercises real
+EGL rather than only the skip contract: the forced path reported `benchmarkPerformed = true` with
+identity strings from the ANGLE/SwiftShader translator, 336 draw calls in a 50 ms loop and complete
+timing statistics, while the public facade returned `benchmarkPerformed = false` with
+`skippedReason = "emulator"`.
+
+Also verified: release AAR, native example debug APK, React Native Android compilation and JVM tests,
+full root verification (107 Jest tests, three Node tests, 19-method native parity, package/ecosystem
+validation and 24 Pages), `npm pack --dry-run`, and example tests, lint and TypeScript.
+
+A parity audit of the extraction commit confirmed an unchanged key set, value types, skip ordering,
+omission semantics and bridge shape, and recorded two behavior improvements that the extraction
+introduced but did not document. Cleanup steps are now individually guarded, so a throwing
+`eglDestroySurface`/`eglDestroyContext` can no longer escape `finally` and turn an already computed
+benchmark into a bridge error. Restoration is gated on `bindingChanged`, so a skip that happens
+before the collector makes anything current no longer unbinds the caller's own context; the old
+provider unbound it unconditionally. Both belong in the migration release notes as output/side-effect
+changes in those branches. The audit also confirmed a leak fix: a compiled vertex shader is now
+released when the fragment shader fails. One accepted limitation is restated: a caller holding a
+surfaceless context can lose it, because EGL 1.4 rejects restoring a context with no surfaces on
+drivers without `EGL_KHR_surfaceless_context`, and the fallback then unbinds.
+
+Emulated GL is not a driver, and this is not device QA. The failure modes still open are a driver
+refusing restoration, a surfaceless or non-default-display caller, GL/camera/video coexistence,
+Activity teardown mid-benchmark and FD/GPU-memory growth across runs. Two known modeling limits are
+recorded rather than silently changed: an `error` result can retain counters from a partially
+completed run, and a driver that optimizes the vertex attribute away would still report a performed
+benchmark. Both match the deleted React Native provider. The legacy active Frida boundary, standalone
 lint/package-content gates and Maven publication remain outstanding; no version bump, registry
 publication or Pages deployment was performed.

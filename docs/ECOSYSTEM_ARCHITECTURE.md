@@ -329,6 +329,8 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
   `sdks/android/example/` depends directly on the SDK Gradle project and exposes sixteen explicit
   collection buttons plus start/read/stop transaction session controls without React Native.
   The GPU button uses a dedicated worker; its 50 ms loop target is not a hard deadline.
+  An instrumented `androidTest` suite covers the real GPU EGL path — binding restoration, shared-display
+  survival and UI-thread rejection — and CI compiles it, but only a device or emulator can run it.
   Its debug APK can be built alongside the release AAR;
   physical-device validation and the remaining publication gates still apply.
 - Add an Android section to GitHub Pages before Maven publication, clearly labeled `in development`

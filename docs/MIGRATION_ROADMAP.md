@@ -1,6 +1,6 @@
 # Device Risk Signals migration checklist
 
-Last reviewed: 2026-09-08, including Android GPU extraction and resource cleanup.
+Last reviewed: 2026-09-09, including instrumented GPU execution coverage on an emulator.
 
 This is the remaining-work checklist for the [ecosystem architecture](ECOSYSTEM_ARCHITECTURE.md).
 It describes repository implementation, not a claim that local commits have been pushed, deployed,
@@ -14,7 +14,7 @@ historical test evidence.
 | Area | Implemented | Still missing |
 | --- | --- | --- |
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
-| Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU, native example and CI checks | Active-scan decision, lifecycle/GL/device QA and Maven publication |
+| Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Active-scan decision, transaction lifecycle and physical-device GL QA, Maven publication |
 | iOS | Existing providers under `ios/` used by RN | Standalone SDK, package/consumer integration and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
@@ -61,7 +61,7 @@ Media/Bluetooth/finite app audit and point-in-time device security posture are a
 Host-owned visibility and Bluetooth permissions, finite lists and existing fallbacks are unchanged.
 The native posture call does not attach transaction observers or authenticate the user.
 
-### Transaction lifecycle and GPU implemented; device QA remains
+### Transaction lifecycle and GPU implemented; physical-device QA remains
 
 The in-development SDK now implements `TransactionObservationSession` with explicit main-thread
 `attach(activity)`, `detach()`, immutable thread-safe `snapshot()` and terminal/idempotent `close()`.
@@ -86,9 +86,16 @@ for compatibility changes and the difference between queue cancellation and inte
   and raw model omissions using pure fake-driver/model tests. Do not equate this with driver QA.
 - [x] Document the 50 ms draw-loop target as a budget, not a deadline; driver/setup overruns and
   caller timeouts do not cancel native work.
-- [ ] Exercise real EGL setup/restoration failures, repeated/concurrent calls, GL/camera/video
-  coexistence and Activity teardown on physical devices. Restoration is best-effort; dedicated
-  workers must not own application rendering state.
+- [x] Add an instrumented `androidTest` suite that runs the real EGL path: prior-binding restoration,
+  no binding left when the caller had none, shared-display survival, repeated forced collects,
+  UI-thread rejection on a real `Looper`, and sequential/concurrent worker calls. Executed on an
+  API 35 arm64 emulator, where the forced path completed on emulated GL and the public facade
+  returned the `emulator` skip. Emulated GL is not a driver, and CI has no device: it compiles the
+  suite but does not run it.
+- [ ] Exercise the failure modes an emulator cannot provoke on representative physical devices: a
+  driver refusing restoration, a surfaceless or non-default-display caller, GL/camera/video
+  coexistence, Activity teardown mid-benchmark, and FD/GPU-memory growth across runs. Restoration
+  stays best-effort; dedicated workers must not own application rendering state.
 
 ### Android release gates
 
@@ -201,7 +208,8 @@ for compatibility changes and the difference between queue cancellation and inte
   credentials configured outside the repository. Keep failed/partial publication recoverable.
 
 The next Android step is **resolving the legacy active Frida boundary**, followed by standalone
-lint/package-content and physical-device QA gates. The shared-contract and iOS work can proceed
+lint/package-content and physical-device QA gates. Instrumented tests now exist for GPU only;
+transaction lifecycle still has no instrumented coverage. The shared-contract and iOS work can proceed
 independently; Android publication is not implied by collector extraction. Each slice should end
 with typed core APIs, thin RN delegation, native-consumer checks, updated documentation and recorded
 RED/GREEN evidence. The full monorepo migration remains incomplete until all relevant

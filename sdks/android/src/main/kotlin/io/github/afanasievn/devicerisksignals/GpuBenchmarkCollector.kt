@@ -6,7 +6,7 @@ import android.opengl.EGLContext
 import android.opengl.EGLDisplay
 import android.opengl.EGLSurface
 import android.opengl.GLES20
-import android.os.Build
+import android.os.Looper
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -19,7 +19,10 @@ import java.nio.FloatBuffer
  * on likely emulators. The caller must explicitly request this work on a background thread; no
  * automatic collection is scheduled by the standalone SDK.
  */
-internal class GpuBenchmarkCollector {
+internal class GpuBenchmarkCollector(
+  private val emulatorObserved: Boolean = GpuEmulatorHeuristic.isLikelyEmulator(),
+  private val mainThread: () -> Boolean = { Looper.myLooper() == Looper.getMainLooper() },
+) {
 
   private data class BenchmarkResult(
     val drawCalls: Int,
@@ -28,9 +31,12 @@ internal class GpuBenchmarkCollector {
   )
 
   fun collect(): GpuBenchmarkSignals {
+    // Guard here, not only in the facade, so no internal caller can start GL work on the UI thread.
+    GpuExecutionPolicy.requireWorker(mainThread())
+
     var signals = GpuBenchmarkSignals()
 
-    if (isLikelyEmulator()) {
+    if (emulatorObserved) {
       return skipped(signals, "emulator")
     }
 
@@ -98,6 +104,7 @@ internal class GpuBenchmarkCollector {
       }
       signals = signals.copy(warmupSlope = SignalStatistics.warmupSlope(benchmark.operationTimesMs))
     } catch (e: Throwable) {
+      if (e is InterruptedException) Thread.currentThread().interrupt()
       return skipped(signals, "error")
     } finally {
       // Never terminate the process-shared EGL display. Only release resources created here, after
@@ -194,15 +201,6 @@ internal class GpuBenchmarkCollector {
 
   private fun skipped(signals: GpuBenchmarkSignals, reason: String): GpuBenchmarkSignals =
     signals.copy(benchmarkPerformed = false, skippedReason = reason)
-
-  private fun isLikelyEmulator(): Boolean {
-    val fp = (Build.FINGERPRINT ?: "").lowercase()
-    val model = (Build.MODEL ?: "").lowercase()
-    val hardware = (Build.HARDWARE ?: "").lowercase()
-    return fp.contains("generic") || fp.contains("emulator") || fp.contains("sdk") ||
-      model.contains("emulator") || model.contains("android sdk") ||
-      hardware.contains("goldfish") || hardware.contains("ranchu") || hardware.contains("vbox")
-  }
 
   companion object {
     private const val PBUFFER_SIZE = 32
