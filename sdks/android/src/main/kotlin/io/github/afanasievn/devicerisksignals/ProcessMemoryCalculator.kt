@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 /** Converts Linux /proc/self/statm resident pages to bytes without inventing unavailable values. */
 internal object ProcessMemoryCalculator {

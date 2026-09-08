@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 /** Pure normalization for documented BatteryManager integer observations. */
 internal object BatterySignalClassifier {

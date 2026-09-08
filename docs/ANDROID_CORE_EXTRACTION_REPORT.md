@@ -89,3 +89,31 @@ physical-device session or registry publication was performed.
 The original runtime-timing optional-field compatibility note above still applies to the next
 release. The second increment adds no further TypeScript contract changes. Other Android providers
 and all iOS/Web implementation work remain outstanding.
+
+## Third increment: application, hardware, and fonts
+
+`collectApplication()`, `collectHardware()`, and `collectFonts()` extend the standalone facade to
+eight explicit collections. The React Native module now delegates these three methods to typed SDK
+models. The native example includes separate buttons for them. Installer, battery, and resident
+memory helpers and their existing JVM tests have also moved into the core.
+
+Source inventory comparison found all 27 existing Android application fields and all 35 hardware
+fields in the new raw models, with no added or missing keys. Tests cover every builder-to-model-to-map
+assignment, including boolean values, arrays, zeroes, and omission. Own-package scope, installer alias,
+certificate hashing, platform gates, numeric representation, exception scopes, and font digest
+algorithm are preserved. Fonts remain separate from hardware; this extraction does not change the
+React Native probe's existing default.
+
+RED evidence: the standalone tests failed on missing application/hardware/fonts models and installer
+mapper; the native example failed on the three missing facade methods; the existing JS provenance
+contract test failed until its new core model existed. Those same targets passed after extraction.
+Post-GREEN cleanup simplified application list construction and made collector comments independent
+of React Native. Core tests now total 31. This increment does not add TypeScript fields, permissions,
+runtime dependencies, or collection behavior. Physical-device QA and registry publication remain
+outstanding.
+
+Third-increment verification passed: 31 standalone JVM tests, release AAR, native example APK,
+React Native Android compilation/JVM tests, the root verification ring (107 Jest tests, three Node
+tests, native contract parity, package/ecosystem checks, and 24 Pages), npm pack dry run, and example
+tests/lint/TypeScript. Existing deprecated Android display API warnings remain; the extraction does
+not replace these APIs or change their returned observations.

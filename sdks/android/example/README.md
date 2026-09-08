@@ -4,8 +4,8 @@ This development app consumes `android-device-risk-signals` directly through `im
 It has no React Native dependency. The SDK is partially extracted and unpublished; this example is
 a local integration reference, not an instruction to install a Maven release.
 
-The app exposes a separate button for identity, locale, runtime timing, native numeric vectors, and
-audio properties. Collection starts only when a button is pressed. Results are local raw observations;
+The app exposes eight separate buttons: identity, locale, runtime timing, native numeric vectors,
+audio properties, application metadata, hardware, and fonts. Collection starts only when a button is pressed. Results are local raw observations;
 the app does not upload them or calculate a risk score.
 
 ## Using the SDK
@@ -21,6 +21,10 @@ val locale = signals.collectLocale()
 val timing = signals.collectRuntimeTiming()
 val numeric = signals.collectNumericConsistency()
 val audio = signals.collectAudioLatency()
+val application = signals.collectApplication()
+val hardware = signals.collectHardware()
+// Optional, expensive, high-entropy collection.
+val fonts = signals.collectFonts()
 
 // Convert a typed result when the host application needs a raw map.
 val rawIdentity = identity.toRawMap()
@@ -31,6 +35,11 @@ JavaScript or bridge measurements. Numeric data contains native vectors without 
 comparisons. Audio latency is a property-derived buffer-duration estimate and does not measure
 playback or loopback. Missing observations remain absent in raw maps. None of these methods adds a
 permission prompt, network request, or automatic collection schedule.
+
+Application metadata describes only this app's package, including available signing and installer
+fields. Hardware includes the existing Android storage observations. Font collection is expensive
+and high entropy; its dedicated button makes collection explicit. The existing React Native fonts
+probe default is unchanged. This extraction adds no permissions or new categories of observations.
 
 Host applications own any event envelope, serialization, consent policy, storage, and transport.
 The complete React Native probe set is not yet available from this standalone facade.

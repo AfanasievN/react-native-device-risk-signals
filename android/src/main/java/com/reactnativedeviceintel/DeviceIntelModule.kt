@@ -21,8 +21,6 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   override fun getRandomSessionId(): String = UUID.randomUUID().toString()
 
   private val androidSignals = DeviceRiskSignals(reactContext)
-  private val application = ApplicationInfoProvider(reactContext)
-  private val hardware = HardwareInfoProvider(reactContext)
   private val osIntegrity = OsIntegrityProvider(reactContext)
   private val fridaScan = FridaScanProvider()
   private val network = NetworkInfoProvider(reactContext)
@@ -39,15 +37,21 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getHardwareSignals(promise: Promise) {
-    resolveOrReject(promise, "getHardwareSignals") { hardware.getHardwareSignals() }
+    resolveOrReject(promise, "getHardwareSignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectHardware().toRawMap())
+    }
   }
 
   override fun getFontsFingerprint(promise: Promise) {
-    resolveOrReject(promise, "getFontsFingerprint") { hardware.getFontsFingerprint() }
+    resolveOrReject(promise, "getFontsFingerprint") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectFonts().toRawMap())
+    }
   }
 
   override fun getApplicationSignals(promise: Promise) {
-    resolveOrReject(promise, "getApplicationSignals") { application.getApplicationSignals() }
+    resolveOrReject(promise, "getApplicationSignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectApplication().toRawMap())
+    }
   }
 
   override fun getOsIntegrity(promise: Promise) {

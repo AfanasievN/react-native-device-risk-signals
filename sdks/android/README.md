@@ -11,6 +11,9 @@ Currently extracted:
 - `DeviceRiskSignals.collectRuntimeTiming()`
 - `DeviceRiskSignals.collectNumericConsistency()`
 - `DeviceRiskSignals.collectAudioLatency()`
+- `DeviceRiskSignals.collectApplication()`
+- `DeviceRiskSignals.collectHardware()`
+- `DeviceRiskSignals.collectFonts()`
 
 ```kotlin
 val signals = DeviceRiskSignals(applicationContext)
@@ -20,6 +23,10 @@ val locale: LocaleSignals = signals.collectLocale()
 val timing: RuntimeTimingSignals = signals.collectRuntimeTiming()
 val numeric: NumericConsistencySignals = signals.collectNumericConsistency()
 val audio: AudioLatencySignals = signals.collectAudioLatency()
+val application: ApplicationSignals = signals.collectApplication()
+val hardware: HardwareSignals = signals.collectHardware()
+// Optional, expensive, high-entropy observation; collect only for a documented purpose.
+val fonts: FontsSignals = signals.collectFonts()
 ```
 
 The current React Native package compiles these same sources and converts `toRawMap()` results only
@@ -40,7 +47,19 @@ not a consistency verdict. The binding's `numeric_consistency` probe remains dis
 a buffer-duration estimate, not measured playback or loopback latency. It does not start playback or
 recording. Unavailable properties and estimates are omitted from `toRawMap()`.
 
-All five methods run only when called. They add no permissions, prompts, transport, or automatic
+`collectApplication()` reads metadata for the host application's own package, including available
+signing and installation-source observations. It preserves the compatibility `installerPackage`
+alias alongside the more specific installer fields and does not enumerate installed applications.
+
+`collectHardware()` returns the existing Android hardware, display, memory, battery, power, NFC, and
+storage observations. Extraction preserves the existing platform checks and omission behavior;
+it introduces no additional data collection or permissions.
+
+`collectFonts()` returns the existing system-font observations. Font data is high entropy and
+collection can be expensive: call it explicitly only for a documented purpose and apply the host
+application's consent and retention policy. The existing React Native probe default is unchanged.
+
+All eight methods run only when called. They add no permissions, prompts, transport, or automatic
 collection. See the [native Android example](example/README.md) for a consumer that has no React
 Native dependency and exposes a separate collection button for each method.
 

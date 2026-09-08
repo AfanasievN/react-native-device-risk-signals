@@ -6,7 +6,7 @@ const androidRoot = join(__dirname, "../android/src/main");
 describe("Android raw signal contract", () => {
   it("keeps install provenance catalog fields backed by the native provider", () => {
     const source = readFileSync(
-      join(androidRoot, "java/com/reactnativedeviceintel/ApplicationInfoProvider.kt"),
+      join(__dirname, "../sdks/android/src/main/kotlin/io/github/afanasievn/devicerisksignals/ApplicationSignals.kt"),
       "utf8",
     );
     for (const field of [

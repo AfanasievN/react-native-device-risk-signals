@@ -15,6 +15,14 @@ class DeviceRiskSignals(context: Context) {
 
   fun collectLocale(): LocaleSignals = localeCollector.collect()
 
+  /** Observes only the host application's package, signing, install, and process state. */
+  fun collectApplication(): ApplicationSignals = ApplicationCollector(applicationContext).collect()
+
+  fun collectHardware(): HardwareSignals = HardwareCollector(applicationContext).collect()
+
+  /** Explicit font-directory read, kept separate from hardware collection. */
+  fun collectFonts(): FontsSignals = HardwareCollector(applicationContext).collectFonts()
+
   /** Explicit opt-in measurement: reads the monotonic clock 257 times synchronously. */
   fun collectRuntimeTiming(): RuntimeTimingSignals = RuntimeTimingCollector().collect()
 
