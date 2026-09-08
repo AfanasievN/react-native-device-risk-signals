@@ -30,9 +30,7 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   private val geolocation = GeolocationInfoProvider(reactContext)
   private val mediaBluetoothApps = MediaBluetoothAppsInfoProvider(reactContext)
   private val gpuBenchmark = GpuBenchmarkProvider()
-  private val audioLatency = AudioLatencyProvider(reactContext)
   private val securityPosture = SecurityPostureProvider(reactContext)
-  private val numericConsistency = NumericConsistencyProvider()
 
   override fun getDeviceIdentity(promise: Promise) {
     resolveOrReject(promise, "getDeviceIdentity") {
@@ -95,7 +93,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getAudioLatency(promise: Promise) {
-    resolveOrReject(promise, "getAudioLatency") { audioLatency.getAudioLatency() }
+    resolveOrReject(promise, "getAudioLatency") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectAudioLatency().toRawMap())
+    }
   }
 
   override fun getDeviceSecurityPosture(promise: Promise) {
@@ -113,7 +113,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getNumericConsistencySignals(promise: Promise) {
-    resolveOrReject(promise, "getNumericConsistencySignals") { numericConsistency.getNumericConsistencySignals() }
+    resolveOrReject(promise, "getNumericConsistencySignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectNumericConsistency().toRawMap())
+    }
   }
 
   override fun invalidate() {

@@ -1,4 +1,4 @@
-# Android core extraction: runtime timing
+# Android core extraction progress
 
 Date: 2026-09-08
 
@@ -52,3 +52,40 @@ extraction and standalone consumer verification. iOS and Web SDK implementations
 Capacitor adapters remain future phases. The Android artifact is still unpublished. The shared
 catalog and schema are synchronized, but their authoring source remains the transitional TypeScript
 contract rather than an independent contract package.
+
+## Second increment: numeric, audio, and a native consumer
+
+The standalone facade now exposes five collections: identity, locale, runtime timing, numeric
+consistency, and audio latency. Numeric and audio collectors return typed Kotlin models and raw
+maps; the React Native adapter delegates both methods to the SDK. Their previous implementations
+have been removed from the binding. Field names, values, permissions, and defaults are preserved.
+Native numeric vectors do not include the binding's JavaScript comparisons. Audio output latency
+remains an estimate from system properties, with the existing `measured` flag semantics; no audio
+engine, microphone, playback, or loopback is started.
+
+`sdks/android/example/` is a separate Android application module depending on the SDK project.
+It uses only the public facade and Android system classes, with explicit collection buttons and
+local display. CI now builds its debug APK together with the standalone release AAR and unit tests.
+This checks the separate-module API boundary without React Native; it does not verify installation
+from Maven Central or replace physical-device QA.
+
+Additional RED / GREEN evidence:
+
+- Numeric collector/model tests failed on missing symbols, then passed. A separate raw-map test
+  failed on missing `toRawMap`, then passed with exact field names, ordered numeric arrays, large
+  unsigned integer values, and `false` observations preserved. Three tests cover this extraction.
+- Audio tests failed on missing collector symbols, then passed for valid, absent, malformed,
+  partial, and nonpositive property values. Four tests cover the preserved behavior.
+- Native consumer compilation failed on the two missing public facade methods before integration.
+  The same compilation target passed after integration, followed by a successful debug APK build.
+- Concurrent Gradle runs initially conflicted in Kotlin build caches; these infrastructure failures
+  were excluded from RED evidence and subsequent native builds were serialized.
+
+Final second-increment checks passed: all 15 standalone JVM tests, release AAR, native consumer APK,
+React Native Android compilation and JVM tests, root verification (107 Jest tests, three Node tests,
+19-method native parity, all 24 Pages), npm pack dry run, and example tests/lint/TypeScript. No
+physical-device session or registry publication was performed.
+
+The original runtime-timing optional-field compatibility note above still applies to the next
+release. The second increment adds no further TypeScript contract changes. Other Android providers
+and all iOS/Web implementation work remain outstanding.

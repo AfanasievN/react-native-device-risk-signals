@@ -62,8 +62,10 @@ Web SDK ────────────┬─ Browser apps
 ```
 
 Today, `react-native-device-risk-signals` is the production distribution. Android core extraction is
-in development with device identity, locale, and native runtime timing using standalone typed Kotlin models; the
-Maven artifact is not published yet. iOS, Web, Flutter, and Capacitor remain planned. All surfaces
+in development with device identity, locale, native runtime timing, native numeric vectors, and audio
+property estimates using standalone typed Kotlin models. A [native Android example](sdks/android/example/README.md)
+consumes this partial SDK without React Native; the Maven artifact is not published yet.
+iOS, Web, Flutter, and Capacitor remain planned. All surfaces
 share the generated [raw-signal contract](contract/README.md).
 
 All distributables follow `<platform>-device-risk-signals`: `android-device-risk-signals`,

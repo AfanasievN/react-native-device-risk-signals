@@ -33,7 +33,9 @@ dist/
 lib/
 android/build/
 /sdks/android/.gradle/
+/sdks/android/.kotlin/
 /sdks/android/build/
+/sdks/android/example/build/
 
 # testing
 /junit.xml

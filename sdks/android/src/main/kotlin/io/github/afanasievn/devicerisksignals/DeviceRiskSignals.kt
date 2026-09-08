@@ -17,4 +17,10 @@ class DeviceRiskSignals(context: Context) {
 
   /** Explicit opt-in measurement: reads the monotonic clock 257 times synchronously. */
   fun collectRuntimeTiming(): RuntimeTimingSignals = RuntimeTimingCollector().collect()
+
+  /** Explicit opt-in numeric workload; comparisons with JavaScript belong to the binding. */
+  fun collectNumericConsistency(): NumericConsistencySignals = NumericConsistencyCollector.collect()
+
+  /** Audio output properties only; does not start audio playback or record sound. */
+  fun collectAudioLatency(): AudioLatencySignals = AudioLatencyCollector(applicationContext).collect()
 }
