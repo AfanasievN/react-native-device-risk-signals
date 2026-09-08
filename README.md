@@ -8,7 +8,8 @@
 > platform-neutral ecosystem for Android, iOS, Web, React Native, Flutter, and Capacitor. The npm
 > name and current API remain unchanged during the migration. See the
 > [ecosystem architecture](docs/ECOSYSTEM_ARCHITECTURE.md) and
-> [machine-readable component map](device-risk-signals.json).
+> [machine-readable component map](device-risk-signals.json). The accepted architectural decision
+> is recorded in [ADR-0001](docs/adr/0001-platform-sdk-monorepo.md).
 
 Open-source React Native TurboModule for collecting raw device intelligence and fraud-prevention
 signals on Android and iOS: root and jailbreak indicators, emulator detection, debugger and Frida
@@ -61,7 +62,7 @@ Web SDK ────────────┬─ Browser apps
 ```
 
 Today, `react-native-device-risk-signals` is the production distribution. Android core extraction is
-in development with device identity and locale already using standalone typed Kotlin models; the
+in development with device identity, locale, and native runtime timing using standalone typed Kotlin models; the
 Maven artifact is not published yet. iOS, Web, Flutter, and Capacitor remain planned. All surfaces
 share the generated [raw-signal contract](contract/README.md).
 

@@ -7,6 +7,9 @@ The repository is gradually becoming the platform-neutral Device Risk Signals mo
 binding. Native SDKs must not depend on framework bindings, and bindings should not duplicate signal
 logic.
 
+The architecture document is normative. Package-boundary, dependency-direction, naming, or release
+model changes also require an ADR under `docs/adr/` and an update to `device-risk-signals.json`.
+
 By participating, you agree to follow the project [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Before opening a change
@@ -19,6 +22,8 @@ By participating, you agree to follow the project [Code of Conduct](CODE_OF_COND
 - Keep `src/probeCatalog.ts` and `docs/DATA_DICTIONARY.md` synchronized with probe behavior.
 - Run `npm run docs:sync` when the public contract changes; generated files in `contract/` and
   `website/` must remain identical.
+- Update GitHub Pages in the same pull request when changing a component name/status, install
+  coordinate, compatibility promise, permission, contract field, or release process.
 - Keep transport, authentication, retries, and backend-specific serialization in the host app.
 
 Open an issue before introducing a new sensitive signal category or a breaking public API change.
@@ -51,6 +56,12 @@ npm pack --dry-run
 `npm run verify:contract` is part of `verify` and checks every TurboModule method across the
 TypeScript spec, Kotlin implementation, and Objective-C++ implementation.
 
+Changes to the standalone Android SDK also run:
+
+```sh
+example/android/gradlew -p sdks/android testDebugUnitTest assembleRelease --no-daemon
+```
+
 The example is an independent application. Install and verify it separately:
 
 ```sh
@@ -63,5 +74,7 @@ npx tsc --noEmit
 
 ## Pull requests
 
-Describe the motivation, affected platforms, privacy impact, and verification performed. Keep pull
-requests focused and avoid generated build output.
+Describe the motivation, affected components/platforms, contract impact, privacy impact,
+compatibility impact, and verification performed. Keep pull requests focused and avoid generated
+build output. For documentation-surface changes, include the affected Pages routes and deployed-site
+verification plan.

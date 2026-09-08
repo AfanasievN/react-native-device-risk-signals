@@ -104,6 +104,24 @@ data class LocaleSignals(
   )
 }
 
+/** Clock interval observations; absent measurements are omitted, not reported as zero. */
+data class RuntimeTimingSignals(
+  val nativeSampleCount: Int,
+  val nativeTimerResolutionNs: Double? = null,
+  val nativeIntervalMedianNs: Double? = null,
+  val nativeIntervalP95Ns: Double? = null,
+  val nativeIntervalMadNs: Double? = null,
+) {
+  fun toRawMap(): Map<String, Any> = rawSignalMap(
+    "nativeClockSource" to "elapsed_realtime_nanos",
+    "nativeSampleCount" to nativeSampleCount,
+    "nativeTimerResolutionNs" to nativeTimerResolutionNs,
+    "nativeIntervalMedianNs" to nativeIntervalMedianNs,
+    "nativeIntervalP95Ns" to nativeIntervalP95Ns,
+    "nativeIntervalMadNs" to nativeIntervalMadNs,
+  )
+}
+
 private fun rawSignalMap(vararg values: Pair<String, Any?>): Map<String, Any> = buildMap {
   for ((key, value) in values) {
     if (value != null) put(key, value)

@@ -1,5 +1,7 @@
 package com.reactnativedeviceintel
 
+import io.github.afanasievn.devicerisksignals.SignalStatistics
+
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext

@@ -1,4 +1,4 @@
-package com.reactnativedeviceintel
+package io.github.afanasievn.devicerisksignals
 
 import kotlin.math.ceil
 import kotlin.math.pow

@@ -14,4 +14,7 @@ class DeviceRiskSignals(context: Context) {
   fun collectDeviceIdentity(): DeviceIdentitySignals = deviceIdentityCollector.collect()
 
   fun collectLocale(): LocaleSignals = localeCollector.collect()
+
+  /** Explicit opt-in measurement: reads the monotonic clock 257 times synchronously. */
+  fun collectRuntimeTiming(): RuntimeTimingSignals = RuntimeTimingCollector().collect()
 }

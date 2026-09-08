@@ -32,7 +32,6 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   private val gpuBenchmark = GpuBenchmarkProvider()
   private val audioLatency = AudioLatencyProvider(reactContext)
   private val securityPosture = SecurityPostureProvider(reactContext)
-  private val runtimeTiming = RuntimeTimingProvider()
   private val numericConsistency = NumericConsistencyProvider()
 
   override fun getDeviceIdentity(promise: Promise) {
@@ -108,7 +107,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getRuntimeTimingSignals(promise: Promise) {
-    resolveOrReject(promise, "getRuntimeTimingSignals") { runtimeTiming.getRuntimeTimingSignals() }
+    resolveOrReject(promise, "getRuntimeTimingSignals") {
+      ReactNativeValueConverter.toWritableMap(androidSignals.collectRuntimeTiming().toRawMap())
+    }
   }
 
   override fun getNumericConsistencySignals(promise: Promise) {

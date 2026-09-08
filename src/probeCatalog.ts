@@ -555,7 +555,7 @@ export const PROBE_CATALOG = [
       "nativeIntervalP95Ns",
       "nativeIntervalMadNs",
     ],
-    notes: "Disabled by default because timing is noisy, high entropy, and requires physical-device calibration.",
+    notes: "Disabled by default because timing is noisy, high entropy, and requires physical-device calibration. Android omits native distribution measurements when no positive clock intervals are available; clock-read failures fail collection.",
   },
   {
     id: "numeric_consistency",

@@ -1,5 +1,15 @@
 # Device Risk Signals ecosystem architecture
 
+- **Status:** normative
+- **Last updated:** 2026-08-26
+- **Machine-readable companion:** [`device-risk-signals.json`](../device-risk-signals.json)
+- **Accepted decision:** [ADR-0001](adr/0001-platform-sdk-monorepo.md)
+
+This document defines how the repository is organized and operated. If a placeholder README or an
+implementation detail disagrees with this document, this document and `device-risk-signals.json`
+take precedence. Changes to package boundaries, dependency direction, naming, or release strategy
+must update both files in the same pull request.
+
 ## Goal
 
 Device Risk Signals is the platform-neutral project. `react-native-device-risk-signals` is its first
@@ -23,13 +33,28 @@ SDKs own platform collection and platform-native result models. Bindings only ad
 their framework. No SDK may depend on a binding, and no binding should duplicate platform detection
 logic after extraction is complete.
 
+## Architectural principles
+
+1. **One native implementation per platform.** Android collection lives in the Android SDK; iOS
+   collection lives in the iOS SDK. Framework bindings do not fork or reimplement those checks.
+2. **One semantic contract.** Probe ids, field meaning, omission rules, sensitivity, and collection
+   outcomes are shared across every surface that can provide them.
+3. **Platform capability is explicit.** SDKs expose only observations supported by their platform.
+   Cross-platform bindings preserve omissions and never manufacture parity.
+4. **Raw observations only.** No component calculates a risk score, returns a trust verdict, blocks
+   a user, uploads an event, or creates a persistent device identifier.
+5. **Thin bindings.** Bindings own framework lifecycle, value conversion, code generation, and
+   error translation. They do not own detection logic.
+6. **Independent consumption.** Native applications can install a native SDK without React Native,
+   Flutter, Capacitor, or code belonging to another operating system.
+
 ## Repository layout
 
 | Path | State | Responsibility |
 | --- | --- | --- |
 | `contract/` | Active | Generated, platform-neutral probe catalog and event schema |
 | `android/`, `ios/`, `src/` | Active/transitional | Current React Native package implementation |
-| `sdks/android/` | In development | Standalone Kotlin/Android library; identity and locale extracted |
+| `sdks/android/` | In development | Standalone Kotlin/Android library; identity, locale, and native runtime timing extracted |
 | `sdks/ios/` | Planned | Standalone iOS Swift Package with optional Mac Catalyst support |
 | `sdks/web/` | Planned | Browser SDK |
 | `bindings/react-native/` | Transitional placeholder | Future home of the existing npm binding |
@@ -39,6 +64,23 @@ logic after extraction is complete.
 `device-risk-signals.json` is the machine-readable component map. `dependsOn` records current
 dependencies and `targetDependsOn` records dependencies that become real after extraction. Planned
 directories intentionally contain no package manifests so they cannot be published accidentally.
+
+## Source ownership during migration
+
+| Concern | Current source of truth | Target owner |
+| --- | --- | --- |
+| Probe ids, fields, privacy metadata | `src/probeCatalog.ts` | Versioned shared contract tooling |
+| TypeScript event/native contract | `src/NativeDeviceIntel.ts` | Shared contract plus binding-specific generated types |
+| Generated catalog/schema | `contract/` and `website/` | `contract/` with published documentation mirrors |
+| Android identity, locale, and native runtime timing | `sdks/android/` | `android-device-risk-signals` |
+| Remaining Android providers | `android/` | `android-device-risk-signals` |
+| iOS providers | `ios/` | `ios-device-risk-signals` |
+| React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
+| Web observations | Not implemented | `web-device-risk-signals` |
+
+During extraction, the root React Native package compiles Android core sources directly. This is a
+temporary compatibility bridge, not the final dependency model. Once the Maven and Swift packages
+are published and tested, the binding will consume their released artifacts instead.
 
 ## Library naming
 
@@ -66,9 +108,178 @@ Flutter is the only spelling exception at installation time: Dart package names 
 5. Unsupported or unavailable fields are omitted; platform adapters must not invent `false`, zero,
    or empty values.
 
+The allowed dependency graph is:
+
+```text
+contract <- android SDK <- framework bindings
+contract <- iOS SDK    <- framework bindings
+contract <- web SDK    <- Capacitor
+```
+
+Arrows mean “depends on.” Dependencies between bindings are forbidden. Android, iOS, and Web SDKs
+are peers and must not import each other.
+
+## Shared contract rules
+
+- A probe keeps the same id and field meaning across packages.
+- A platform may omit a field or an entire probe when the underlying data is unavailable.
+- Every attempted probe resolves independently to `success`, `skipped`, `timeout`, or `error`.
+- Adding an optional field or probe is additive. Renaming/removing a field or changing its meaning is
+  breaking even when the serialized JSON type remains the same.
+- `schema_version` changes only for an incompatible event-envelope change. It is not the npm, Maven,
+  Swift, or pub.dev package version.
+- Generated files in `contract/` and `website/` must be identical products of the existing sync
+  command; they are never edited manually.
+
+## How a probe change flows through the repository
+
+1. Define the raw observation and privacy purpose in the shared catalog/contract.
+2. Implement it once in the owning platform SDK. During migration, code still under `android/` or
+   `ios/` must be structured so it can move without importing a framework API.
+3. Add a thin adapter in each applicable binding and an explicit unsupported-platform gate where
+   necessary.
+4. Add native model/collector tests, binding contract tests, omission/error tests, and documentation.
+5. Regenerate `contract/` and Pages data, then run the complete verification ring.
+
+Sensitive or expensive probes remain disabled until their privacy impact, benchmark, and physical
+device behavior are documented.
+
+## Component lifecycle
+
+`device-risk-signals.json` uses these states:
+
+| State | Meaning |
+| --- | --- |
+| `planned` | Name and boundary are reserved; no installable implementation is promised |
+| `in-development` | Source and tests exist, but the distribution is not published/stable |
+| `active` | Published, supported, documented, and included in CI/release automation |
+
+A component can become `active` only when it has a public API, consumer example, platform tests,
+privacy documentation, package-content verification, release automation, and a successfully tested
+installation from its intended registry. A local AAR or placeholder directory is not an active
+release.
+
+## Versioning and releases
+
+Components use independent semantic versions because native SDKs and bindings can evolve at
+different rates. Compatibility is declared by each binding through minimum compatible SDK versions;
+versions are not forced to match across registries.
+
+Current transition rules:
+
+- `react-native-device-risk-signals` remains the only published component.
+- Existing tags `vX.Y.Z` and the current GitHub Release workflow refer only to that npm package.
+- Planned/in-development components must not be presented as installable registry packages.
+
+Target tag format after per-component release workflows exist:
+
+```text
+android-vX.Y.Z
+ios-vX.Y.Z
+web-vX.Y.Z
+react-native-vX.Y.Z
+flutter-vX.Y.Z
+capacitor-vX.Y.Z
+contract-vX.Y.Z
+```
+
+The switch from `vX.Y.Z` to component-prefixed tags is itself a release-process migration and must
+land together with updated workflows and documentation. Do not create those tags before then.
+
+## CI and repository operation
+
+Every pull request runs the shared JavaScript/TypeScript contract checks, package verification,
+Pages verification, compatibility matrix, and native example builds. Each standalone SDK gains its
+own independent build/test job before publication. A binding is also tested as a real consumer of
+its SDKs rather than only with mocked values.
+
+Required checks grow with the repository:
+
+| Component | Minimum verification |
+| --- | --- |
+| Shared contract | generation drift, schema/catalog validity, compatibility tests |
+| Android SDK | JVM unit tests, Android lint, release AAR, native consumer build |
+| iOS SDK | Swift tests, build for supported destinations, native consumer build |
+| Web SDK | unit tests, typecheck, browser compatibility and package-content checks |
+| Bindings | framework tests, native integration builds, package-content checks |
+
+The root is intentionally not an npm workspace yet. Workspaces and package-aware release tooling are
+enabled only when moving the active React Native package no longer breaks npm installation,
+autolinking, CocoaPods, codegen, Pages, or the existing release workflow.
+
+## GitHub Pages and documentation model
+
+GitHub Pages must evolve from documentation for one React Native package into the documentation
+portal for the whole Device Risk Signals ecosystem. The website is part of the public contract, not
+an optional marketing mirror.
+
+The target information architecture is:
+
+```text
+/
+├── getting-started/
+├── signals/
+├── contract/
+├── android/
+├── ios/
+├── web/
+├── react-native/
+├── flutter/
+├── capacitor/
+├── backend/
+├── guides/
+├── compatibility/
+└── releases/
+```
+
+Documentation rules:
+
+1. The home page presents `Device Risk Signals` as the ecosystem and identifies every component as
+   `active`, `in development`, or `planned` from `device-risk-signals.json`.
+2. Install commands are shown only for published components. Planned package coordinates must be
+   labeled as reserved/intended and must never look installable.
+3. Every active component gets its own installation, API, compatibility, privacy, troubleshooting,
+   migration, and release-notes section.
+4. The Probe Catalog and raw-event schema remain shared canonical resources. Platform/package pages
+   filter or link to that contract rather than maintaining copied field tables.
+5. Existing backend guides continue to consume the shared event envelope and must not become tied to
+   one frontend framework.
+6. Package/version selectors must not imply that independently versioned packages share a version.
+   Each page identifies the component and version it documents.
+7. Historical release notes remain addressable. Breaking URL changes require redirects where the
+   hosting platform supports them and a checked migration map where it does not.
+
+Before renaming the GitHub repository or changing the Pages base URL:
+
+- Prefer establishing a custom documentation domain so package READMEs and search results use a
+  stable canonical URL.
+- Inventory every internal link, npm/Maven/pub/Swift metadata URL, badge, sitemap entry, schema `$id`,
+  README, social preview, and external backlink controlled by the project.
+- Publish redirects or compatibility landing pages for the old routes where possible.
+- Update canonical tags, Open Graph metadata, structured data, `robots.txt`, sitemap, `llms.txt`, and
+  other AI-agent discovery files together.
+- Keep the raw schema/catalog URLs stable or release a documented schema identifier migration.
+- Verify the deployed site, not only local files, before removing old URLs.
+
+The Pages workflow must eventually derive component navigation, names, status, and registry links
+from `device-risk-signals.json`; verify that all active probes/fields are documented; reject stale
+package coordinates; and run link, SEO, structured-data, accessibility, and mobile-layout checks.
+Until that generator exists, changes to component names, lifecycle, install coordinates, contract
+fields, permissions, or compatibility must update GitHub Pages manually in the same pull request.
+
+## Change governance
+
+- A new probe follows the probe proposal and privacy review process.
+- A new component, reverse dependency, package rename, or shared-contract breaking change requires
+  an ADR and an update to this document plus `device-risk-signals.json`.
+- Pull requests must state affected components, contract impact, privacy impact, compatibility
+  impact, and verification performed.
+- Generated output, local Gradle caches, AARs, credentials, customer data, and app inventories are
+  never committed.
+
 ## Incremental migration
 
-### Phase 0 — repository foundation (current)
+### Phase 0 — repository foundation (completed)
 
 - Establish the neutral product identity and component manifest.
 - Publish shared contract artifacts from the existing TypeScript sources.
@@ -77,34 +288,45 @@ Flutter is the only spelling exception at installation time: Dart package names 
 ### Phase 1 — Android core
 
 - Introduce Kotlin result models that contain no React Native types. **Started:** device identity,
-  Android build, and locale models are available.
+  Android build, locale, and native runtime timing models are available.
 - Move property, artifact, hook, and provider logic into the Android SDK. **Started:** identity and
-  locale collectors are extracted.
+  locale collectors and the native runtime timing collector are extracted. JavaScript timing and
+  JS-to-native call duration remain in the React Native binding; other Android providers still need
+  extraction.
 - Keep a small TurboModule adapter that converts SDK models to React Native maps. **Implemented:**
   the shared value converter is now the boundary for extracted probes.
 - Add native Android consumer tests before publishing the Maven artifact.
+- Add an Android section to GitHub Pages before Maven publication, clearly labeled `in development`
+  until the artifact is available from the documented coordinate.
 
 ### Phase 2 — iOS core
 
 - Move Foundation-compatible providers behind a public iOS SDK API.
 - Keep Objective-C++ React Native code as a thin adapter.
 - Add native Swift/Objective-C consumer tests before publishing the Swift package.
+- Add an iOS section to GitHub Pages before Swift Package publication, including supported
+  destinations, privacy behavior, and native integration examples.
 
 ### Phase 3 — React Native relocation
 
 - Point the existing npm package at both native SDK artifacts.
 - Move its package sources to `bindings/react-native/` without changing the npm name or public API.
 - Only then enable package-manager workspaces and update release automation.
+- Move framework-specific Pages content under `/react-native/` while preserving the current public
+  installation and guide URLs through redirects or compatibility pages.
 
 ### Phase 4 — Web and additional bindings
 
 - Implement a separate Web capability catalog with privacy-first defaults.
 - Build Flutter and Capacitor adapters from stable native SDK APIs.
 - Version each distributable independently while versioning the shared contract explicitly.
+- Add Web, Flutter, and Capacitor Pages sections as their implementations become testable; planned
+  pages must describe roadmap/status without publishing fictional install commands.
 
 ## Repository and documentation rename
 
 Renaming the GitHub repository and Pages URL is intentionally deferred. Project Pages URLs do not
 have the same redirect guarantees as normal repository links. Rename only after the new package
 layout, release workflows, documentation links, and preferably a custom documentation domain are
-ready to change together.
+ready to change together. The GitHub Pages migration checklist above is a release blocker for that
+rename, not a follow-up cleanup task.

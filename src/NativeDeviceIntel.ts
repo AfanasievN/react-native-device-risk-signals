@@ -514,10 +514,10 @@ export type GpuBenchmarkSignals = {
 export type NativeRuntimeTimingSignals = {
   nativeClockSource: string;
   nativeSampleCount: number;
-  nativeTimerResolutionNs: number;
-  nativeIntervalMedianNs: number;
-  nativeIntervalP95Ns: number;
-  nativeIntervalMadNs: number;
+  nativeTimerResolutionNs?: number;
+  nativeIntervalMedianNs?: number;
+  nativeIntervalP95Ns?: number;
+  nativeIntervalMadNs?: number;
 };
 
 export type RuntimeTimingSignals = NativeRuntimeTimingSignals & {

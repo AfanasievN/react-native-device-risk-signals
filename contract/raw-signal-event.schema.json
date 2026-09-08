@@ -2316,11 +2316,7 @@
                     "eventLoopMadMs",
                     "bridgeRoundTripMs",
                     "nativeClockSource",
-                    "nativeSampleCount",
-                    "nativeTimerResolutionNs",
-                    "nativeIntervalMedianNs",
-                    "nativeIntervalP95Ns",
-                    "nativeIntervalMadNs"
+                    "nativeSampleCount"
                   ],
                   "additionalProperties": true
                 }

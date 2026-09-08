@@ -211,6 +211,13 @@ and a small floating-point vector across JavaScript and native runtimes, returni
 difference aggregates. Both probes ship disabled because runtime load, thermal state, operating-system
 versions, and hardware class require representative physical-device calibration.
 
+On Android, native timing is collected by the standalone SDK and converted at the React Native
+boundary. If no positive clock intervals are observed, `nativeTimerResolutionNs`,
+`nativeIntervalMedianNs`, `nativeIntervalP95Ns`, and `nativeIntervalMadNs` are omitted; the clock
+source and sample count remain available. A clock-read failure fails collection instead of returning
+fabricated zero-valued timing data. JavaScript timer/event-loop and JS-to-native duration measurements
+remain part of the React Native probe, not the standalone Android result.
+
 `gpu_benchmark` additionally returns per-operation p50, p95, median absolute deviation, coefficient
 of variation, and warm-up slope. It remains disabled and must not be interpreted from one run.
 

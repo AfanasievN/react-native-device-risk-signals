@@ -4,6 +4,13 @@
   "productName": "Device Risk Signals",
   "description": "Raw, local-first device and runtime observations across mobile and web platforms.",
   "contractPath": "contract",
+  "repository": {
+    "model": "incremental-monorepo",
+    "versioning": "independent",
+    "currentPublishedComponent": "react-native",
+    "currentTagPattern": "v{version}",
+    "targetTagPattern": "{component}-v{version}"
+  },
   "components": [
     {
       "id": "android",

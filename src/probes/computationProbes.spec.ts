@@ -20,8 +20,22 @@ jest.mock("../NativeDeviceIntel", () => ({
 
 import {numericConsistencyProbes} from "./numericConsistencyProbe";
 import {runtimeTimingProbes} from "./runtimeTimingProbe";
+import NativeDeviceIntel, {type NativeRuntimeTimingSignals} from "../NativeDeviceIntel";
 
 describe("active computation probes", () => {
+  it("preserves omitted native timing measurements", async () => {
+    const unavailable: NativeRuntimeTimingSignals = {
+      nativeClockSource: "elapsed_realtime_nanos",
+      nativeSampleCount: 0,
+    };
+    jest.mocked(NativeDeviceIntel.getRuntimeTimingSignals).mockResolvedValueOnce(unavailable);
+    const result = await runtimeTimingProbes[0]?.collect();
+    expect(result).toMatchObject(unavailable);
+    for (const field of ["nativeTimerResolutionNs", "nativeIntervalMedianNs", "nativeIntervalP95Ns", "nativeIntervalMadNs"]) {
+      expect(result).not.toHaveProperty(field);
+    }
+  });
+
   it("ship disabled until physical-device calibration", () => {
     expect(runtimeTimingProbes[0]?.enabled()).toBe(false);
     expect(numericConsistencyProbes[0]?.enabled()).toBe(false);

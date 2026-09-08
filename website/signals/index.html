@@ -99,6 +99,7 @@
         </div>
       </section>
       <section id="catalog">
+        <p><code>runtime_timing</code> remains disabled by default. On Android, native clock sampling uses the standalone Android SDK core; JavaScript and JS-to-native duration measurements remain in the React Native binding. If no positive native intervals are observed, native resolution, median, p95, and median absolute deviation fields are omitted. A clock-read failure fails collection instead of producing zero-valued timing data. The standalone Android SDK is still in development and has no published Maven artifact.</p>
         <h2>Probe catalog</h2><p>Search probe IDs, field names, purposes, permissions, and data categories. Filters can be combined with the search. High-sensitivity and expensive probes require additional purpose, retention, and calibration review.</p>
         <label class="catalog-search"><span>Search all 322 fields</span><input type="search" data-catalog-search placeholder="Try isEmulator, installerPackage, location, or string[]" autocomplete="off"></label>
         <div class="catalog-controls" role="group" aria-label="Filter probes">
@@ -1143,7 +1144,7 @@
             <td class="probe-summary"><code>runtime_timing</code><strong>Runtime timing profile</strong><p>Measure bounded JS event-loop, native clock, and JS-to-native call timing distributions.</p></td>
             <td><div class="table-tags"><span class="tag">Android + iOS</span><span class="tag default-off">default off</span></div></td>
             <td><div class="table-tags"><span class="tag high">high sensitivity</span><span class="tag">runtime</span><span class="tag">performance</span></div></td>
-            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Disabled by default because timing is noisy, high entropy, and requires physical-device calibration.</p></td>
+            <td><p class="permission-copy">No permission required</p><p class="probe-notes">Disabled by default because timing is noisy, high entropy, and requires physical-device calibration. Android omits native distribution measurements when no positive clock intervals are available; clock-read failures fail collection.</p></td>
             <td><details class="field-disclosure"><summary>14 typed top-level fields</summary><div class="field-list"><div class="field-contract" id="field-runtime_timing-jsClockSource" data-field-name="jsClockSource" data-field-search="jsclocksource string probes.runtime_timing.data.jsclocksource">
                   <div class="field-contract-heading"><code>jsClockSource</code><span class="field-type">string</span><button class="copy-path-button" type="button" data-copy-path="probes.runtime_timing.data.jsClockSource" aria-label="Copy JSON path for jsClockSource">Copy path</button></div>
                   <code class="field-path">probes.runtime_timing.data.jsClockSource</code>
