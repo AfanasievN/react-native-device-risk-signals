@@ -393,3 +393,62 @@ completed run, and a driver that optimizes the vertex attribute away would still
 benchmark. Both match the deleted React Native provider. The legacy active Frida boundary, standalone
 lint/package-content gates and Maven publication remain outstanding; no version bump, registry
 publication or Pages deployment was performed.
+
+## Tenth increment: the active loopback boundary becomes a component
+
+This increment resolves the last item in the provider table. The legacy React Native localhost Frida
+scan is not extracted into the no-network core and the core gains no socket API. It moves into a new
+optional component, `android-active-probes-device-risk-signals` under `sdks/android-active-probes/`,
+whose contract explicitly permits loopback socket I/O.
+[ADR-0003](adr/0003-active-loopback-probe-component.md) records the decision, its limits and what it
+deliberately does not decide.
+
+Two subagents worked in parallel: one implemented the component and its JVM socket tests against a
+documented seam, the other established the manifest, Pages and ADR requirements. The parent
+integrated the decision record, the ecosystem manifest, the binding wiring and the documentation.
+
+The component exposes `DeviceRiskActiveProbes.collectFridaScan()` returning a typed
+`FridaScanSignals` with the same four keys and types as before. Behavior was ported byte-for-byte:
+127.0.0.1, port 27042, one 700 ms value used as both connect and read timeout, `0x00` then
+`AUTH\r\n` in US-ASCII, a single read of up to six bytes, the `REJECT` prefix check, and
+swallow-to-false on any failure. Host, port and timeout are `internal` seams with production
+defaults, so no consumer can retarget the scan; the module imports no `com.facebook.react`, declares
+no permission or manifest entry, and adds no AndroidX or instrumented-test runtime.
+`android/src/main/java/com/reactnativedeviceintel/FridaScanProvider.kt` is deleted and
+`getFridaScanSignals()` now converts the component's raw map through `ReactNativeValueConverter`.
+
+Three preserved defects are documented in the code, the component README and the roadmap rather than
+silently fixed: the handshake reads once, so a partial or slow reply reads as no REJECT;
+`fridaHandshakeReject = false` collapses read timeout, reset, EOF and write failure with a listener
+that answered something else; and `defaultPortOpen = false` collapses connection refused, connect
+timeout and any other socket failure. A REJECT-like reply authenticates nothing. Fixing any of them
+changes emitted meaning and belongs in its own change with breaking-release notes.
+
+RED: the component's tests failed to compile against absent production classes (14 unresolved
+references). GREEN: eight JVM tests pass, driving the collector against a local `ServerSocket` on an
+ephemeral port for a REJECT reply, a non-REJECT reply, an accepted connection that never answers, an
+immediate close after accept, a closed port, and raw-model omission. A mutation check
+(`REJECT` to `NOPE`) failed exactly one test, confirming the assertion is load-bearing. The suite
+never touches port 27042 and needs no network access.
+
+Ecosystem bookkeeping landed in the same change: a seventh manifest component with
+`published: false` and an empty `dependsOn` as the SDK verifier requires, the React Native binding's
+`targetDependsOn` extended, ADR-0003 registered in the manifest and the architecture header, new
+rows in the repository-layout, source-ownership, library-naming and minimum-verification tables, a
+component README, `.gitignore` entries, the npm `files` entry for the new source set, the RN
+`srcDirs` entry, and a dedicated CI step that builds and tests the component. Pages surfaces that
+described the scan as an unresolved exception were rewritten, and the unqualified "performs no
+network request" claims on five pages now state that nothing is sent off the device and that the
+optional active probe connects only to loopback.
+
+Verified: eight component JVM tests and its release AAR, 103 core JVM tests, ten instrumented core
+tests, core release AAR and native example APK, React Native Android compilation and JVM tests, full
+root verification (107 Jest tests, three Node tests, 19-method native parity, seven-component
+ecosystem validation and 24 Pages), `npm pack --dry-run`, and example tests, lint and TypeScript.
+
+JVM socket tests are not device QA. Behavior against a real frida-server, OEM builds, IPv6-only
+loopback stacks and hosts with a local proxy still needs physical devices. Open follow-ups: whether
+an active probe should remain enabled by default, the three preserved defects, the iOS loopback port
+check in `ios/JailbreakDetector.m` under the same component rule, standalone lint and
+package-content gates, and Maven publication. No version bump, component tag, workspace or registry
+publication was created.

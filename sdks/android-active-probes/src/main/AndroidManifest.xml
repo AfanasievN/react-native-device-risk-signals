@@ -1,0 +1,3 @@
+<!-- No permissions and no components: loopback socket I/O needs no Android permission, and this
+     component declares nothing that a host manifest would have to merge. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" />

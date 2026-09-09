@@ -94,6 +94,8 @@ jobs:
       - run: npm ci --prefix example
       - name: Test standalone Android SDK and build native consumer
         run: example/android/gradlew -p sdks/android :testDebugUnitTest :compileDebugAndroidTestKotlin :assembleRelease :example:assembleDebug --no-daemon
+      - name: Test optional Android active-probes component
+        run: example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :assembleRelease --no-daemon
       - name: Compile Android example and native module
         working-directory: example/android
         run: ./gradlew :react-native-device-risk-signals:testDebugUnitTest :app:assembleDebug lintDebug --no-daemon

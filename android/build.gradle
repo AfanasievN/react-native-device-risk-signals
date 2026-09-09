@@ -42,6 +42,7 @@ android {
     main {
       java.srcDirs += ["${project.buildDir}/generated/source/codegen/java"]
       java.srcDirs += [file("../sdks/android/src/main/kotlin")]
+      java.srcDirs += [file("../sdks/android-active-probes/src/main/kotlin")]
     }
   }
 

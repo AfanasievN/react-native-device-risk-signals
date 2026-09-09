@@ -36,6 +36,9 @@ android/build/
 /sdks/android/.kotlin/
 /sdks/android/build/
 /sdks/android/example/build/
+/sdks/android-active-probes/.gradle/
+/sdks/android-active-probes/.kotlin/
+/sdks/android-active-probes/build/
 
 # testing
 /junit.xml

@@ -96,7 +96,7 @@ Cover:
 
 Non-negotiable facts:
 - The SDK does not calculate a risk score or return a trusted/untrusted verdict.
-- The SDK performs no network requests.
+- The SDK sends no data off the device. Only the optional active integrity probe opens a socket, to loopback.
 - The SDK does not create a persistent device identifier.
 - Do not invent probe IDs or fields. Quote exact paths from probe-catalog.json.
 - Never recommend blocking a user from one observation.

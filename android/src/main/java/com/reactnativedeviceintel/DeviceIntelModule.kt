@@ -7,6 +7,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import io.github.afanasievn.devicerisksignals.DeviceRiskSignals
+import io.github.afanasievn.devicerisksignals.active.DeviceRiskActiveProbes
 import java.util.UUID
 import java.util.concurrent.Executors
 
@@ -21,7 +22,7 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   override fun getRandomSessionId(): String = UUID.randomUUID().toString()
 
   private val androidSignals = DeviceRiskSignals(reactContext)
-  private val fridaScan = FridaScanProvider()
+  private val activeProbes = DeviceRiskActiveProbes()
   private val securityPosture = SecurityPostureProvider(reactContext)
 
   override fun getDeviceIdentity(promise: Promise) {
@@ -55,7 +56,9 @@ class DeviceIntelModule(reactContext: ReactApplicationContext) :
   }
 
   override fun getFridaScanSignals(promise: Promise) {
-    resolveOrReject(promise, "getFridaScanSignals") { fridaScan.getFridaScanSignals() }
+    resolveOrReject(promise, "getFridaScanSignals") {
+      ReactNativeValueConverter.toWritableMap(activeProbes.collectFridaScan().toRawMap())
+    }
   }
 
   override fun getForkJailbreakSignal(promise: Promise) {

@@ -7,7 +7,8 @@ collects typed raw device, application, integrity, network, runtime, geolocation
 transaction-time observations locally. The package has zero runtime dependencies.
 
 The SDK does not calculate a risk score, return a trusted or untrusted verdict, make a blocking
-decision, perform a network request, or create a persistent device identifier. The host application
+decision, send any data off the device, or create a persistent device identifier. The optional active
+integrity probe is the only collection that opens a socket, and it connects only to loopback. The host application
 owns consent, collection timing, authentication, transport, storage, retention, feature engineering,
 policy, review, recovery, and appeals.
 

@@ -53,6 +53,7 @@
     "android/build.gradle",
     "android/src",
     "sdks/android/src/main",
+    "sdks/android-active-probes/src/main",
     "ios",
     "src",
     "!src/**/*.spec.ts",

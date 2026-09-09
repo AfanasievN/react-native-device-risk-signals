@@ -1,10 +1,11 @@
 # Device Risk Signals ecosystem architecture
 
 - **Status:** normative
-- **Last updated:** 2026-09-08
+- **Last updated:** 2026-09-09
 - **Machine-readable companion:** [`device-risk-signals.json`](../device-risk-signals.json)
 - **Accepted decision:** [ADR-0001](adr/0001-platform-sdk-monorepo.md)
 - **Transaction lifecycle:** [ADR-0002](adr/0002-explicit-android-transaction-session.md)
+- **Active loopback boundary:** [ADR-0003](adr/0003-active-loopback-probe-component.md)
 - **Remaining work:** [Migration checklist](MIGRATION_ROADMAP.md)
 - **Platform discovery:** [SEO and platform content plan](PLATFORM_SEO_PLAN.md)
 
@@ -58,6 +59,7 @@ logic after extraction is complete.
 | `contract/` | Active | Generated, platform-neutral probe catalog and event schema |
 | `android/`, `ios/`, `src/` | Active/transitional | Current React Native package implementation |
 | `sdks/android/` | In development | Sixteen standalone collections plus explicit transaction sessions: identity, locale, timing, numeric vectors, audio properties, application, hardware, fonts, passive integrity, network, telephony, cached location, media/app audit, device posture, transaction snapshot, worker-only GPU |
+| `sdks/android-active-probes/` | In development | Optional active Android component; the only component permitted loopback socket I/O, currently one localhost Frida scan |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
 | `sdks/ios/` | Planned | Standalone iOS Swift Package with optional Mac Catalyst support |
 | `sdks/web/` | Planned | Browser SDK |
@@ -77,6 +79,7 @@ directories intentionally contain no package manifests so they cannot be publish
 | TypeScript event/native contract | `src/NativeDeviceIntel.ts` | Shared contract plus binding-specific generated types |
 | Generated catalog/schema | `contract/` and `website/` | `contract/` with published documentation mirrors |
 | Android identity, locale, timing, numeric vectors, audio, application, hardware, fonts, integrity, network, telephony, cached location, media/app audit, device posture, transaction observations and GPU | `sdks/android/` | `android-device-risk-signals` |
+| Android active loopback observation | `sdks/android-active-probes/` | `android-active-probes-device-risk-signals` |
 | Remaining Android providers | `android/` | `android-device-risk-signals` |
 | iOS providers | `ios/` | `ios-device-risk-signals` |
 | React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
@@ -93,6 +96,7 @@ Every distributable uses the public pattern `<platform>-device-risk-signals`:
 | Surface | Public library name | Install coordinate |
 | --- | --- | --- |
 | Android | `android-device-risk-signals` | `io.github.afanasievn:android-device-risk-signals` |
+| Android (active probes) | `android-active-probes-device-risk-signals` | `io.github.afanasievn:android-active-probes-device-risk-signals` |
 | iOS | `ios-device-risk-signals` | Swift package `ios-device-risk-signals`, product `IOSDeviceRiskSignals` |
 | Web | `web-device-risk-signals` | npm `web-device-risk-signals` |
 | React Native | `react-native-device-risk-signals` | npm `react-native-device-risk-signals` |
@@ -209,6 +213,7 @@ Required checks grow with the repository:
 | --- | --- |
 | Shared contract | generation drift, schema/catalog validity, compatibility tests |
 | Android SDK | JVM unit tests, Android lint, release AAR, native consumer build |
+| Android active probes | JVM socket tests against a local server, release AAR, loopback-only and no-permission review |
 | iOS SDK | Swift tests, build for supported destinations, native consumer build |
 | Web SDK | unit tests, typecheck, browser compatibility and package-content checks |
 | Bindings | framework tests, native integration builds, package-content checks |
@@ -320,9 +325,11 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
   Passive integrity includes existing process-local Frida evidence and shared finite package lists.
   Package observations depend on host visibility; `false` does not prove absence. The core manifest
   adds no queries and the React Native manifest retains its existing queries.
-  The legacy `FridaScanProvider` localhost TCP scan remains in the React Native adapter as an
-  unresolved exception to the no-network architecture. It must be resolved before completing the
-  extraction; no TCP scan is exposed by the standalone SDK or its example.
+  The legacy localhost TCP scan is no longer an unresolved exception: [ADR-0003](adr/0003-active-loopback-probe-component.md)
+  moves it into the optional `sdks/android-active-probes/` component, whose contract permits loopback
+  socket I/O only, and the React Native module delegates to it. The passive core and its example
+  expose no socket I/O. The iOS loopback port check in `ios/JailbreakDetector.m` is the same conflict
+  and stays open until iOS extraction begins.
 - Keep a small TurboModule adapter that converts SDK models to React Native maps. **Implemented:**
   the shared value converter is now the boundary for extracted probes.
 - Add native Android consumer tests before publishing the Maven artifact. **Started:**

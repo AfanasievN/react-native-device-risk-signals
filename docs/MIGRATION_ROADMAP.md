@@ -1,6 +1,6 @@
 # Device Risk Signals migration checklist
 
-Last reviewed: 2026-09-09, including instrumented GPU execution coverage on an emulator.
+Last reviewed: 2026-09-09, including the active loopback component decision in ADR-0003.
 
 This is the remaining-work checklist for the [ecosystem architecture](ECOSYSTEM_ARCHITECTURE.md).
 It describes repository implementation, not a claim that local commits have been pushed, deployed,
@@ -14,7 +14,8 @@ historical test evidence.
 | Area | Implemented | Still missing |
 | --- | --- | --- |
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
-| Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Active-scan decision, transaction lifecycle and physical-device GL QA, Maven publication |
+| Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Transaction lifecycle and physical-device GL QA, Maven publication |
+| Android active probes | Separate optional component with the loopback Frida scan and JVM socket tests, consumed by the binding | Probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
 | iOS | Existing providers under `ios/` used by RN | Standalone SDK, package/consumer integration and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
@@ -35,11 +36,12 @@ do not use these counts as a migration percentage.
 
 Work in this order unless an implementation dependency justifies a change:
 
-| Remaining work | Current source under `android/src/main/java/com/reactnativedeviceintel/` | Completion condition |
-| --- | --- | --- |
-| Legacy active Frida scan | `FridaScanProvider.kt` | Resolve the architecture/contract decision below before claiming extraction complete |
+All providers are now extracted. `FridaScanProvider.kt` was the last one; it moved into the
+optional `sdks/android-active-probes/` component rather than the no-network core, as recorded in
+[ADR-0003](adr/0003-active-loopback-probe-component.md). What remains for Android is QA, defaults and
+publication, not relocation.
 
-For each provider:
+When a provider is added in future, follow the same steps:
 
 - [ ] Add typed model, serialization and failure/omission tests before implementation.
 - [ ] Move existing helpers and tests; verify every old emitted field and artifact list survives.
@@ -114,14 +116,18 @@ for compatibility changes and the difference between queue cancellation and inte
 
 ## 2. Resolve known contract and architecture gaps
 
-- [ ] **Active localhost scan:** the legacy RN Frida probe connects/writes to localhost and is currently
-  enabled by default. This conflicts with the no-network SDK boundary. Record an ADR and a compatible
-  migration/release plan to remove it or move it outside the no-network SDK contract. Any alternative
-  that changes the product boundary requires an explicit decision; extraction does not authorize it.
-  Do not add a core socket API or an `INTERNET` declaration as an implicit migration step.
-- [ ] Address the scan's single-read/partial-response behavior, ambiguous false flags and separate
-  connect/read timeouts in that decision. A REJECT-like response does not authenticate a service.
-  Audit iOS local-port collection against the same boundary before extracting its integrity code.
+- [x] **Active localhost scan:** resolved by [ADR-0003](adr/0003-active-loopback-probe-component.md).
+  The scan moved into the optional `sdks/android-active-probes/` component, whose contract permits
+  loopback socket I/O only; the core gained no socket API and no `INTERNET` declaration, and the
+  binding delegates to the component. Emitted fields, types and the probe default are unchanged.
+- [ ] Decide whether an active probe stays enabled by default. ADR-0003 deliberately flipped no
+  default, so an active loopback probe currently ships on in React Native.
+- [ ] Fix the scan's single-read/partial-response behavior and its ambiguous false flags, and split
+  the shared connect/read timeout. Relocation preserved all three defects deliberately; each fix
+  changes emitted meaning and needs tests, contract/privacy updates and breaking-release notes.
+  A REJECT-like response does not authenticate a service.
+- [ ] Resolve the iOS loopback port check in `ios/JailbreakDetector.m` (`openReverseEngineeringPorts`,
+  ports 27042/4444/22/44) under the same component rule before extracting iOS integrity code.
 - [ ] **Unavailable values:** audit legacy false/empty fallbacks separately. Preserve current behavior
   during moves; fixing a fallback requires tests, contract/privacy updates and compatibility notes.
 - [ ] **Timing compatibility:** four `NativeRuntimeTimingSignals` measurements became optional during
@@ -207,9 +213,9 @@ for compatibility changes and the difference between queue cancellation and inte
 - [ ] Introduce independent component releases only with registry smoke tests and publication
   credentials configured outside the repository. Keep failed/partial publication recoverable.
 
-The next Android step is **resolving the legacy active Frida boundary**, followed by standalone
-lint/package-content and physical-device QA gates. Instrumented tests now exist for GPU only;
-transaction lifecycle still has no instrumented coverage. The shared-contract and iOS work can proceed
+The next Android step is **standalone lint and package-content gates**, followed by physical-device
+QA for both Android components and the active-probe default decision. Instrumented tests now exist
+for GPU only; transaction lifecycle still has no instrumented coverage. The shared-contract and iOS work can proceed
 independently; Android publication is not implied by collector extraction. Each slice should end
 with typed core APIs, thin RN delegation, native-consumer checks, updated documentation and recorded
 RED/GREEN evidence. The full monorepo migration remains incomplete until all relevant

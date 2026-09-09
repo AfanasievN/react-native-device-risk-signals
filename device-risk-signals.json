@@ -8,7 +8,8 @@
     "model": "incremental-monorepo",
     "architectureDecisions": [
       "docs/adr/0001-platform-sdk-monorepo.md",
-      "docs/adr/0002-explicit-android-transaction-session.md"
+      "docs/adr/0002-explicit-android-transaction-session.md",
+      "docs/adr/0003-active-loopback-probe-component.md"
     ],
     "versioning": "independent",
     "currentPublishedComponent": "react-native",
@@ -26,6 +27,20 @@
       "distribution": {
         "registry": "maven-central",
         "name": "io.github.afanasievn:android-device-risk-signals",
+        "published": false
+      },
+      "dependsOn": []
+    },
+    {
+      "id": "android-active-probes",
+      "libraryName": "android-active-probes-device-risk-signals",
+      "kind": "sdk",
+      "status": "in-development",
+      "platforms": ["android"],
+      "path": "sdks/android-active-probes",
+      "distribution": {
+        "registry": "maven-central",
+        "name": "io.github.afanasievn:android-active-probes-device-risk-signals",
         "published": false
       },
       "dependsOn": []
@@ -72,7 +87,7 @@
         "name": "react-native-device-risk-signals"
       },
       "dependsOn": [],
-      "targetDependsOn": ["android", "ios"]
+      "targetDependsOn": ["android", "android-active-probes", "ios"]
     },
     {
       "id": "flutter",

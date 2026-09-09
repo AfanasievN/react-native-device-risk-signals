@@ -4,6 +4,28 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Android internals: the localhost Frida scan moved out of the React Native module into a new
+  optional component, `android-active-probes-device-risk-signals` under `sdks/android-active-probes/`,
+  whose contract permits loopback socket I/O only. The passive `android-device-risk-signals` core
+  still opens no socket. The React Native module delegates to the component through the existing
+  value converter. Recorded in
+  [ADR-0003](docs/adr/0003-active-loopback-probe-component.md).
+- Android internals: GPU collection moved into the passive core with a worker-thread contract and
+  best-effort restoration of a changed EGL binding, covered by an instrumented EGL suite.
+
+### Compatibility and privacy
+
+- No probe id, field name, field type, default, permission, dependency or event-schema change. The
+  `os_integrity_frida_scan` probe keeps its four fields and its current default; the 19-method
+  TurboModule contract is unchanged. Nothing new is sent off the device, no `INTERNET` declaration or
+  runtime dependency is added, and no persistent identifier is introduced. Both Android components
+  remain in development with unpublished Maven artifacts.
+- The scan's known limitations are carried over unchanged and are not fixed by the move: a single
+  short handshake read, `false` flags that collapse timeouts and socket errors, and one value used as
+  both connect and read timeout.
+
 ## [0.8.1] - 2026-07-24
 
 ### Fixed

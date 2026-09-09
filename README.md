@@ -70,12 +70,14 @@ property estimates, application metadata, hardware, fonts, passive OS integrity,
 cached geolocation, media/Bluetooth/finite app audit, and device security posture using standalone
 typed Kotlin models. Transaction collection now has a point-in-time snapshot and an explicitly
 owned native observation session. GPU collection also uses the core, with worker-only execution
-and best-effort EGL restoration; the legacy active-scan boundary remains unresolved.
+and best-effort EGL restoration.
 A [native Android example](sdks/android/example/README.md)
 consumes this partial SDK without React Native; the Maven artifact is not published yet.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.
-OS integrity includes existing process-local Frida evidence. The separate legacy React Native
-localhost Frida scan remains outside the core pending resolution of the no-network boundary.
+OS integrity includes existing process-local Frida evidence. The separate localhost Frida scan now
+lives in the optional `android-active-probes` component, the only component allowed loopback socket
+I/O; the passive core still opens no socket. See
+[ADR-0003](docs/adr/0003-active-loopback-probe-component.md).
 iOS, Web, Flutter, and Capacitor remain planned. All surfaces
 share the generated [raw-signal contract](contract/README.md).
 
@@ -86,6 +88,7 @@ share the generated [raw-signal contract](contract/README.md).
 | React Native | `react-native-device-risk-signals` | Published npm package |
 | Flutter | `flutter-device-risk-signals` | Planned; intended pub.dev coordinate `flutter_device_risk_signals` |
 | Native Android | `android-device-risk-signals` | In development; Maven artifact unpublished |
+| Native Android, active probes | `android-active-probes-device-risk-signals` | In development; optional loopback component, Maven artifact unpublished |
 | Native iOS | `ios-device-risk-signals` | Planned Swift Package |
 | Capacitor | `capacitor-device-risk-signals` | Planned npm package |
 | Browser | `web-device-risk-signals` | Planned npm package |

@@ -2,7 +2,7 @@
 
 > A zero-runtime-dependency React Native TurboModule that collects raw Android and iOS device, application, integrity, network, runtime, and transaction observations locally.
 
-The SDK returns typed RawSignalEvent data. It does not calculate a risk score, return a trusted or untrusted verdict, make a blocking decision, perform a network request, or create a persistent device identifier. Host applications own consent, action binding, authentication, transport, storage, retention, policy, review, and appeals.
+The SDK returns typed RawSignalEvent data. It does not calculate a risk score, return a trusted or untrusted verdict, make a blocking decision, send any data off the device, or create a persistent device identifier. The one exception to socket use is the optional active integrity probe, which connects only to loopback. Host applications own consent, action binding, authentication, transport, storage, retention, policy, review, and appeals.
 
 ## Start here
 

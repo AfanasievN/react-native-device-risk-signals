@@ -62,6 +62,12 @@ Changes to the standalone Android SDK also run:
 example/android/gradlew -p sdks/android testDebugUnitTest assembleRelease --no-daemon
 ```
 
+The optional active-probes component builds and tests separately:
+
+```sh
+example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :assembleRelease --no-daemon
+```
+
 The instrumented GPU suite needs a booted emulator or a connected device and is not part of CI,
 which only compiles it:
 
