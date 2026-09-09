@@ -60,6 +60,7 @@ logic after extraction is complete.
 | `android/`, `ios/`, `src/` | Active/transitional | Current React Native package implementation |
 | `sdks/android/` | In development | Sixteen standalone collections plus explicit transaction sessions: identity, locale, timing, numeric vectors, audio properties, application, hardware, fonts, passive integrity, network, telephony, cached location, media/app audit, device posture, transaction snapshot, worker-only GPU |
 | `sdks/android-active-probes/` | In development | Optional active Android component; the only component permitted loopback socket I/O, currently one localhost Frida scan |
+| `sdks/android-active-probes/example/` | Development consumer | One-button native app demonstrating the active probe; declares host `INTERNET` itself |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
 | `sdks/ios/` | Planned | Standalone iOS Swift Package with optional Mac Catalyst support |
 | `sdks/web/` | Planned | Browser SDK |
@@ -329,7 +330,9 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
   The legacy localhost TCP scan is no longer an unresolved exception: [ADR-0003](adr/0003-active-loopback-probe-component.md)
   moves it into the optional `sdks/android-active-probes/` component, whose contract permits loopback
   socket I/O only, and the React Native module delegates to it. The passive core and its example
-  expose no socket I/O. The iOS loopback port check in `ios/JailbreakDetector.m` is the same conflict
+  expose no socket I/O. No component declares `INTERNET`, but the active probe cannot open its socket
+  unless the host application already declares it, and without that declaration every flag reads
+  false; the component's own example declares it and says why. The iOS loopback port check in `ios/JailbreakDetector.m` is the same conflict
   and stays open until iOS extraction begins.
 - Keep a small TurboModule adapter that converts SDK models to React Native maps. **Implemented:**
   the shared value converter is now the boundary for extracted probes.

@@ -65,8 +65,11 @@ example/android/gradlew -p sdks/android testDebugUnitTest assembleRelease --no-d
 The optional active-probes component builds and tests separately:
 
 ```sh
-example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :assembleRelease --no-daemon
+example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :assembleRelease :example:assembleDebug --no-daemon
 ```
+
+That component has its own one-button native demo under `sdks/android-active-probes/example/`,
+because the passive core's example stays socket-free. Install it with `:example:installDebug`.
 
 Both components run Android lint with warnings treated as errors, and their release AARs are checked
 for package contents. Lint exemptions live in `sdks/android/lint.xml` with a written justification

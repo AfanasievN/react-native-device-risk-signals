@@ -1,0 +1,15 @@
+<!-- INTERNET is declared by this demo host, not by the component: an Android app that is not in
+     the `inet` group cannot open a socket at all, loopback included, so without it the scan
+     collapses to defaultPortOpen=false and demonstrates nothing. It is a normal permission and
+     raises no prompt. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.INTERNET" />
+  <application android:label="Active Probes" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false" android:supportsRtl="true">
+    <activity android:name=".MainActivity" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

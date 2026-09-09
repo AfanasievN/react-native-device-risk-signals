@@ -1,6 +1,6 @@
 # Device Risk Signals migration checklist
 
-Last reviewed: 2026-09-09, including Android lint and package-content gates for both components.
+Last reviewed: 2026-09-09, including the active-probe native demo and its host-permission finding.
 
 This is the remaining-work checklist for the [ecosystem architecture](ECOSYSTEM_ARCHITECTURE.md).
 It describes repository implementation, not a claim that local commits have been pushed, deployed,
@@ -15,7 +15,7 @@ historical test evidence.
 | --- | --- | --- |
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
 | Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Transaction lifecycle and physical-device GL QA, Maven publication |
-| Android active probes | Separate optional component with the loopback Frida scan, JVM socket tests, lint and package-content gates, consumed by the binding | Probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
+| Android active probes | Separate optional component with the loopback Frida scan, JVM socket tests, lint and package-content gates, a native one-button demo, consumed by the binding | Host-permission outcome modeling, probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
 | iOS | Existing providers under `ios/` used by RN | Standalone SDK, package/consumer integration and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
@@ -127,6 +127,11 @@ for compatibility changes and the difference between queue cancellation and inte
   binding delegates to the component. Emitted fields, types and the probe default are unchanged.
 - [ ] Decide whether an active probe stays enabled by default. ADR-0003 deliberately flipped no
   default, so an active loopback probe currently ships on in React Native.
+- [ ] Model "the host cannot open a socket" as its own outcome. Device evidence: an application that
+  has not declared `INTERNET` is outside the `inet` group, so the scan reports `defaultPortOpen` and
+  `fridaHandshakeReject` as false even with a listener on 127.0.0.1:27042, indistinguishable from
+  nothing listening. The component must keep declaring no permission; the fix belongs in the result
+  contract, not the manifest.
 - [ ] Fix the scan's single-read/partial-response behavior and its ambiguous false flags, and split
   the shared connect/read timeout. Relocation preserved all three defects deliberately; each fix
   changes emitted meaning and needs tests, contract/privacy updates and breaking-release notes.

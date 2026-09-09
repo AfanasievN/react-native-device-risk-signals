@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "android-active-probes-device-risk-signals"
+include(":example")

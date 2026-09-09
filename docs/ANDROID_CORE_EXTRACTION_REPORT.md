@@ -516,3 +516,48 @@ Remaining Android gates are unchanged by this increment: physical-device QA for 
 active-probe default decision, the three preserved active-scan defects, the iOS loopback port check,
 the final API documentation gate, and Maven publication. The demo module under
 `sdks/android/example/` is still checked only at default lint severity.
+
+## Twelfth increment: native demo for the active component, and a permission finding
+
+The passive core's example is socket-free by design, so the active component received its own
+one-button native app at `sdks/android-active-probes/example/`: an `Activity` with a single "Frida
+scan (active, loopback)" button, a single-thread worker, the button disabled until the call returns,
+an `isDestroyed` guard before touching the UI, and `shutdownNow()` in `onDestroy()` with a comment
+noting that a socket read already in progress ends on its own timeout. The component's Gradle build
+gained `include(":example")` and the application plugin, mirroring the core.
+
+Running it on an API 35 emulator exposed a documentation defect that source review and JVM socket
+tests had both missed. The demo reported `defaultPortOpen: false` and `fridaHandshakeReject: false`
+while a `REJECT` listener was confirmed up on 127.0.0.1:27042 (`netstat` showed the LISTEN socket).
+The cause is not the collector: an Android application that has not declared `INTERNET` is not in the
+`inet` group and cannot open a socket at all, loopback included. Declaring `INTERNET` in the demo
+host and repeating the same test produced `defaultPortOpen: true` and `fridaHandshakeReject: true`.
+The React Native example app declares `INTERNET` already, which is why the probe has always appeared
+to work; the React Native library manifest does not declare it either.
+
+So the claim "no Android permission is required" in ADR-0003, the component README and the facade
+KDoc was wrong and is corrected. The accurate statement: no component declares, requests or needs a
+permission of its own, and the AAR package-content gate enforces that, but the probe is inert unless
+the host application already declares `INTERNET`, and its failure is indistinguishable from nothing
+listening. That makes the previously recorded collapsed-false defect materially worse. ADR-0003
+carries a dated correction section rather than a silent rewrite, and the dependency is now in the
+probe catalog `permissions` and `notes` (regenerated into the three catalog copies, the event schema
+and Pages through `npm run docs:sync`), the data dictionary row and integrity paragraph, the
+architecture document and the component README. Modeling "the host cannot open a socket" as its own
+unavailable outcome is new open work in the migration checklist; the fix belongs in the result
+contract, not in any manifest.
+
+The demo host declares `INTERNET` with a comment stating why, which is the same host-declared
+permission pattern the repository already uses for `ACCESS_NETWORK_STATE`. CI builds the demo
+alongside the component.
+
+Verified: eight component JVM tests, component `:lintRelease`, release AAR, demo debug APK, demo
+installed and exercised on an emulator in both the no-listener and listener cases and with and
+without the host permission, the AAR package-content gate on both components, 103 core JVM tests and
+ten instrumented core tests, core AAR and native example APK, React Native Android compilation and
+JVM tests, full root verification including regenerated catalog synchronization and 24 Pages,
+`npm pack --dry-run`, and example tests, lint and TypeScript.
+
+An emulator is not device QA, and the permission finding was only observed there; the behavior
+follows from Android's `inet` group rather than from emulation, but confirm it on hardware with the
+rest of the physical-device gate.

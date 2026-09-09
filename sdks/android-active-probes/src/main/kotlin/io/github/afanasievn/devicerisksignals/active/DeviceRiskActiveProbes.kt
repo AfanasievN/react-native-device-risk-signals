@@ -11,7 +11,10 @@ package io.github.afanasievn.devicerisksignals.active
  * Contract:
  * - Loopback only. No off-device request, no vendor endpoint, no hostname resolution beyond
  *   127.0.0.1, and no port scanning past the single documented port.
- * - No Android permission is required and none is requested; the module declares no manifest entry.
+ * - The module declares no permission and no manifest entry, but the probe needs the HOST to have
+ *   declared `INTERNET`: an app outside the `inet` group cannot open a socket at all, loopback
+ *   included, and every flag then reads false exactly as if nothing were listening. Verified on a
+ *   device. `INTERNET` is a normal permission and raises no prompt.
  * - The calls BLOCK. The caller must run them off the UI thread; on Android a main-thread call
  *   raises `NetworkOnMainThreadException`.
  * - Raw observations only. Nothing here scores, aggregates, or returns a trusted/untrusted verdict,

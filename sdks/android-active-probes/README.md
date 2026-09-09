@@ -12,7 +12,11 @@ This component is in development and unpublished. There is no Maven artifact to 
 
 - Loopback only: `127.0.0.1`, the single documented port, no hostname resolution beyond that, no
   off-device request, no vendor endpoint and no port scanning.
-- No Android permission is required, requested or declared; the module's manifest declares nothing.
+- The module declares, requests and needs no permission of its own, but the probe only works if the
+  host application already declares `INTERNET`. An app that is not in the `inet` group cannot open a
+  socket at all, loopback included, so the scan then reports `defaultPortOpen: false` and
+  `fridaHandshakeReject: false` even while a listener is up. `INTERNET` is a normal permission and
+  raises no prompt; React Native applications almost always declare it already.
 - Calls block. Run them on a background thread; a main-thread call raises
   `NetworkOnMainThreadException`.
 - Raw observations only. Nothing here scores, aggregates or returns a trusted/untrusted verdict, and
@@ -49,12 +53,31 @@ The passive core separately reports a LISTEN socket on 27042/27043 seen in `/pro
 (`fridaListenerPortFound`) without any socket I/O. Prefer that observation when a host does not want
 an active probe at all.
 
+## Native example
+
+`example/` is a one-button Android app that consumes this component directly, with no React Native.
+The passive core's example stays socket-free by design, so the active probe is demonstrated here
+instead. The demo host declares `INTERNET` itself, with a comment saying why; the component still
+declares nothing. Collection runs on a worker thread and the button is disabled until it returns.
+
+```sh
+example/android/gradlew -p sdks/android-active-probes :example:installDebug --no-daemon
+```
+
+To see the positive branch on a device or emulator, put a listener on the port first and press the
+button again:
+
+```sh
+adb shell "echo 'REJECT frida' | nc -L -p 27042 -s 127.0.0.1"
+```
+
 ## Build and test
 
 From the repository root, reusing the existing Gradle wrapper:
 
 ```sh
 example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :assembleRelease --no-daemon
+example/android/gradlew -p sdks/android-active-probes :example:assembleDebug --no-daemon
 ```
 
 JVM tests drive the collector against a local `ServerSocket` on an ephemeral port through internal

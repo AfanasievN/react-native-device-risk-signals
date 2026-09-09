@@ -17,9 +17,12 @@ All notable public changes will be documented in this file.
 
 ### Compatibility and privacy
 
-- No probe id, field name, field type, default, permission, dependency or event-schema change. The
-  `os_integrity_frida_scan` probe keeps its four fields and its current default; the 19-method
-  TurboModule contract is unchanged. Nothing new is sent off the device, no `INTERNET` declaration or
+- No probe id, field name, field type, default, dependency or event-schema change, and no package
+  declares a new permission. The `os_integrity_frida_scan` probe keeps its four fields and its
+  current default; the 19-method TurboModule contract is unchanged. Its catalog metadata now records
+  a dependency that was always there but undocumented: the scan can only open its socket if the host
+  application already declares `INTERNET`, and without that declaration both flags read false even
+  while a listener is running. This is documentation of existing behavior, not a behavior change. Nothing new is sent off the device, no `INTERNET` declaration or
   runtime dependency is added, and no persistent identifier is introduced. Both Android components
   remain in development with unpublished Maven artifacts.
 - The scan's known limitations are carried over unchanged and are not fixed by the move: a single

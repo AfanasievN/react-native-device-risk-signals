@@ -95,7 +95,7 @@ jobs:
       - name: Test and lint standalone Android SDK, build native consumer
         run: example/android/gradlew -p sdks/android :testDebugUnitTest :compileDebugAndroidTestKotlin :lintRelease :assembleRelease :example:assembleDebug --no-daemon
       - name: Test and lint optional Android active-probes component
-        run: example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :lintRelease :assembleRelease --no-daemon
+        run: example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :lintRelease :assembleRelease :example:assembleDebug --no-daemon
       - name: Verify Android package contents
         run: npm run verify:android-aar
       - name: Compile Android example and native module

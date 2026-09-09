@@ -191,9 +191,12 @@ export const PROBE_CATALOG = [
     platforms: ["android"],
     enabledByDefault: true,
     sensitivity: "moderate",
-    permissions: [],
+    permissions: [
+      "Needs INTERNET already declared by the host application; an app without it cannot open a socket at all, including to loopback",
+    ],
     dataCategories: ["runtime_security"],
     fields: ["scanPerformed", "defaultPortOpen", "scannedPort", "fridaHandshakeReject"],
+    notes: "The only active probe: it connects to 127.0.0.1 and is collected by the optional Android active-probes component, never by the no-network core. Verified on a device: without host-declared INTERNET both flags read false even while a listener is up, which is indistinguishable from nothing listening. A REJECT-like reply is protocol evidence, not service identity.",
   },
   {
     id: "os_integrity_fork_test",

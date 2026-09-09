@@ -25,7 +25,7 @@ shows ingestion, validation, storage, indexing, idempotency, and schema-evolutio
 | `hardware` | Android, iOS | On | High | Hardware, display, battery, storage | None |
 | `fonts` | Android, iOS | On | High | Installed-font digest | None |
 | `os_integrity` | Android, iOS | On | High | Device integrity, runtime security | None |
-| `os_integrity_frida_scan` | Android | On | Moderate | Runtime security | None; connects to loopback only, collected by the optional active-probes component |
+| `os_integrity_frida_scan` | Android | On | Moderate | Runtime security | Needs host-declared `INTERNET`; connects to loopback only, collected by the optional active-probes component |
 | `os_integrity_fork_test` | iOS | Off | High | Device integrity | None; disabled pending device-lab validation |
 | `network` | Android, iOS | On | High | Network, local IP address | Uses host-declared `ACCESS_NETWORK_STATE`; no Wi-Fi location permission requested |
 | `telephony` | Android, iOS | On | High | Carrier, SIM, country | Uses already granted `READ_PHONE_STATE` only for SIM count; never requests it |
@@ -148,7 +148,9 @@ errors/timeouts collapse into false flags rather than distinct unavailable outco
 TCP scan is collected by the optional `android-active-probes` component, not the no-network core; see
 [ADR-0003](adr/0003-active-loopback-probe-component.md). Its single-read handshake, collapsed false
 flags and shared connect/read timeout are unchanged by that move and remain tracked in the migration
-checklist. `collectOsIntegrity()` in the standalone SDK includes passive observations only and does
+checklist. One consequence is now device-verified: a host application that has not declared
+`INTERNET` cannot open the socket at all, so both flags read `false` while a listener is running.
+Treat `false` as unknown unless you know the host declares that permission. `collectOsIntegrity()` in the standalone SDK includes passive observations only and does
 not add package-visibility declarations; package presence flags are limited by the native host's
 visibility and false does not prove absence. On iOS,
 `parentPidUnexpected`, `jailbreakBypassDetected` (the Shadow tweak), `mainExecutableEncrypted` (Mach-O

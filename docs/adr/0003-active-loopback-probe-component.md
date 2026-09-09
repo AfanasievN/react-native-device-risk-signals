@@ -18,8 +18,7 @@ The boundary is now stated per component instead of per repository. The passive 
 socket I/O of any kind and keeps reporting a LISTEN socket on 27042/27043 read from `/proc/net/tcp`
 (`fridaListenerPortFound`). The active component may connect, but only to `127.0.0.1`, only to the
 single documented port, with no hostname resolution beyond that address, no off-device request, no
-vendor endpoint and no port scanning. It declares no Android permission and no manifest entry;
-loopback needs none. A host that wants passive collection only adopts the core and never takes on
+vendor endpoint and no port scanning. It declares no Android permission and no manifest entry. A host that wants passive collection only adopts the core and never takes on
 this component. Both components remain unpublished and in development.
 
 Its calls block, so the caller runs them on a background thread; a main-thread call raises
@@ -56,6 +55,21 @@ Two questions are explicitly not decided here. Whether an active probe should st
 default is a product decision, deferred so this change flips no default silently. Whether the
 component is ever published to Maven Central is gated on the same release gates as the core;
 `published` stays false, no component-prefixed tag is created, and no workspace is enabled.
+
+## Correction, 2026-09-09
+
+This ADR originally stated that no Android permission is required. That is wrong, and a native demo
+built for the component proved it: an application that has not declared `INTERNET` is not in the
+`inet` group and cannot open a socket at all, loopback included. With a `REJECT` listener running on
+127.0.0.1:27042, a host without `INTERNET` reported `defaultPortOpen: false` and
+`fridaHandshakeReject: false`; the same host with `INTERNET` declared reported both true. The
+component still declares no permission, which the AAR package-content gate enforces, but the probe
+is inert without a host declaration and its failure is indistinguishable from nothing listening.
+This makes the collapsed-false defect above materially worse and is now recorded in the probe
+catalog, the data dictionary and the component README. `INTERNET` is a normal permission and raises
+no prompt; React Native hosts almost always declare it, which is why the existing probe appeared to
+work. Whether the SDK should surface "cannot open a socket" as a distinct unavailable outcome is
+part of the open defect work, not decided here.
 
 ## Verification and remaining gates
 
