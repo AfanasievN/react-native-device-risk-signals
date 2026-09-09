@@ -1,6 +1,6 @@
 # Device Risk Signals migration checklist
 
-Last reviewed: 2026-09-09, including the active loopback component decision in ADR-0003.
+Last reviewed: 2026-09-09, including Android lint and package-content gates for both components.
 
 This is the remaining-work checklist for the [ecosystem architecture](ECOSYSTEM_ARCHITECTURE.md).
 It describes repository implementation, not a claim that local commits have been pushed, deployed,
@@ -15,7 +15,7 @@ historical test evidence.
 | --- | --- | --- |
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
 | Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Transaction lifecycle and physical-device GL QA, Maven publication |
-| Android active probes | Separate optional component with the loopback Frida scan and JVM socket tests, consumed by the binding | Probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
+| Android active probes | Separate optional component with the loopback Frida scan, JVM socket tests, lint and package-content gates, consumed by the binding | Probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
 | iOS | Existing providers under `ios/` used by RN | Standalone SDK, package/consumer integration and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
@@ -103,8 +103,13 @@ for compatibility changes and the difference between queue cancellation and inte
 
 - [ ] Document the final synchronous/lifecycle API, concurrency rules, cancellation/timeout ownership,
   cleanup obligations, supported Android versions and per-probe capabilities.
-- [ ] Complete standalone Android lint and native-consumer checks in CI, plus package-content checks
-  proving the AAR contains no RN/other-platform implementation or unintended dependency.
+- [x] Complete standalone Android lint and native-consumer checks in CI, plus package-content checks
+  proving the AAR contains no RN/other-platform implementation or unintended dependency. Both
+  components run `:lintRelease` with `warningsAsErrors`/`checkAllWarnings` plus test sources, and
+  `npm run verify:android-aar` rejects a permission or manifest component, React Native or other
+  foreign framework classes, cross-component classes and unreviewed AAR payload. Lint exemptions are
+  per file and per issue in `sdks/android/lint.xml` with written justification; there is no baseline.
+  The demo module under `sdks/android/example/` is still only checked at default lint severity.
 - [ ] Validate on representative physical devices: stock/OEM builds, permission-denied cases,
   inaccessible procfs, activity recreation, and expensive-probe latency/cleanup.
 - [ ] Keep existing default/omission changes separate from mechanical extraction and document any
@@ -213,8 +218,8 @@ for compatibility changes and the difference between queue cancellation and inte
 - [ ] Introduce independent component releases only with registry smoke tests and publication
   credentials configured outside the repository. Keep failed/partial publication recoverable.
 
-The next Android step is **standalone lint and package-content gates**, followed by physical-device
-QA for both Android components and the active-probe default decision. Instrumented tests now exist
+The next Android step is **physical-device QA for both Android components**, together with the
+active-probe default decision and the final API documentation gate. Instrumented tests now exist
 for GPU only; transaction lifecycle still has no instrumented coverage. The shared-contract and iOS work can proceed
 independently; Android publication is not implied by collector extraction. Each slice should end
 with typed core APIs, thin RN delegation, native-consumer checks, updated documentation and recorded

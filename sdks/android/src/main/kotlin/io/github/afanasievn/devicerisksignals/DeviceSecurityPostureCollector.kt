@@ -32,9 +32,9 @@ internal class DeviceSecurityPostureCollector(private val context: Context) {
     val automaticTimeEnabled = globalSettingEnabled(Settings.Global.AUTO_TIME)
     val automaticTimeZoneEnabled = globalSettingEnabled(Settings.Global.AUTO_TIME_ZONE)
     val deviceProvisioned = globalSettingEnabled(Settings.Global.DEVICE_PROVISIONED)
-    val securityPatch = if (
-      Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SECURITY_PATCH.isNotEmpty()
-    ) Build.VERSION.SECURITY_PATCH else null
+    // No API guard: the field exists from API 23 and the supported floor is 24. An empty patch
+    // string stays omitted rather than reported as an observation.
+    val securityPatch = Build.VERSION.SECURITY_PATCH?.takeIf { it.isNotEmpty() }
 
     return DeviceSecurityPostureSignals(
       hasSecureLockScreen = hasSecureLockScreen,

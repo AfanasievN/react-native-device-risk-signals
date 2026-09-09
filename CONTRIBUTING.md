@@ -68,6 +68,20 @@ The optional active-probes component builds and tests separately:
 example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :assembleRelease --no-daemon
 ```
 
+Both components run Android lint with warnings treated as errors, and their release AARs are checked
+for package contents. Lint exemptions live in `sdks/android/lint.xml` with a written justification
+per entry; do not add a lint baseline. Run the gates locally after building both AARs:
+
+```sh
+example/android/gradlew -p sdks/android :lintRelease --no-daemon
+example/android/gradlew -p sdks/android-active-probes :lintRelease --no-daemon
+npm run verify:android-aar
+```
+
+`verify:android-aar` reads the built AARs and fails on a permission or manifest component, React
+Native or other foreign framework classes, cross-component classes, or any unreviewed payload. It is
+not part of `npm run verify` because it needs a Gradle build first.
+
 The instrumented GPU suite needs a booted emulator or a connected device and is not part of CI,
 which only compiles it:
 

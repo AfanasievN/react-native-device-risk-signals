@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Narrow, per-file lint exemptions for the standalone passive Android component.
+
+  Rules for this file:
+  - Every entry names one issue id AND one file. Never disable an issue for the whole component
+    here; component-wide exemptions belong in build.gradle.kts with their justification.
+  - Every entry says why the finding is safe, or names the follow-up that removes the entry.
+  - This is not a generated baseline. Nothing is hidden that a reader of this file cannot see.
+-->
+<lint>
+
+  <!--
+    InlinedApi: PackageManager.FEATURE_FACE (API 29) and FEATURE_IRIS (API 29) are String
+    constants inlined at compile time. Passing an unknown feature name to hasSystemFeature() on
+    API 24-28 returns false rather than throwing, which is exactly the intended "no such
+    biometric" observation. Safe by construction; no runtime guard is possible or useful.
+    Preferred long-term fix (needs a source change): @SuppressLint("InlinedApi") on
+    DeviceSecurityPostureCollector.collect().
+  -->
+  <issue id="InlinedApi">
+    <ignore
+      path="src/main/kotlin/io/github/afanasievn/devicerisksignals/DeviceSecurityPostureCollector.kt" />
+  </issue>
+
+  <!--
+    InlinedApi: PackageInstaller.PACKAGE_SOURCE_* (API 33) are int constants used by a JVM unit
+    test that only checks the int -> string mapping. The test never runs on a device, so no API
+    level applies to it.
+    Preferred long-term fix (needs a source change): @SuppressLint("InlinedApi") on the test.
+  -->
+  <issue id="InlinedApi">
+    <ignore
+      path="src/test/kotlin/io/github/afanasievn/devicerisksignals/InstallSourceSignalMapperTest.kt" />
+  </issue>
+
+  <!--
+    PrivateApi: reading android.os.SystemProperties by reflection is deliberate and is the
+    observation itself - the component reports emulator/integrity-relevant system properties, and
+    both call sites already treat unavailability as a first-class result (they catch Throwable and
+    return available = false / null). Lint's advice ("may not work on all devices") is the
+    documented behaviour of the probe, not a defect.
+    Preferred long-term fix (needs a source change): @SuppressLint("PrivateApi") on
+    systemProperties() and getSystemProperty() so the exemption lives next to the reflection.
+  -->
+  <issue id="PrivateApi">
+    <ignore path="src/main/kotlin/io/github/afanasievn/devicerisksignals/OsIntegrityCollector.kt" />
+  </issue>
+
+</lint>

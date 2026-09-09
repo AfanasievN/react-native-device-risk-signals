@@ -26,6 +26,33 @@ android {
   testOptions {
     unitTests.isReturnDefaultValues = true
   }
+
+  lint {
+    // Lint is a release gate for this component: any finding fails the build, including warnings.
+    abortOnError = true
+    warningsAsErrors = true
+    checkAllWarnings = true
+    checkReleaseBuilds = true
+    // The loopback scan is covered by JVM tests only, so those sources are gated too.
+    checkTestSources = true
+    explainIssues = true
+    // Text report goes to the build log so a CI failure is readable without downloading artifacts.
+    textReport = true
+    htmlReport = true
+    xmlReport = true
+    disable +=
+      setOf(
+        // Version-freshness only: fires whenever AGP publishes a release, needs network, and says
+        // nothing about this component's code. AGP upgrades are a deliberate, tested change.
+        "AndroidGradlePluginVersion",
+        // Version-freshness only: would fail CI on the day an unrelated test dependency ships an
+        // update. Dependency bumps are reviewed, not lint-driven.
+        "GradleDependency",
+        // Version-freshness only, and network-dependent by its own definition (queries Maven
+        // Central on every run), so it makes the gate non-deterministic.
+        "NewerVersionAvailable",
+      )
+  }
 }
 
 kotlin {

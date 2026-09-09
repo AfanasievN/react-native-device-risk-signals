@@ -452,3 +452,67 @@ an active probe should remain enabled by default, the three preserved defects, t
 check in `ios/JailbreakDetector.m` under the same component rule, standalone lint and
 package-content gates, and Maven publication. No version bump, component tag, workspace or registry
 publication was created.
+
+## Eleventh increment: lint and package-content gates for both Android components
+
+This increment adds no collection and changes no emitted field. It closes the CI half of the Android
+release gates: both standalone components now run Android lint as a real gate, and their release AARs
+are checked for package contents. Two subagents worked in parallel, one on lint configuration and one
+on the package-content verifier; the parent fixed the one real defect lint found, wired CI and
+documentation, and re-ran the gates.
+
+Lint was effectively off before: the default configuration checks only error-severity issues, and
+both components passed it. With `abortOnError`, `warningsAsErrors`, `checkAllWarnings`,
+`checkReleaseBuilds` and `checkTestSources` enabled, the first run produced 26 findings in the
+passive core and two in the active component. Three component-wide disables remain, each justified
+in `build.gradle.kts`: `AndroidGradlePluginVersion`, `GradleDependency` and `NewerVersionAvailable`
+report upstream version freshness, need network access and say nothing about this code;
+`SyntheticAccessor` is a dex-method-count micro-optimization that fires on idiomatic private
+top-level Kotlin helpers and would be "fixed" only by widening an SDK's internal visibility. No
+correctness, API-level, security or manifest check is disabled, and no lint baseline was created.
+
+`sdks/android/lint.xml` carries three narrow exemptions, each naming one issue and one file with its
+justification: `InlinedApi` for the API 29 `FEATURE_FACE`/`FEATURE_IRIS` String constants, where
+`hasSystemFeature()` returns false for an unknown name on API 24 to 28 and that is the intended
+observation; `InlinedApi` for a JVM-only test of an int-to-string install-source mapping; and
+`PrivateApi` for the reflective `android.os.SystemProperties` reads, which are the probe itself and
+already treat unavailability as a first-class result.
+
+Lint also found a real defect, which was fixed rather than suppressed. With a minSdk of 24, three
+`SDK_INT >= VERSION_CODES.M` guards were always true and their `else null` branches unreachable:
+`securityPatch` and `baseOs` in `DeviceIdentityCollector`, and `securityPatch` in
+`DeviceSecurityPostureCollector`. The guards are gone; the posture read now omits an empty patch
+string through `takeIf`, which keeps the previous result on a device and in JVM tests alike. The
+temporary `ObsoleteSdkInt` exemption was deleted with the fix, so the check is active everywhere.
+
+`scripts/verify-android-aar.mjs` is the package-content gate, wired as `npm run verify:android-aar`
+and run in CI after both components build. It derives components, artifact names and package prefixes
+from `device-risk-signals.json` and each `build.gradle.kts` rather than hardcoding them, and treats
+"no matching component" as a failure so it cannot pass vacuously. It asserts the allowed AAR entry
+set, a manifest with nothing but `manifest` and `uses-sdk` at minSdk 24 and no `INTERNET`, no
+`com.facebook`/AndroidX/support/coroutines/Google/JetBrains-annotation classes, no other-platform or
+source resources, no test classes, no unreviewed jar payload, that every class sits under its own
+component's package prefix and not under another component's, that the core carries no `FridaScan`
+class, and that the AAR metadata parses. It stays out of `npm run verify`, which runs without a
+Gradle build. Zip reading is a small central-directory reader plus `inflateRawSync` so the nested
+`classes.jar` can be inflated in memory and the gate works on an image without `unzip`.
+
+The gate was proven non-vacuous by injecting four violations, each reverted and rebuilt afterwards: a
+missing AAR (reported with the exact build command), an `INTERNET` `uses-permission` in the core
+manifest, a class placed in the active component's package inside the core module, and a stray
+`assets/` entry. Each produced a specific failure naming the offending entry and exited non-zero.
+Exact `minCompileSdk`, AAR format and AGP versions are checked for presence and parseability only,
+so a routine toolchain bump cannot fail the gate for an unrelated reason, and bytecode-level API
+scanning is deliberately out of scope.
+
+Verified: `:lintRelease` clean on both components (zero entries in both
+`lint-results-release.xml`), 103 core JVM tests, ten instrumented core tests on an API 35 emulator,
+eight active-component JVM tests, both release AARs, the native example APK, the package-content gate
+on both AARs, React Native Android compilation, JVM tests, `:app:assembleDebug` and `lintDebug`, full
+root verification (107 Jest tests, three Node tests, 19-method native parity, seven-component
+ecosystem validation and 24 Pages), `npm pack --dry-run`, and example tests, lint and TypeScript.
+
+Remaining Android gates are unchanged by this increment: physical-device QA for both components, the
+active-probe default decision, the three preserved active-scan defects, the iOS loopback port check,
+the final API documentation gate, and Maven publication. The demo module under
+`sdks/android/example/` is still checked only at default lint severity.

@@ -203,8 +203,9 @@ land together with updated workflows and documentation. Do not create those tags
 ## CI and repository operation
 
 Every pull request runs the shared JavaScript/TypeScript contract checks, package verification,
-Pages verification, compatibility matrix, and native example builds. Each standalone SDK gains its
-own independent build/test job before publication. A binding is also tested as a real consumer of
+Pages verification, compatibility matrix, and native example builds. Both Android components now run
+their own tests, lint and release build in CI, and `npm run verify:android-aar` checks the built AARs
+for foreign framework code, permissions, manifest components and cross-component classes. A binding is also tested as a real consumer of
 its SDKs rather than only with mocked values.
 
 Required checks grow with the repository:
@@ -212,8 +213,8 @@ Required checks grow with the repository:
 | Component | Minimum verification |
 | --- | --- |
 | Shared contract | generation drift, schema/catalog validity, compatibility tests |
-| Android SDK | JVM unit tests, Android lint, release AAR, native consumer build |
-| Android active probes | JVM socket tests against a local server, release AAR, loopback-only and no-permission review |
+| Android SDK | JVM unit tests, instrumented GPU suite compilation, Android lint with warnings as errors, release AAR, package-content gate, native consumer build |
+| Android active probes | JVM socket tests against a local server, Android lint with warnings as errors, release AAR, package-content gate proving loopback-only content and no permission |
 | iOS SDK | Swift tests, build for supported destinations, native consumer build |
 | Web SDK | unit tests, typecheck, browser compatibility and package-content checks |
 | Bindings | framework tests, native integration builds, package-content checks |

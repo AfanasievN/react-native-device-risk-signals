@@ -26,6 +26,39 @@ android {
   testOptions {
     unitTests.isReturnDefaultValues = true
   }
+
+  lint {
+    // Lint is a release gate for this component: any finding fails the build, including warnings.
+    abortOnError = true
+    warningsAsErrors = true
+    checkAllWarnings = true
+    checkReleaseBuilds = true
+    // Collector tests exercise platform constants directly, so they are held to the same bar.
+    checkTestSources = true
+    lintConfig = file("lint.xml")
+    explainIssues = true
+    // Text report goes to the build log so a CI failure is readable without downloading artifacts.
+    textReport = true
+    htmlReport = true
+    xmlReport = true
+    disable +=
+      setOf(
+        // Version-freshness only: fires whenever AGP publishes a release, needs network, and says
+        // nothing about this component's code. AGP upgrades are a deliberate, tested change.
+        "AndroidGradlePluginVersion",
+        // Version-freshness only: would fail CI on the day an unrelated test dependency ships an
+        // update. Dependency bumps are reviewed, not lint-driven.
+        "GradleDependency",
+        // Version-freshness only, and network-dependent by its own definition (queries Maven
+        // Central on every run), so it makes the gate non-deterministic.
+        "NewerVersionAvailable",
+        // Dex-method-count micro-optimization aimed at apps near the 64K limit. It fires on
+        // idiomatic Kotlin private top-level helpers called from a class in the same file
+        // (GpuResourceManagement.kt, SignalModels.kt); avoiding it would mean widening the
+        // visibility of internal helpers, which is worse for an SDK's public surface.
+        "SyntheticAccessor",
+      )
+  }
 }
 
 kotlin {

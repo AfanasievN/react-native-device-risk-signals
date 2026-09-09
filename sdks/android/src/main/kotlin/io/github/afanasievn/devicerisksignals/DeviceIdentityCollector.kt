@@ -49,12 +49,9 @@ internal class DeviceIdentityCollector(private val context: Context) {
     sdkInt = read { Build.VERSION.SDK_INT },
     codename = readString { Build.VERSION.CODENAME },
     incremental = readString { Build.VERSION.INCREMENTAL },
-    securityPatch = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      readString { Build.VERSION.SECURITY_PATCH }
-    } else null,
-    baseOs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      readString { Build.VERSION.BASE_OS }
-    } else null,
+    // No API guard: both fields exist from API 23 and the supported floor is 24.
+    securityPatch = readString { Build.VERSION.SECURITY_PATCH },
+    baseOs = readString { Build.VERSION.BASE_OS },
     socManufacturer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
       readString { Build.SOC_MANUFACTURER }
     } else null,

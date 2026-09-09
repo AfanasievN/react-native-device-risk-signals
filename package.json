@@ -36,6 +36,7 @@
     "verify:contract": "node scripts/verify-native-contract.mjs",
     "verify:ecosystem": "node scripts/verify-ecosystem.mjs",
     "verify:package": "node scripts/verify-package.mjs",
+    "verify:android-aar": "node scripts/verify-android-aar.mjs",
     "docs:sync": "node scripts/sync-pages-catalog.mjs --write",
     "docs:seo": "node scripts/sync-pages-seo.mjs",
     "verify:pages": "node scripts/sync-pages-catalog.mjs --check && node scripts/verify-pages.mjs",
