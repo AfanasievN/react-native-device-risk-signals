@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import {readProbeCatalog} from "./read-probe-catalog.mjs";
-import {readSignalContract} from "./read-signal-contract.mjs";
+// Field types come from the neutral contract source, not from parsing the binding's TypeScript.
+// scripts/verify-signal-types.mjs is what keeps src/NativeDeviceIntel.ts from drifting away from it.
 
 const root = process.cwd();
 const signalsPath = path.join(root, "website/signals/index.html");
@@ -44,7 +45,7 @@ function renderRow(descriptor, signalContract) {
   if (!typeContract) throw new Error(`Missing signal contract for ${descriptor.id}`);
   const fields = descriptor.fields.map((field) => {
     const metadata = typeContract.fields[field];
-    if (!metadata) throw new Error(`Missing TypeScript field ${typeContract.typeName}.${field}`);
+    if (!metadata) throw new Error(`Missing authored field ${typeContract.typeName}.${field} in contract/source/signal-types.source.json`);
     return renderField(descriptor.id, field, metadata);
   }).join("");
   const categories = descriptor.dataCategories.map((category) => tag(category)).join("");
@@ -193,7 +194,11 @@ function buildEventSchema(catalog, signalContract) {
 }
 
 const catalog = readProbeCatalog(root);
-const signalContract = readSignalContract(root);
+const signalTypesPath = path.join(root, "contract", "source", "signal-types.source.json");
+if (!fs.existsSync(signalTypesPath)) {
+  throw new Error("contract/source/signal-types.source.json is missing; the published contract cannot be built");
+}
+const signalContract = JSON.parse(fs.readFileSync(signalTypesPath, "utf8")).probeTypes;
 const rows = catalog.map((descriptor) => renderRow(descriptor, signalContract)).join("\n");
 const totalFieldCount = catalog.reduce((total, descriptor) => total + descriptor.fields.length, 0);
 const currentHtml = fs.readFileSync(signalsPath, "utf8");

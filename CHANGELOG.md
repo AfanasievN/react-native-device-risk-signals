@@ -21,6 +21,11 @@ All notable public changes will be documented in this file.
   [ADR-0003](docs/adr/0003-active-loopback-probe-component.md).
 - Android internals: GPU collection moved into the passive core with a worker-thread contract and
   best-effort restoration of a changed EGL binding, covered by an instrumented EGL suite.
+- Field types are now authored in `contract/source/signal-types.source.json`. The published
+  `fieldTypes`, `fieldSchemas` and `optionalFields` are built from it and no longer from parsing
+  `src/NativeDeviceIntel.ts`; every generated artifact is byte-identical through the switch.
+  `npm run verify:signal-types` fails if the TypeScript declarations drift from the authored source,
+  and the probe-id-to-type-name map that lived inside a script is now part of the contract source.
 - Probe metadata is now authored in `contract/source/probe-catalog.source.json`; `src/probeCatalog.ts`
   is generated from it and `npm run verify` fails when the two drift. The generated file is
   byte-identical to the previous hand-written one, so the `react-native-device-risk-signals/catalog`

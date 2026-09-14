@@ -20,8 +20,12 @@ By participating, you agree to follow the project [Code of Conduct](CODE_OF_COND
 - Add tests for new behavior and platform-specific fallbacks.
 - Keep risk verdicts and scoring logic out of the client library.
 - Contract work: `npm run verify:catalog-source` checks that `src/probeCatalog.ts` still matches the
-  authored source, and `npm run verify:fixtures` validates `contract/fixtures/` and the published
-  example payloads against the schema and catalog. Both run inside `npm run verify`.
+  authored source, `npm run verify:signal-types` checks that `src/NativeDeviceIntel.ts` has not
+  drifted from `contract/source/signal-types.source.json`, and `npm run verify:fixtures` validates
+  `contract/fixtures/` and the published example payloads against the schema and catalog. All three
+  run inside `npm run verify`.
+- After changing a signal type in TypeScript, run `node scripts/generate-signal-types.mjs --write` to
+  re-derive the neutral source, then `npm run docs:sync`.
 - Author probe metadata in `contract/source/probe-catalog.source.json` and regenerate with
   `node scripts/generate-probe-catalog.mjs --write`; `src/probeCatalog.ts` is generated and
   `npm run verify` fails when it drifts. Keep `docs/DATA_DICTIONARY.md` synchronized with probe behavior.

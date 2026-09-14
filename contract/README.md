@@ -10,9 +10,12 @@ the Device Risk Signals ecosystem.
 pins, including the four outcome states and the false-versus-absent and zero-versus-absent
 distinctions. Negative fixtures must stay rejected. Run them with `npm run verify:fixtures`.
 
-Probe metadata is authored here, in `source/probe-catalog.source.json`, and `src/probeCatalog.ts` is
-generated from it (see [ADR-0004](../docs/adr/0004-neutral-contract-authoring.md)). Field types are
-the remaining exception: during the incremental monorepo migration `src/NativeDeviceIntel.ts` remains
+Probe metadata is authored in `source/probe-catalog.source.json` and field types in
+`source/signal-types.source.json`; `src/probeCatalog.ts` is generated from the first, and the
+published `fieldTypes`/`fieldSchemas`/`optionalFields` from the second (see
+[ADR-0004](../docs/adr/0004-neutral-contract-authoring.md)). Generating the published contract no
+longer parses TypeScript. `src/NativeDeviceIntel.ts` is still hand-written for React Native codegen
+and is held in sync by `npm run verify:signal-types`; during the incremental monorepo migration it remains
 the authoring sources. Run `npm run docs:sync` after changing either source; the command regenerates
 both this neutral contract and the GitHub Pages copies. Do not edit generated JSON by hand.
 

@@ -1,0 +1,2514 @@
+{
+  "sourceVersion": 1,
+  "description": "Framework-neutral authoring source for the Device Risk Signals field types. Carries the published type string, optionality, and JSON Schema fragment of every field of every probe signal type, in the order the published contract uses. Regenerate with node scripts/generate-signal-types.mjs --write while src/NativeDeviceIntel.ts and src/probes/runtimeProbe.ts remains the human-authored origin.",
+  "probeTypes": {
+    "device_identity": {
+      "typeName": "DeviceIdentity",
+      "fields": {
+        "manufacturer": {
+          "type": "string",
+          "optional": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "model": {
+          "type": "string",
+          "optional": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "brand": {
+          "type": "string",
+          "optional": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "systemName": {
+          "type": "string",
+          "optional": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "systemVersion": {
+          "type": "string",
+          "optional": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isTablet": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "osBuild": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "kernelVersion": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "kernelOsRelease": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "kernelOsType": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "androidBuild": {
+          "type": "AndroidBuildInfo",
+          "optional": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "board": {
+                "type": "string"
+              },
+              "bootloader": {
+                "type": "string"
+              },
+              "device": {
+                "type": "string"
+              },
+              "display": {
+                "type": "string"
+              },
+              "fingerprint": {
+                "type": "string"
+              },
+              "hardware": {
+                "type": "string"
+              },
+              "host": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "product": {
+                "type": "string"
+              },
+              "tags": {
+                "type": "string"
+              },
+              "buildType": {
+                "type": "string"
+              },
+              "supportedAbis": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "sdkInt": {
+                "type": "number"
+              },
+              "codename": {
+                "type": "string"
+              },
+              "incremental": {
+                "type": "string"
+              },
+              "securityPatch": {
+                "type": "string"
+              },
+              "baseOs": {
+                "type": "string"
+              },
+              "socManufacturer": {
+                "type": "string"
+              },
+              "socModel": {
+                "type": "string"
+              },
+              "buildTimeMs": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "isIosAppOnMac": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isMacCatalystApp": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "hardware": {
+      "typeName": "HardwareSignals",
+      "fields": {
+        "screenWidthPx": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenHeightPx": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenDensity": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenDpi": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenPhysicalWidthPx": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenPhysicalHeightPx": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenPhysicalDensity": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenBrightness": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "screenOrientation": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "processorCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "cpuArchitecture": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "cpuMaxFrequencyMhz": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "totalMemoryBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "freeMemoryBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "isLowMemory": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "processResidentMemoryBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "isLowRamDevice": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "runtimeMaxMemoryBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "lowPowerModeEnabled": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "batteryLevel": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "batteryState": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "batteryTemperatureC": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "batteryHealth": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "batteryVoltageMv": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "batteryTechnology": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "batteryPresent": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "batteryLow": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "powerSource": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "batteryCycleCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "chargeTimeRemainingMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "nfcAvailable": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "nfcEnabled": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "storageTotalBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "storageFreeBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "uptimeMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "fonts": {
+      "typeName": "FontsSignals",
+      "fields": {
+        "fontsDigest": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "os_integrity": {
+      "typeName": "OsIntegritySignals",
+      "fields": {
+        "isEmulator": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isDebuggerAttached": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isDebuggerWaiting": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "developerModeEnabled": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "usbDebuggingEnabled": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suBinaryFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suOnPath": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "rootManagementAppFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "dangerousAppFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "rootCloakingAppFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suspiciousFilePathsFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suspiciousFilePaths": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "writableSystemPathFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "dangerousPropsPresent": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "dangerousSystemProperties": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "canOpenJailbreakScheme": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "symbolicLinksSuspicious": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "injectedLibrariesFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "injectedLibraryNames": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "loadedHookClassNames": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "hookStackFrameFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "hookStackFrames": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "hookFrameworkFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "magiskMountsFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "magiskAbstractSocketFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "magicMountModulesFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "fridaThreadNamesFound": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "fridaInjectorPipeFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "fridaListenerPortFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "verifiedBootState": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "bootloaderLocked": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "selinuxEnforcing": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "ldPreloadSet": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "ldPreloadValue": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "hiddenApiPolicy": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "emulatorFingerprintMatch": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "emulatorFilesFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "emulatorBuildMarkers": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "emulatorFilePaths": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "emulatorSystemPropertyMarkers": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "emulatorCpuMarkers": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "emulatorVendorMarkers": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "deviceFarmMarkers": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "emulatorChecksPerformed": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "sensorCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "hasAccelerometer": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "hasGyroscope": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "hasMagnetometer": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "hasProximitySensor": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isRunningInUserTestHarness": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "simulatorEnvironmentPresent": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "abi": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "dyldImageCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "parentPidUnexpected": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "jailbreakBypassDetected": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "mainExecutableEncrypted": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "openReverseEngineeringPorts": {
+          "type": "number[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "tracerPid": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "tracedByOtherProcess": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "testKeysBuild": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suspiciousMountsFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "zygiskIndicatorsFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suspiciousExecutableMappingsFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suspiciousEnvironmentVariablesFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "suspiciousEnvironmentVariableNames": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "suspiciousPathCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "injectedLibraryCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "os_integrity_frida_scan": {
+      "typeName": "FridaScanSignals",
+      "fields": {
+        "scanPerformed": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "defaultPortOpen": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "fridaHandshakeReject": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "scannedPort": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "os_integrity_fork_test": {
+      "typeName": "ForkJailbreakSignal",
+      "fields": {
+        "testPerformed": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "forkSucceeded": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "network": {
+      "typeName": "NetworkSignals",
+      "fields": {
+        "isConnected": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "connectionType": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isMetered": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isVpnActive": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isProxyConfigured": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "proxyHost": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "proxyPort": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "wifiSsid": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "wifiBssid": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "interfaceNames": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "localIpAddresses": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "linkDownstreamKbps": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "linkUpstreamKbps": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "networkTransportTypes": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "dnsServerAddresses": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "isPrivateDnsActive": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "privateDnsServerName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "activeNetworkMtu": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "isInternetValidated": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "hasCaptivePortal": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "mobileRxBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "mobileTxBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "wifiRxBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "wifiTxBytes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "telephony": {
+      "typeName": "TelephonySignals",
+      "fields": {
+        "phoneType": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "networkOperatorName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "simOperatorName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "networkCountryIso": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "simCountryIso": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "simState": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "simCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "hasIccCard": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isNetworkRoaming": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "dataState": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "carrierMobileCountryCode": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "carrierMobileNetworkCode": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "carrierAllowsVoip": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "imei": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "locale": {
+      "typeName": "LocaleSignals",
+      "fields": {
+        "language": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "languages": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "country": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "timezoneId": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "timezoneOffsetMinutes": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "uses24HourClock": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "currencyCode": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "calendar": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "decimalSeparator": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "groupingSeparator": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "measurementSystem": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "firstDayOfWeek": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "keyboardLanguages": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "geolocation": {
+      "typeName": "GeolocationSignals",
+      "fields": {
+        "authorizationStatus": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "hasCoarsePermission": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "latitude": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "longitude": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "accuracyMeters": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "altitudeMeters": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "locationServicesEnabled": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isFromMockProvider": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "mockLocationAppsFound": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isSimulatedBySoftware": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isProducedByAccessory": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "provider": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "locationAgeMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "gnssSupported": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "media_bluetooth_apps": {
+      "typeName": "MediaBluetoothAppsSignals",
+      "fields": {
+        "audioOutputRoute": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isMusicActive": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isOtherAudioPlaying": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isScreenCaptured": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isScreenMirrored": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "connectedScreenCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "mirroredScreenCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "displayCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "presentationDisplayCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "bluetoothBondedDeviceCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "installedFlaggedApps": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "openableFlaggedSchemes": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "enabledAccessibilityServices": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "accessibilityRunning": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "accessibilityFeatures": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "gpu_benchmark": {
+      "typeName": "GpuBenchmarkSignals",
+      "fields": {
+        "benchmarkPerformed": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "skippedReason": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "rendererName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "vendorName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "apiVersion": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "shadingLanguageVersion": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "maxTextureSize": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "drawCallsCompleted": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "durationMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "gpuTimeMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "operationTimeP50Ms": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "operationTimeP95Ms": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "operationTimeMadMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "operationTimeCoefficientOfVariation": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "warmupSlope": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "audio_latency": {
+      "typeName": "AudioLatencySignals",
+      "fields": {
+        "measured": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "outputLatencyMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "inputLatencyMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "ioBufferDurationMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "framesPerBuffer": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "nativeSampleRate": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "application": {
+      "typeName": "ApplicationSignals",
+      "fields": {
+        "appVersion": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "appBuild": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "bundleId": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "appName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "installerPackage": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "installingPackageName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "initiatingPackageName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "initiatingPackageSigningCertificateSha256": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "installPackageSource": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "updateOwnerPackageName": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isForeground": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "processUptimeMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "grantedPermissions": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "isSplitApks": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "splitNames": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "firstInstallTimeMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "lastUpdateTimeMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "targetSdkVersion": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "minSdkVersion": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "minimumOsVersion": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isDebuggable": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isInstantApp": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "signingCertificateSha256": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "signingCertificateHistorySha256": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "hasMultipleSigners": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "receiptPresent": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "receiptEnvironment": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "bundleExecutable": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isAppExtension": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isSimulatorBuild": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isInstalledOnExternalStorage": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isSystemApp": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isUpdatedSystemApp": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "embeddedProvisioningProfilePresent": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "getTaskAllowEntitlement": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "device_security_posture": {
+      "typeName": "DeviceSecurityPostureSignals",
+      "fields": {
+        "hasSecureLockScreen": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isDeviceLocked": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isUserUnlocked": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "protectedDataAvailable": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "biometryAvailable": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "biometryType": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "fingerprintHardwarePresent": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "faceHardwarePresent": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "strongBoxAvailable": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "automaticTimeEnabled": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "automaticTimeZoneEnabled": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "deviceProvisioned": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "securityPatch": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "transaction_safety": {
+      "typeName": "TransactionSafetySignals",
+      "fields": {
+        "isDeviceLocked": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isInteractive": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isScreenCaptured": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isScreenMirrored": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isVisibleInScreenRecording": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "screenshotObservationActive": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "screenshotDetectedSinceObservationStart": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "lastScreenshotDetectedElapsedMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "transactionObservationStartedElapsedMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "observedTouchCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "obscuredTouchObserved": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "partiallyObscuredTouchObserved": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "lastObscuredTouchElapsedMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "lastPartiallyObscuredTouchElapsedMs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "accessibilityRunning": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "accessibilityFeatureCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "enabledAccessibilityServiceCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "remoteAccessAppsFound": {
+          "type": "string[]",
+          "optional": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "remoteAccessAppCount": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "audioMode": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isCallActive": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "runtime": {
+      "typeName": "RuntimeSignals",
+      "fields": {
+        "jsEngine": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "hermesVersion": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "isHermes": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isFabric": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isTurboModule": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isBridgeless": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "isDebugBuild": {
+          "type": "boolean",
+          "optional": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "reactNativeVersion": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "platformOs": {
+          "type": "string",
+          "optional": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "runtime_timing": {
+      "typeName": "RuntimeTimingSignals",
+      "fields": {
+        "nativeClockSource": {
+          "type": "string",
+          "optional": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "nativeSampleCount": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "nativeTimerResolutionNs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "nativeIntervalMedianNs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "nativeIntervalP95Ns": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "nativeIntervalMadNs": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "jsClockSource": {
+          "type": "string",
+          "optional": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        "jsTimerSampleCount": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "jsTimerResolutionMs": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "eventLoopSampleCount": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "eventLoopP50Ms": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "eventLoopP95Ms": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "eventLoopMadMs": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "bridgeRoundTripMs": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "numeric_consistency": {
+      "typeName": "NumericConsistencySignals",
+      "fields": {
+        "integerVectorMatches": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "integerMismatchCount": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "floatSampleCount": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "floatMismatchCount": {
+          "type": "number",
+          "optional": false,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "floatMaxAbsoluteDifference": {
+          "type": "number",
+          "optional": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        "signedZeroPreserved": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        "subnormalPreserved": {
+          "type": "boolean",
+          "optional": false,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

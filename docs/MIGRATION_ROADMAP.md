@@ -148,10 +148,20 @@ for compatibility changes and the difference between queue cancellation and inte
 
 ## 3. Make the shared contract independent
 
-- [ ] Define a framework-neutral authoring source for probe ids, fields, types, platform support,
-  sensitivity, defaults, permissions, omission rules and collection outcomes. Today authoring still
-  lives in `src/NativeDeviceIntel.ts` for field types; probe metadata now lives in
-  `contract/source/probe-catalog.source.json` per [ADR-0004](adr/0004-neutral-contract-authoring.md).
+- [x] Define a framework-neutral authoring source for probe ids, fields, types, platform support,
+  sensitivity, defaults, permissions and omission rules. Metadata lives in
+  `contract/source/probe-catalog.source.json` and field types in
+  `contract/source/signal-types.source.json`, both per
+  [ADR-0004](adr/0004-neutral-contract-authoring.md). Generation no longer parses TypeScript.
+  Collection outcomes are pinned by fixtures rather than by an authored source.
+- [ ] Reverse the direction of truth for types: generate the TypeScript signal declarations from the
+  neutral source instead of hand-writing them and guarding against drift with
+  `npm run verify:signal-types`. React Native codegen consumes `src/NativeDeviceIntel.ts`, so this
+  needs its own slice.
+- [ ] Fix three lossy encodings the move exposed: `device_identity.androidBuild` publishes the bare
+  TypeScript alias `AndroidBuildInfo` as its type; `runtime_timing` is a flattened intersection whose
+  published field order depends on declaration order; `hardware.batteryState`/`batteryHealth` publish
+  as `string` with their closed value sets only in a code comment.
 - [ ] Define contract versioning and compatibility checks independently from package versions and
   `schema_version`; avoid changing the event envelope merely because a package moves.
 - [x] Add shared conformance fixtures for nested objects, string/number arrays, booleans, zeroes,

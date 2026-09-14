@@ -16,7 +16,9 @@ These rules apply to the entire repository.
 ## Adding or changing a probe
 
 1. Define the raw result type and TurboModule method in `src/NativeDeviceIntel.ts` when native data is
-   required.
+   required, then run `node scripts/generate-signal-types.mjs --write` so
+   `contract/source/signal-types.source.json` carries the new field types. `npm run verify` fails
+   when the two disagree.
 2. Implement the method on both Kotlin and Objective-C++, or add an explicit platform stub and gate
    the probe with `androidOnly`/`iosOnly`.
 3. Add the JS probe under `src/probes/` and register it in `src/probes/index.ts`.

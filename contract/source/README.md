@@ -47,3 +47,72 @@ emits `readonly ProbePlatform[]` for `{"type": "array", "items": {"type": "enum"
 
 Prose fields (`purpose`, `notes`, `permissions` entries) are carried verbatim as single strings. The
 generator, not the author, decides line wrapping in the emitted TypeScript.
+
+# Signal type authoring source
+
+`signal-types.source.json` holds the other half of the probe contract: the *types* of the fields each
+probe returns. Metadata (which fields are selectable, sensitivity, permissions) lives in
+`probe-catalog.source.json`; types live here.
+
+- `signal-types.source.json` is generated from the TypeScript signal types by
+  `scripts/generate-signal-types.mjs`. TypeScript is still the human-authored origin of the types,
+  so edit `src/NativeDeviceIntel.ts` / `src/probes/runtimeProbe.ts` and re-run `--write`.
+- The hardcoded probe-id-to-type-name map that used to live inside `scripts/read-signal-contract.mjs`
+  now lives in this file, as the `typeName` of each `probeTypes` entry. A new probe no longer needs a
+  hand-edited map inside a script.
+- `../probe-catalog.json` and `../raw-signal-event.schema.json` publish exactly the values carried
+  here, as `fieldTypes`, `fieldSchemas` and `optionalFields`.
+
+## Commands
+
+```sh
+node scripts/generate-signal-types.mjs --write   # regenerate contract/source/signal-types.source.json
+node scripts/generate-signal-types.mjs --check   # fail if the source drifts from the TypeScript types
+```
+
+`--check` is also the default when no flag is passed. It exits 1 and names every difference by probe
+id, field name, and which of `type` / `optional` / `schema` disagrees. A missing field and an extra
+field are reported as distinct failures, and key order is compared, because probe order and field
+order both reach the published artifacts.
+
+## Structure
+
+| Key | Meaning |
+| --- | --- |
+| `sourceVersion` | Format version of this authoring file. |
+| `description` | What the file is and how to regenerate it. |
+| `probeTypes` | Ordered map from probe id to its signal type. Key order is the published probe order. |
+| `probeTypes.<id>.typeName` | The name of the signal type that backs the probe. |
+| `probeTypes.<id>.fields` | Ordered map from field name to its contract. Key order is the published field order. |
+| `…fields.<name>.type` | The published type string, verbatim. |
+| `…fields.<name>.optional` | Whether the field may be absent from a success payload. |
+| `…fields.<name>.schema` | The published JSON Schema fragment for the field, verbatim. |
+
+The source currently carries 19 probes and 322 fields.
+
+## Why the type strings are TypeScript-flavored
+
+`type` is copied verbatim from the published contract: `string`, `number`, `boolean`, `string[]`,
+`number[]`, and the alias name `AndroidBuildInfo`. They read as TypeScript, not as a neutral type
+language, because they are already published in `contract/probe-catalog.json` and rendered on the
+signal pages. Renaming them would be a contract change, so this file preserves them. `schema` is the
+language-neutral form of the same information and is what a non-TypeScript binding should read.
+
+## Where the TypeScript shape does not map cleanly
+
+- `device_identity.androidBuild` carries `"type": "AndroidBuildInfo"` — an alias name with no
+  definition anywhere in this file. Only its `schema` expands the twenty nested properties, so the
+  `type` string is opaque to any consumer that does not already have the TypeScript declaration.
+  It is the single field whose `schema` is an object rather than a scalar or array.
+- `runtime_timing` comes from `RuntimeTimingSignals = NativeRuntimeTimingSignals & {…}`. The
+  intersection is flattened here: the six `native*` fields come first because they are declared in
+  the referenced alias, then the eight JS-side fields from the inline literal. The neutral source
+  records the resulting order but not the fact that two declarations produced it, so a reordering of
+  the two halves in TypeScript is a silent reordering of the published fields.
+- Unions written as doc comments rather than types — for example `hardware.batteryState` and
+  `hardware.batteryHealth`, declared `string` with the closed value set spelled out in a trailing
+  comment — arrive here as plain `"string"`. The neutral source has no place for those value sets,
+  and no consumer can validate them.
+- Nothing in the current contract produces a TypeScript union, literal, or `unknown` type, so no
+  field carries an `anyOf` or an empty `{}` schema today. The generator maps them if they appear,
+  but the shape has never been exercised by a real field.
