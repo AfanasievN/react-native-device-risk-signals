@@ -67,7 +67,8 @@
   // ── Transport classification via reachability (WWAN flag ⇒ cellular). A VPN tunnel takes priority
   //    as the reported connectionType, matching the Android capabilities-based classifier.
   NSString *type = [self reachabilityConnectionType];
-  result[@"isConnected"] = @(![type isEqualToString:@"none"]);
+  BOOL connected = ![type isEqualToString:@"none"];
+  result[@"isConnected"] = @(connected);
   result[@"connectionType"] = vpn ? @"vpn" : type;
 
   return result;

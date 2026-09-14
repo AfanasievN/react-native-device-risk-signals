@@ -111,19 +111,27 @@ final class NumericConsistencyProviderTests: XCTestCase {
         XCTAssertEqual(subnormal.intValue, 1)
     }
 
-    func testIeee754FlagsBoxAsIntNotBoolAsTheyDidBeforeTheMove() throws {
-        // Pre-existing behavior, pinned here deliberately so the extraction stays byte-for-byte
-        // identical. Both fields are built from C `&&` expressions, whose result type is `int`, so
-        // `@(...)` boxes an `NSNumber` with objCType "i" rather than the "c" that `@YES`/`@NO`
-        // produce. A CFBoolean is what the React Native bridge turns into a JS `true`/`false`, so
-        // these currently reach JavaScript as 1/0 even though `NativeDeviceIntel.ts` declares them
-        // `boolean`. Changing that is a contract change for the binding to make, not something this
-        // source move may do silently.
+    func testIeee754FlagsBoxAsCFBooleansAndNotAsInts() throws {
+        // `@(expr)` picks its `NSNumber` constructor from the *static type* of `expr`. Both fields
+        // are built from C `&&` expressions, whose result type is `int`, so the unguarded spelling
+        // boxed an NSNumber with objCType "i" rather than the "c" that `@YES`/`@NO` produce. Only a
+        // CFBoolean crosses the React Native bridge as a JavaScript `true`/`false`; an "i" arrives
+        // as 1/0 and fails validation against `contract/raw-signal-event.schema.json`, which
+        // declares both fields `boolean` exactly as `NativeDeviceIntel.ts` does. The provider now
+        // casts each conjunction to `BOOL` inside the literal.
+        //
+        // `expr ? YES : NO` is not a substitute: the conditional operator promotes both branches
+        // back to `int`, so the box is an "i" again. The cast is the load-bearing part.
         let signedZero = try XCTUnwrap(signals["signedZeroPreserved"] as? NSNumber)
         let subnormal = try XCTUnwrap(signals["subnormalPreserved"] as? NSNumber)
 
-        XCTAssertEqual(String(cString: signedZero.objCType), "i")
-        XCTAssertEqual(String(cString: subnormal.objCType), "i")
+        for (key, number) in [("signedZeroPreserved", signedZero), ("subnormalPreserved", subnormal)] {
+            XCTAssertTrue(
+                number === (kCFBooleanTrue as NSNumber) || number === (kCFBooleanFalse as NSNumber),
+                "\(key) must box as a CFBoolean so it crosses the bridge as true/false, not 1/0"
+            )
+            XCTAssertEqual(String(cString: number.objCType), "c", "\(key)")
+        }
     }
 
     func testResultIsDeterministic() throws {

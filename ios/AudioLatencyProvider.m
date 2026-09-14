@@ -26,7 +26,8 @@
     result[@"nativeSampleRate"] = @(sampleRate);
   }
 
-  result[@"measured"] = @(outputMs > 0 || sampleRate > 0);
+  BOOL measured = outputMs > 0 || sampleRate > 0;
+  result[@"measured"] = @(measured);
   return result;
 }
 

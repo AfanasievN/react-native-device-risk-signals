@@ -19,8 +19,8 @@
   return @{
     @"integerVectorResult": @((double)hash),
     @"floatVector": floatVector,
-    @"signedZeroPreserved": @(isinf(1.0 / negativeZero) && signbit(1.0 / negativeZero)),
-    @"subnormalPreserved": @(DBL_TRUE_MIN > 0.0 && DBL_TRUE_MIN * 1.0 == DBL_TRUE_MIN),
+    @"signedZeroPreserved": @((BOOL)(isinf(1.0 / negativeZero) && signbit(1.0 / negativeZero))),
+    @"subnormalPreserved": @((BOOL)(DBL_TRUE_MIN > 0.0 && DBL_TRUE_MIN * 1.0 == DBL_TRUE_MIN)),
   };
 }
 

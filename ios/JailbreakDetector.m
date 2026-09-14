@@ -101,7 +101,7 @@ static NSString *const kSuspiciousEnvironmentVariables[] = {
   // Files / binaries.
   NSArray<NSString *> *suspiciousPaths = [self foundSuspiciousPaths];
   result[@"suBinaryFound"] = @([self anyShellPresent]);
-  result[@"suspiciousFilePathsFound"] = @(suspiciousPaths.count > 0);
+  result[@"suspiciousFilePathsFound"] = @((BOOL)(suspiciousPaths.count > 0));
   result[@"suspiciousFilePaths"] = suspiciousPaths;
   result[@"suspiciousPathCount"] = @(suspiciousPaths.count);
   result[@"symbolicLinksSuspicious"] = @([self suspiciousSymlinksPresent]);
@@ -116,17 +116,17 @@ static NSString *const kSuspiciousEnvironmentVariables[] = {
 
   // Injected dylibs.
   NSArray<NSString *> *injected = [self injectedImageNames];
-  result[@"injectedLibrariesFound"] = @(injected.count > 0);
+  result[@"injectedLibrariesFound"] = @((BOOL)(injected.count > 0));
   result[@"injectedLibraryNames"] = injected;
   result[@"injectedLibraryCount"] = @(injected.count);
-  result[@"hookFrameworkFound"] = @(injected.count > 0);
+  result[@"hookFrameworkFound"] = @((BOOL)(injected.count > 0));
   result[@"dyldImageCount"] = @((NSInteger)_dyld_image_count());
   NSMutableArray<NSString *> *environmentNames = [NSMutableArray array];
   for (NSUInteger i = 0; i < sizeof(kSuspiciousEnvironmentVariables) / sizeof(kSuspiciousEnvironmentVariables[0]); i++) {
     NSString *name = kSuspiciousEnvironmentVariables[i];
     if (environment[name].length > 0) [environmentNames addObject:name];
   }
-  result[@"suspiciousEnvironmentVariablesFound"] = @(environmentNames.count > 0);
+  result[@"suspiciousEnvironmentVariablesFound"] = @((BOOL)(environmentNames.count > 0));
   result[@"suspiciousEnvironmentVariableNames"] = environmentNames;
 
   // Borrowed from IOSSecuritySuite: debugger/RE-tool/anti-anti-jailbreak/repackaging tells.

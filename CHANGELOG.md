@@ -4,6 +4,23 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking
+
+- iOS now emits real booleans for fourteen fields that previously crossed the bridge as `1`/`0`:
+  `device_identity.isTablet`; `os_integrity.suspiciousFilePathsFound`, `injectedLibrariesFound`,
+  `hookFrameworkFound` and `suspiciousEnvironmentVariablesFound`; `network.isConnected`;
+  `media_bluetooth_apps.isScreenMirrored` and `accessibilityRunning`; `locale.uses24HourClock`;
+  `audio_latency.measured`; `transaction_safety.isInteractive` and `accessibilityRunning`; and
+  `numeric_consistency.signedZeroPreserved` and `subnormalPreserved`. Objective-C `@(expr)` on a C
+  comparison or logical expression boxes an `int`, so those fields disagreed with the TypeScript
+  contract, the published JSON Schema and Android, and iOS payloads for the five default-enabled
+  probes failed schema validation. Eight of the fourteen were in production traffic.
+  Consumers that worked around the old shape - comparing with `1`, coercing with `parseInt`, or
+  storing the column as an integer - must accept `true`/`false`; consumers comparing with `===
+  true` start working. `numeric_consistency.signedZeroPreserved` and `subnormalPreserved` also stop
+  returning the number `0` on the false path, because the JavaScript probe's `&&` now receives a
+  boolean. `npm run verify:ios-booleans` fails the build if the pattern returns.
+
 ### Changed
 
 - `os_integrity` now has a 1000 ms probe timeout instead of 400 ms. Measured on an Android 15 arm64

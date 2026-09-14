@@ -14,7 +14,7 @@
   result[@"brand"] = @"Apple";
   result[@"systemName"] = device.systemName;
   result[@"systemVersion"] = device.systemVersion;
-  result[@"isTablet"] = @(device.userInterfaceIdiom == UIUserInterfaceIdiomPad);
+  result[@"isTablet"] = @((BOOL)(device.userInterfaceIdiom == UIUserInterfaceIdiomPad));
 #if TARGET_OS_MACCATALYST
   result[@"isMacCatalystApp"] = @YES;
 #else

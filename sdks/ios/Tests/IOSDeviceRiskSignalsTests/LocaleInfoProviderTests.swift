@@ -174,20 +174,26 @@ final class LocaleInfoProviderTests: XCTestCase {
         XCTAssertEqual(flag.boolValue, !pattern.contains("a"))
     }
 
-    func testUses24HourClockBoxesAsIntNotBoolAsItDidBeforeTheMove() throws {
-        // Pre-existing behavior, pinned here deliberately so the extraction stays byte-for-byte
-        // identical — the same trap already documented for `signedZeroPreserved` in
-        // `NumericConsistencyProviderTests`, but on a probe that ships enabled by default. The flag
-        // is built from a C `==` comparison, whose result type in a `.m` file is `int`, so `@(...)`
-        // calls `+numberWithInt:` and produces an NSNumber with objCType "i" rather than the
-        // CFBoolean that `+numberWithBool:` returns. Only a CFBoolean becomes a JavaScript
-        // `true`/`false` across the bridge, so this field currently reaches JavaScript as 1/0 even
-        // though `LocaleSignals` in `src/NativeDeviceIntel.ts` declares it `boolean`. Fixing that is
-        // a contract change for the binding to make deliberately, not something this source move
-        // may do silently.
+    func testUses24HourClockBoxesAsACFBooleanAndNotAsAnInt() throws {
+        // `@(expr)` picks its `NSNumber` constructor from the *static type* of `expr`. The flag is
+        // derived from a C `==` comparison, whose result type in a `.m` file is `int`, so the
+        // unguarded spelling `@(range.location == NSNotFound)` called `+numberWithInt:` and produced
+        // an NSNumber with objCType "i". Only a CFBoolean — what `+numberWithBool:` returns — crosses
+        // the React Native bridge as a JavaScript `true`/`false`; an "i" arrives as 1/0 and fails
+        // validation against `contract/raw-signal-event.schema.json`, which declares this field
+        // `boolean` exactly as `LocaleSignals` in `src/NativeDeviceIntel.ts` does. The provider now
+        // casts the comparison to `BOOL` inside the literal, so the box is a CFBoolean.
+        //
+        // Note that `expr ? YES : NO` does NOT fix this: the conditional operator promotes both
+        // branches back to `int` and the box is an "i" again. The cast is the load-bearing part.
+        //
+        // `locale` is `enabledByDefault: true`, so this field is on the wire for every collection.
         let flag = try XCTUnwrap(signals["uses24HourClock"] as? NSNumber)
-        XCTAssertEqual(String(cString: flag.objCType), "i")
-        XCTAssertFalse(flag === (kCFBooleanTrue as NSNumber) || flag === (kCFBooleanFalse as NSNumber))
+        XCTAssertTrue(
+            flag === (kCFBooleanTrue as NSNumber) || flag === (kCFBooleanFalse as NSNumber),
+            "uses24HourClock must box as a CFBoolean so it crosses the bridge as true/false, not 1/0"
+        )
+        XCTAssertEqual(String(cString: flag.objCType), "c")
     }
 
     func testUses24HourClockDerivationRuleHoldsForKnownLocales() {

@@ -216,9 +216,8 @@ final class ApplicationInfoProviderTests: XCTestCase {
     // MARK: - Boxing
 
     func testEveryBooleanFieldBoxesAsACFBooleanAndNotAsAnInt() throws {
-        // The trap already documented for `uses24HourClock` in `LocaleInfoProviderTests` and for
-        // `signedZeroPreserved` in `NumericConsistencyProviderTests`, checked here in the direction
-        // where it currently holds. `@(expr)` picks its `NSNumber` constructor from the *static
+        // The same trap that once affected `uses24HourClock` and `signedZeroPreserved`, both fixed
+        // repository-wide; these fields were always correct and this test keeps them that way. `@(expr)` picks its `NSNumber` constructor from the *static
         // type* of `expr`: a `BOOL`-typed expression gives `+numberWithBool:` and a CFBoolean,
         // while a C comparison yields `int` and `+numberWithInt:`. Only a CFBoolean crosses the
         // React Native bridge as a JavaScript `true`/`false`; an int reaches JavaScript as 1/0

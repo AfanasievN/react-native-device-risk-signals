@@ -45,7 +45,7 @@
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
   void (^work)(void) = ^{
     UIApplication *app = [UIApplication sharedApplication];
-    result[@"isInteractive"] = @(app.applicationState == UIApplicationStateActive);
+    result[@"isInteractive"] = @((BOOL)(app.applicationState == UIApplicationStateActive));
     result[@"isScreenCaptured"] = @(UIScreen.mainScreen.isCaptured);
     BOOL isMirrored = NO;
     for (UIScreen *screen in UIScreen.screens) {
@@ -61,7 +61,7 @@
     BOOL assistiveTouch = UIAccessibilityIsAssistiveTouchRunning();
     NSInteger count = (voiceOver ? 1 : 0) + (switchControl ? 1 : 0) +
       (guidedAccess ? 1 : 0) + (assistiveTouch ? 1 : 0);
-    result[@"accessibilityRunning"] = @(count > 0);
+    result[@"accessibilityRunning"] = @((BOOL)(count > 0));
     result[@"accessibilityFeatureCount"] = @(count);
   };
   if ([NSThread isMainThread]) work(); else dispatch_sync(dispatch_get_main_queue(), work);

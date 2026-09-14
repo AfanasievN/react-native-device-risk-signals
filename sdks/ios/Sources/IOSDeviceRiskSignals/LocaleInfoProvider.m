@@ -39,7 +39,7 @@
 
   NSString *timeFormat = [NSDateFormatter dateFormatFromTemplate:@"j" options:0 locale:locale];
   if (timeFormat != nil) {
-    result[@"uses24HourClock"] = @([timeFormat rangeOfString:@"a"].location == NSNotFound);
+    result[@"uses24HourClock"] = @((BOOL)([timeFormat rangeOfString:@"a"].location == NSNotFound));
   }
 
   // keyboardLanguages intentionally omitted on iOS (Required Reason API — see header).

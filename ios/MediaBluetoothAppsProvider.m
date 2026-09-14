@@ -38,7 +38,7 @@ static NSString *const kAppAuditSchemes[] = {
     }
     result[@"connectedScreenCount"] = @(screens.count);
     result[@"mirroredScreenCount"] = @(mirroredCount);
-    result[@"isScreenMirrored"] = @(mirroredCount > 0);
+    result[@"isScreenMirrored"] = @((BOOL)(mirroredCount > 0));
 
     NSMutableArray<NSString *> *features = [NSMutableArray array];
     BOOL voiceOver = UIAccessibilityIsVoiceOverRunning();
@@ -51,7 +51,8 @@ static NSString *const kAppAuditSchemes[] = {
     if (assistiveTouch) [features addObject:@"assistiveTouch"];
     if (UIAccessibilityIsSpeakScreenEnabled()) [features addObject:@"speakScreen"];
     result[@"accessibilityFeatures"] = features;
-    result[@"accessibilityRunning"] = @(voiceOver || switchControl || guidedAccess || assistiveTouch);
+    BOOL accessibilityRunning = voiceOver || switchControl || guidedAccess || assistiveTouch;
+    result[@"accessibilityRunning"] = @(accessibilityRunning);
 
     NSMutableArray<NSString *> *openable = [NSMutableArray array];
     UIApplication *app = [UIApplication sharedApplication];

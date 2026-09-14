@@ -251,31 +251,22 @@ Cleanup attempts to restore a previously changed EGL binding and releases only o
 driver failure can prevent restoration. No shared-display termination, permissions or new runtime
 dependencies are introduced. Instrumented and physical-device GL/coexistence QA remains necessary.
 
-## Known platform inconsistency
+## Boolean fields on iOS
 
-Fourteen iOS fields arrive as `1`/`0` instead of `true`/`false`. In Objective-C, `@(expr)` on a C
-comparison or logical expression boxes an `int` rather than a boolean, so the value crosses the
-bridge as a number. The TypeScript contract and the published JSON Schema declare `boolean`, and
-Android emits real booleans, so the two platforms disagree and an affected iOS event fails schema
-validation. A measured audit of every boolean field produced this list:
+Every boolean field arrives as a real `true`/`false` on both platforms. This was not always so: until
+the fix recorded in the changelog, fourteen iOS fields crossed the bridge as `1`/`0`, because
+Objective-C `@(expr)` on a C comparison or logical expression boxes an `int` rather than a boolean.
+Affected were `isTablet`; `suspiciousFilePathsFound`, `injectedLibrariesFound`, `hookFrameworkFound`
+and `suspiciousEnvironmentVariablesFound`; `isConnected`; `isScreenMirrored` and
+`accessibilityRunning` in `media_bluetooth_apps`; `uses24HourClock`; `measured`; `isInteractive` and
+`accessibilityRunning` in `transaction_safety`; and `signedZeroPreserved` and `subnormalPreserved`.
 
-| Probe | Fields | Default |
-| --- | --- | --- |
-| `device_identity` | `isTablet` | On |
-| `os_integrity` | `suspiciousFilePathsFound`, `injectedLibrariesFound`, `hookFrameworkFound`, `suspiciousEnvironmentVariablesFound` | On |
-| `network` | `isConnected` | On |
-| `media_bluetooth_apps` | `isScreenMirrored`, `accessibilityRunning` | On |
-| `locale` | `uses24HourClock` | On |
-| `audio_latency` | `measured` | Off |
-| `transaction_safety` | `isInteractive`, `accessibilityRunning` | Off |
-| `numeric_consistency` | `signedZeroPreserved`, `subnormalPreserved` | Off |
-
-Every other boolean field on iOS boxes correctly, because it comes from a `BOOL` property, a `BOOL`
-method result or a literal. Until the fix lands in a breaking release, treat the fields above as
-truthy/falsy rather than strictly equal to `true`, and expect schema validation of iOS payloads for
-those probes to fail. `numeric_consistency.signedZeroPreserved` and `subnormalPreserved` are further
-distorted in JavaScript: the probe's `&&` returns the number `0` on the false path. Tracked in
-[the migration checklist](MIGRATION_ROADMAP.md).
+If you stored iOS events collected before that release, those columns hold `1`/`0` rather than
+`true`/`false`, and payloads for `device_identity`, `os_integrity`, `network`,
+`media_bluetooth_apps` and `locale` would have failed validation against the published schema. New
+events validate. `numeric_consistency.signedZeroPreserved` and `subnormalPreserved` were also
+distorted in JavaScript, where the probe's `&&` returned the number `0` on the false path; that is
+resolved by the same change. `npm run verify:ios-booleans` keeps the defect from returning.
 
 ## Data minimization guidance
 

@@ -177,23 +177,17 @@ for compatibility changes and the difference between queue cancellation and inte
   the validator does not implement. They pin JSON shape only: no SDK executes them yet.
 - [ ] Make each implementation run the fixtures, so Kotlin, Swift and the bindings are checked
   against the same payloads rather than only their own unit tests.
-- [ ] Fix iOS boxing C comparison results as `int` rather than `BOOL`. `@(expr)` on a C `==`, `>`,
-  `!` or `&&` expression produces objCType `"i"`, not a `CFBoolean`, so the field arrives as `1`/`0`
-  while the contract and the published schema declare `boolean` and Android emits a real boolean.
-  A measured audit found **fourteen** affected fields, not the three first noticed: `isTablet`;
-  `suspiciousFilePathsFound`, `injectedLibrariesFound`, `hookFrameworkFound` and
-  `suspiciousEnvironmentVariablesFound`; `isConnected`; `isScreenMirrored` and `accessibilityRunning`
-  in media; `uses24HourClock`; `measured`; `isInteractive` and `accessibilityRunning` in transaction
-  safety; `signedZeroPreserved` and `subnormalPreserved`. Eight sit in probes that are enabled by
-  default, so iOS payloads for `device_identity`, `os_integrity`, `network`,
-  `media_bluetooth_apps` and `locale` fail schema validation today. Every other iOS boolean boxes
-  correctly because it comes from a `BOOL` property, method or literal.
-  The fix is an explicit `(BOOL)` cast or a `BOOL` local at each site; `expr ? YES : NO` does not
-  work, because the conditional operator promotes both branches back to `int`. It changes an emitted
-  value type, so it needs a breaking release with notes, inverted tests where the current behavior is
-  pinned, and a correction to the data dictionary. Three sites are already extracted and pinned by
-  tests; eleven are still in `ios/`, so fix them separately from the byte-identical moves rather than
-  quietly during extraction.
+- [x] Fix iOS boxing C comparison results as `int` rather than `BOOL`. All fourteen sites now use an
+  explicit `(BOOL)` cast or a hoisted `BOOL` local, so every boolean field crosses the bridge as a
+  real boolean and iOS payloads validate against the published schema. `expr ? YES : NO` was measured
+  and rejected: the conditional operator promotes both branches back to `int`. A clang AST sweep
+  confirms no `numberWithInt:` remains for a boolean field, which is the only evidence available for
+  the eleven sites under `ios/` that have no test target. The extracted providers gained tests
+  asserting CFBoolean identity for every boolean they emit, plus the inverse check that no numeric
+  field became a boolean, and `npm run verify:ios-booleans` fails on a reintroduction.
+- [ ] Give `ios/` a test target. Eleven of the fourteen fixed sites are covered only by a static AST
+  sweep because the React Native binding tree has no XCTest bundle; the UIKit and `AVAudioSession`
+  reads there need a host app.
 - [ ] Resolve two contract ambiguities the fixtures exposed: `schema_version` is typed `number` in
   `src/DeviceIntel.ts` while the schema pins `const: 1`, and `session_id`/`client_id` carry
   `minLength: 1` in the schema but are plain `string` in TypeScript, so an empty client id
