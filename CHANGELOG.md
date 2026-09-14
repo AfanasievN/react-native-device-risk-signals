@@ -52,6 +52,11 @@ All notable public changes will be documented in this file.
 - Fixed the published example payloads: `website/examples/android-event.json` was missing the
   required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
   the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- iOS extraction continued: `ApplicationInfoProvider` and `TelephonyInfoProvider` moved into the
+  package unchanged. Telephony is the first provider with a system-framework dependency, and because
+  CoreTelephony is unavailable on macOS the package no longer declares that platform: `swift test`
+  fails on the host by design, and the iOS Simulator, device and Mac Catalyst destinations carry the
+  tests. Mac Catalyst support was verified by build rather than assumed.
 - iOS extraction continued: `LocaleInfoProvider` moved into the package unchanged, with 13 Swift
   tests including one pinning the Required-Reason field that must stay absent. CI now runs the
   package's tests on an iOS Simulator destination and builds it for device and Mac Catalyst, instead

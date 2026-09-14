@@ -8,16 +8,17 @@
 #import "MediaBluetoothAppsProvider.h"
 #import "NetworkInfoProvider.h"
 #import "SecurityPostureProvider.h"
-#import "TelephonyInfoProvider.h"
-// ApplicationInfoProvider, LocaleInfoProvider, NumericConsistencyProvider, RuntimeTimingProvider and
-// their SignalStatistics helper now live in the standalone `ios-device-risk-signals` Swift Package
-// (product `IOSDeviceRiskSignals`) under `sdks/ios/Sources/IOSDeviceRiskSignals`, with the headers
-// below published from that target's `include/` directory. This binding is a thin adapter over them
-// and keeps no copy of the collection logic.
+// ApplicationInfoProvider, LocaleInfoProvider, NumericConsistencyProvider, RuntimeTimingProvider,
+// TelephonyInfoProvider and their SignalStatistics helper now live in the standalone
+// `ios-device-risk-signals` Swift Package (product `IOSDeviceRiskSignals`) under
+// `sdks/ios/Sources/IOSDeviceRiskSignals`, with the headers below published from that target's
+// `include/` directory. This binding is a thin adapter over them and keeps no copy of the
+// collection logic.
 #import "ApplicationInfoProvider.h"
 #import "LocaleInfoProvider.h"
 #import "NumericConsistencyProvider.h"
 #import "RuntimeTimingProvider.h"
+#import "TelephonyInfoProvider.h"
 #import <React/RCTBridgeModule.h>
 
 @implementation DeviceIntel {

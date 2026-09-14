@@ -104,17 +104,12 @@ which only compiles it:
 example/android/gradlew -p sdks/android :connectedDebugAndroidTest --no-daemon
 ```
 
-The standalone iOS Swift package has a fast host loop and a real one. `swift test` compiles for
-macOS, so it proves nothing about an iOS binary; it is honest today only because everything extracted
-so far is pure Foundation computation, and it stops being honest as soon as a provider is gated
-behind `#if TARGET_OS_IOS`. Use it while iterating:
-
-```sh
-swift test --package-path sdks/ios
-```
-
-CI runs the real destinations, and so should you before sending a change. The scheme name is the
-package name, not the product name, and xcodebuild generates it on demand:
+The standalone iOS Swift package is tested on iOS destinations only. `swift test` no longer works:
+SwiftPM always builds for the host, and since `TelephonyInfoProvider` moved in, the host compile
+fails with `'CTTelephonyNetworkInfo' is unavailable: not available on macOS`. That is expected, not a
+regression - the alternative was hiding the provider behind a compile-time guard, which would have
+left host tests compiling a stub that proves nothing. The scheme name is the package name, not the
+product name, and xcodebuild generates it on demand:
 
 ```sh
 cd sdks/ios
