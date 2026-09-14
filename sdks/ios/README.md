@@ -8,8 +8,10 @@ project. It is under active extraction from the React Native binding's `ios/` di
 - **Platforms:** iOS 15.1 and Mac Catalyst 15.1. macOS is **not** a platform — the package no
   longer builds for the host Mac and `swift test` no longer works, see
   [Building and testing](#building-and-testing)
-- **Dependencies:** Foundation, plus CoreTelephony for `TelephonyInfoProvider`. The package does not
-  import React Native, performs no network request, adds no permission, and creates no persistent
+- **Dependencies:** Foundation, plus CoreTelephony for `TelephonyInfoProvider`, AVFoundation for
+  `AudioLatencyProvider`, and SystemConfiguration + CFNetwork for `NetworkInfoProvider`. All four are
+  picked up by clang module autolinking; the package declares no `linkerSettings`. It does not import
+  React Native or UIKit, performs no network request, adds no permission, and creates no persistent
   device identifier.
 
 ## Status: in development, unpublished
@@ -36,6 +38,8 @@ Currently extracted:
 | `RuntimeTimingProvider.runtimeTimingSignals` | Clock-source name, sample count, smallest observed positive delta, and median/p95/MAD of 256 back-to-back `CFAbsoluteTimeGetCurrent` deltas in nanoseconds |
 | `NumericConsistencyProvider.numericConsistencySignals` | A fixed 1024-round 32-bit FNV-style digest, five transcendental double results, and two IEEE-754 behaviour flags (signed zero, subnormals) |
 | `TelephonyInfoProvider.telephonySignals` | Opportunistic CoreTelephony carrier reads: active-SIM count, carrier name, MCC/MNC, ISO country code and the VoIP-allowed flag — all expected-absent on modern iOS, see below |
+| `NetworkInfoProvider.networkSignals` | Interface topology from `getifaddrs` (up, non-loopback names and their non-link-local IPv4/IPv6 addresses), transport classification from `SCNetworkReachability`, VPN presence from scoped system-proxy entries, and the configured HTTP proxy host and port |
+| `AudioLatencyProvider.audioLatency` | `AVAudioSession` property reads: output and input latency and IO buffer duration in milliseconds, the native sample rate in Hz, and whether anything was measured |
 | `RNDISummarize` / `RNDIWarmupSlope` | Shared statistics helpers: nearest-rank median/p95, median absolute deviation, coefficient of variation, and a first-half/second-half warm-up slope |
 
 `CFAbsoluteTimeGetCurrent` is a wall-clock read, deliberately not `mach_absolute_time` or
@@ -90,6 +94,40 @@ Apple Required-Reason API, so the binding's privacy manifest still declares zero
 `API_UNAVAILABLE(macos)`, so the host build is a hard compile error — see
 [Building and testing](#building-and-testing).
 
+`NetworkInfoProvider` is the most privacy-sensitive provider extracted so far, and the only one whose
+probe is **enabled by default**. It emits the host's local IP addresses, its interface-name topology,
+whether a VPN tunnel is up, and the configured HTTP proxy host and port. Four things it deliberately
+drops, each of them a value it decided not to disclose rather than an accident of the enumeration:
+
+- **Loopback interfaces** (`IFF_LOOPBACK`), so `lo0`, `127.0.0.1` and `::1` never appear.
+- **Down interfaces** (no `IFF_UP`), so a configured-but-inactive interface is not disclosed.
+- **IPv6 link-local addresses** (the literal `fe80` prefix), which carry an interface-derived host
+  portion and are useless to a backend. The filter is IPv6-only and a prefix test: an IPv4
+  169.254.0.0/16 auto-configuration address *is* emitted.
+- **Non-IP address families**, so the `AF_LINK` entries — which is where `getifaddrs` exposes the MAC
+  address — are skipped. A hardware address is the one category this package promises never to emit.
+
+It also never collects `wifiSsid` or `wifiBssid`. `CNCopyCurrentNetworkInfo` needs the
+`com.apple.developer.networking.wifi-info` entitlement, which the host application may not carry, and
+an SSID is a location proxy besides; the shared TypeScript contract marks both expected-null on iOS.
+Every one of these omissions is pinned by a test.
+
+Two derivations in that provider are easy to "tidy" into something subtly different, so both are
+pinned explicitly. The transport comes from `SCNetworkReachability`, not from interface names —
+`en0` can be Wi-Fi, wired, or an unassociated-but-up radio, and `utun0`/`utun1` exist for system
+services with no user VPN, which is the guess an earlier version of this provider got wrong. And
+`isConnected` is derived from the *reachability* answer while `connectionType` may afterwards be
+overwritten with `"vpn"`, so a host with a tunnel configured but no route out legitimately reports
+`connectionType: "vpn"` with `isConnected: false`. `isConnected` is not `connectionType != "none"`.
+
+`AudioLatencyProvider` reads four `AVAudioSession` properties and nothing else: no engine, no
+permission, and — the part that is invisible in the emitted dictionary — **no session activation**.
+`-setActive:` is a process-wide side effect that interrupts other audio and, paired with a recording
+category, is the step that would turn a permission-free probe into one that prompts. Since the
+dictionary cannot show whether that held, the test suite swizzles the four mutating `AVAudioSession`
+entry points and asserts that the provider calls none of them. The probe ships **disabled by
+default** (`src/probes/audioLatencyProbe.ts`), so those tests are the only routine guard on it.
+
 Everything else on iOS still lives in the React Native package's `ios/` directory and moves here
 incrementally.
 
@@ -100,22 +138,28 @@ sdks/ios/
   Package.swift
   Sources/IOSDeviceRiskSignals/
     ApplicationInfoProvider.m
+    AudioLatencyProvider.m
     LocaleInfoProvider.m
+    NetworkInfoProvider.m
     NumericConsistencyProvider.m
     RuntimeTimingProvider.m
     SignalStatistics.m
     TelephonyInfoProvider.m
     include/                      # public headers (SwiftPM convention)
       ApplicationInfoProvider.h
+      AudioLatencyProvider.h
       LocaleInfoProvider.h
+      NetworkInfoProvider.h
       NumericConsistencyProvider.h
       RuntimeTimingProvider.h
       SignalStatistics.h
       TelephonyInfoProvider.h
   Tests/IOSDeviceRiskSignalsTests/
     ApplicationInfoProviderTests.swift
+    AudioLatencyProviderTests.swift
     BooleanBoxingTests.swift
     LocaleInfoProviderTests.swift
+    NetworkInfoProviderTests.swift
     ProviderTests.swift
     SignalStatisticsTests.swift
     TelephonyInfoProviderTests.swift
@@ -123,13 +167,16 @@ sdks/ios/
 
 The implementation is Objective-C and was moved verbatim from `ios/`, not rewritten, so behaviour is
 byte-for-byte identical to what the published binding shipped: the same sample counts, the same
-statistics, and the same emitted keys, value types and omission rules. The six headers in
-`include/` are the whole public surface; implementation details such as the percentile helper and
-the sample-count constant are `static` inside the `.m` files and are not exported. Tests are Swift
-and exercise the package only through that public surface, with one documented exception:
+statistics, and the same emitted keys, value types and omission rules. The eight headers in
+`include/` are the whole public surface; implementation details such as the percentile helper, the
+sample-count constant and `NetworkInfoProvider`'s reachability, VPN and proxy helpers are `static` or
+undeclared inside the `.m` files and are not exported. Tests are Swift and exercise the package only
+through that public surface, with two documented exceptions:
 `TelephonyInfoProviderTests` reaches the provider's unpublished `-putString:key:value:` sentinel
-filter through the Objective-C runtime, because widening the header purely to let a test see it
-would have changed the extracted source.
+filter through the Objective-C runtime, and `NetworkInfoProviderTests` reaches
+`-vpnActiveInProxySettings:`, `-addProxyInfoFrom:to:` and `-reachabilityConnectionType` the same way,
+because widening either header purely to let a test see them would have changed the extracted
+source.
 
 ## Building and testing
 
@@ -222,16 +269,48 @@ an active SIM is the only thing that exercises `simCount` being written, `carrie
 boxed, and the filter running against values CoreTelephony really produced; the file says so in its
 header comment.
 
+`NetworkInfoProviderTests` faces the opposite problem to the telephony suite: the interface inventory
+*is* genuinely exercised on any host (every machine has a loopback interface and link-local
+addresses, so those two dropping rules really run), but the VPN and proxy branches never execute,
+because a test host has neither. Rather than leave the rules that decide what gets disclosed
+untested, that suite calls `-vpnActiveInProxySettings:` and `-addProxyInfoFrom:to:` directly through
+the Objective-C runtime with synthesised system-settings dictionaries. That is what pins the prefix-
+not-substring tunnel match, the `enabled && host.length > 0` conjunction that keeps a
+disabled-but-remembered proxy from disclosing its host, and the `proxyPort` boxing — none of which a
+dictionary-level assertion can reach on an unproxied machine. The dictionary-level counterparts are
+still there and become load-bearing the moment the suite is pointed at a host with a VPN or a proxy.
+
+`AudioLatencyProviderTests` asserts a *negative*: that reading latency never activates or
+reconfigures the shared `AVAudioSession`. `-[AVAudioSession sharedInstance]` is a singleton the
+provider reaches directly, with no seam to inject through and none added, so the four mutating
+selectors are replaced with counting stubs via `method_setImplementation`. The stubs deliberately do
+not forward — the point is to observe a call that must never happen, and forwarding would perform the
+side effect under test. A companion test triggers an activation on purpose to prove the spy is
+really intercepting, because a swizzle that silently failed would make the no-activation test pass by
+observing nothing. Worth knowing if you extend that spy: Swift's `setActive(_:)` bridges to
+`setActive:withOptions:error:`, **not** to `setActive:error:` — measured, after the control test was
+first written against the obvious selector and failed.
+
 `carrierAllowsVoip` is deliberately absent from `BooleanBoxingTests`' subject table, which asserts an
-exact count of inspected booleans — correct for providers that emit theirs unconditionally, and wrong
-the moment a device run makes a ninth boolean appear. Its boxing is pinned in
-`TelephonyInfoProviderTests` with the same CFBoolean-identity check.
+exact count of inspected booleans — 12, once `NetworkInfoProvider`'s three and
+`AudioLatencyProvider`'s one are counted. That shape is correct for providers that emit their
+booleans unconditionally and would be wrong the moment a device run made a thirteenth appear, which
+is why the telephony flag is pinned in `TelephonyInfoProviderTests` with the same CFBoolean-identity
+check instead. `NetworkInfoProvider.proxyPort` is in the table's number column but not in the count
+for the same reason — it appears only on a proxied host, so its boxing is pinned in
+`NetworkInfoProviderTests` by feeding the private proxy helper a synthesised settings dictionary.
 
 ## Relationship to the React Native binding
 
 `react-native-device-risk-signals` is a thin adapter. `ios/DeviceIntel.mm` instantiates
-`ApplicationInfoProvider`, `LocaleInfoProvider`, `RuntimeTimingProvider`,
-`NumericConsistencyProvider` and `TelephonyInfoProvider` from this package,
+`ApplicationInfoProvider`, `AudioLatencyProvider`, `LocaleInfoProvider`, `NetworkInfoProvider`,
+`NumericConsistencyProvider`, `RuntimeTimingProvider` and `TelephonyInfoProvider` from this package,
 and `ios/GpuBenchmarkProvider.m` calls this package's `RNDISummarize`/`RNDIWarmupSlope`. There is no
 second copy of the collection logic in the binding, and this package must never depend on React
 Native, Flutter, or Capacitor.
+
+`RnDeviceIntel.podspec` compiles both roots, so its `s.frameworks` list still covers everything this
+package links: `AVFoundation`, `SystemConfiguration` and `CFNetwork` are all listed, and `ios/` still
+needs `AVFoundation` on its own account for `MediaBluetoothAppsProvider` and `SecurityPostureProvider`.
+The podspec needs no edit for this move. Its explanatory comments do still name `NetworkInfoProvider`
+and `AudioLatencyProvider` as if they lived in `ios/`; that is stale prose, not a stale build setting.

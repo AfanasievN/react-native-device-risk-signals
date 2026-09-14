@@ -16,7 +16,7 @@ historical test evidence.
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
 | Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Transaction lifecycle and physical-device GL QA, Maven publication |
 | Android active probes | Separate optional component with the loopback Frida scan, JVM socket tests, lint and package-content gates, a native one-button demo, consumed by the binding | Host-permission outcome modeling, probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
-| iOS | Swift package with statistics, runtime timing, numeric consistency, locale, application metadata and telephony, tested on simulator/device/Catalyst and consumed by the pod; remaining providers under `ios/` | Foundation and UIKit provider extraction, observer ownership, Catalyst/device destinations, native consumer and release pipeline |
+| iOS | Swift package with nine extracted collections tested on simulator/device/Catalyst and consumed by the pod; remaining providers under `ios/` | Foundation and UIKit provider extraction, observer ownership, Catalyst/device destinations, native consumer and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
 | Flutter | Project naming decision and placeholder directory | Android/iOS adapter, Dart contract, examples and pub.dev release |
@@ -209,8 +209,9 @@ for compatibility changes and the difference between queue cancellation and inte
   destinations, exported headers/types and a documented Objective-C/Swift consumption surface.
 - [ ] Move the remaining Foundation-compatible providers from `ios/` in small tested groups.
   Done so far: statistics, runtime timing, numeric consistency, locale, application metadata,
-  telephony. Still in `ios/`: device identity, hardware/fonts, network, geolocation, media, audio,
-  GPU, security posture and integrity. The package no longer builds for macOS, because CoreTelephony
+  telephony, audio latency, network. Still in `ios/`: device identity, hardware/fonts, geolocation,
+  media, GPU, security posture and integrity - every one of those except GPU hops to the main thread
+  inside the provider, so the dispatch-ownership decision below gates them. The package no longer builds for macOS, because CoreTelephony
   is unavailable there; iOS Simulator, device and Mac Catalyst destinations carry the tests. Preserve
   absent values, cached location, system framework use and current platform gates.
 - [ ] Extract timing/statistics, hardware/application/identity, integrity and other providers;

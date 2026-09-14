@@ -90,6 +90,26 @@ final class BooleanBoxingTests: XCTestCase {
             ],
             otherKeys: ["nativeClockSource"]
         ),
+        Subject(
+            name: "NetworkInfoProvider",
+            signals: { NetworkInfoProvider().networkSignals() as? [String: Any] ?? [:] },
+            booleanKeys: ["isVpnActive", "isProxyConfigured", "isConnected"],
+            // `proxyPort` is conditional — it appears only on a host with an HTTP proxy carrying an
+            // explicit port — so the count assertion below does not include it. Its boxing is pinned
+            // unconditionally in `NetworkInfoProviderTests` by feeding the private proxy helper a
+            // synthesised settings dictionary, which is the only way to exercise it without one.
+            numberKeys: ["proxyPort"],
+            otherKeys: ["interfaceNames", "localIpAddresses", "connectionType", "proxyHost"]
+        ),
+        Subject(
+            name: "AudioLatencyProvider",
+            signals: { AudioLatencyProvider().audioLatency() as? [String: Any] ?? [:] },
+            booleanKeys: ["measured"],
+            numberKeys: [
+                "outputLatencyMs", "inputLatencyMs", "ioBufferDurationMs", "nativeSampleRate",
+            ],
+            otherKeys: []
+        ),
     ]
 
     private static func isCFBoolean(_ number: NSNumber) -> Bool {
@@ -107,6 +127,13 @@ final class BooleanBoxingTests: XCTestCase {
                 // `uses24HourClock`, which the provider omits when Foundation returns no time
                 // pattern. An absent key is a different contract question, pinned by the
                 // per-provider omission tests; here it is simply nothing to box.
+                //
+                // The count below is 12: five from ApplicationInfoProvider, one each from
+                // LocaleInfoProvider and AudioLatencyProvider, two from NumericConsistencyProvider,
+                // and three from NetworkInfoProvider. `TelephonyInfoProvider.carrierAllowsVoip` is
+                // deliberately absent from the table — it appears only on a device with a SIM, and
+                // an exact count is the wrong shape for a key that comes and goes. It is pinned in
+                // `TelephonyInfoProviderTests` with the same CFBoolean-identity check.
                 guard let value = signals[key] else { continue }
                 let number = try XCTUnwrap(value as? NSNumber, "\(subject.name).\(key) must be an NSNumber")
                 XCTAssertTrue(
@@ -119,7 +146,7 @@ final class BooleanBoxingTests: XCTestCase {
                 checked += 1
             }
         }
-        XCTAssertEqual(checked, 8, "every boolean this package emits must have been inspected")
+        XCTAssertEqual(checked, 12, "every boolean this package emits must have been inspected")
     }
 
     func testNoNumericFieldIsBoxedAsACFBoolean() throws {

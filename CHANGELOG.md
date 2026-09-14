@@ -52,6 +52,11 @@ All notable public changes will be documented in this file.
 - Fixed the published example payloads: `website/examples/android-event.json` was missing the
   required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
   the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- iOS extraction continued: `AudioLatencyProvider` and `NetworkInfoProvider` moved into the package
+  unchanged. The network tests pin every dropping rule the provider relies on for privacy - loopback
+  and IPv6 link-local addresses, the `AF_LINK` skip that keeps hardware addresses out, and the
+  disabled-proxy case that must disclose neither host nor port - and the audio tests prove the
+  provider never activates an `AVAudioSession`.
 - iOS extraction continued: `ApplicationInfoProvider` and `TelephonyInfoProvider` moved into the
   package unchanged. Telephony is the first provider with a system-framework dependency, and because
   CoreTelephony is unavailable on macOS the package no longer declares that platform: `swift test`
