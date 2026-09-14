@@ -6,6 +6,7 @@
 - **Accepted decision:** [ADR-0001](adr/0001-platform-sdk-monorepo.md)
 - **Transaction lifecycle:** [ADR-0002](adr/0002-explicit-android-transaction-session.md)
 - **Active loopback boundary:** [ADR-0003](adr/0003-active-loopback-probe-component.md)
+- **Android SDK calling contract:** [ANDROID_SDK_API.md](ANDROID_SDK_API.md)
 - **Remaining work:** [Migration checklist](MIGRATION_ROADMAP.md)
 - **Platform discovery:** [SEO and platform content plan](PLATFORM_SEO_PLAN.md)
 
@@ -63,7 +64,7 @@ logic after extraction is complete.
 | `sdks/android-active-probes/example/` | Development consumer | One-button native app demonstrating the active probe; declares host `INTERNET` itself |
 | `sdks/ios/example/` | Development consumer | Native iOS app consuming the Swift package without React Native |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
-| `sdks/ios/` | In development | Standalone iOS Swift Package with optional Mac Catalyst support; currently the shared statistics helper, runtime timing, numeric consistency, locale, application metadata, telephony, audio latency and network |
+| `sdks/ios/` | In development | Standalone iOS Swift Package with optional Mac Catalyst support; currently eleven collections: the shared statistics helper, runtime timing, numeric consistency, locale, application metadata, telephony, audio latency, network, GPU benchmark and device identity |
 | `sdks/web/` | Planned | Browser SDK |
 | `bindings/react-native/` | Transitional placeholder | Future home of the existing npm binding |
 | `bindings/flutter/` | Planned | Dart/Flutter adapter |

@@ -101,8 +101,12 @@ for compatibility changes and the difference between queue cancellation and inte
 
 ### Android release gates
 
-- [ ] Document the final synchronous/lifecycle API, concurrency rules, cancellation/timeout ownership,
-  cleanup obligations, supported Android versions and per-probe capabilities.
+- [x] Document the final synchronous/lifecycle API, concurrency rules, cancellation/timeout ownership,
+  cleanup obligations, supported Android versions and per-probe capabilities:
+  [`ANDROID_SDK_API.md`](ANDROID_SDK_API.md), written against the code with file:line citations.
+- [ ] Decide the active probe's default in the component itself. The React Native catalog ships
+  `os_integrity_frida_scan` enabled, AGENTS.md requires a new sensitive probe to ship disabled, and
+  the standalone component expresses no default at all - a native host today gets whatever it calls.
 - [x] Complete standalone Android lint and native-consumer checks in CI, plus package-content checks
   proving the AAR contains no RN/other-platform implementation or unintended dependency. Both
   components run `:lintRelease` with `warningsAsErrors`/`checkAllWarnings` plus test sources, and
@@ -209,9 +213,9 @@ for compatibility changes and the difference between queue cancellation and inte
   destinations, exported headers/types and a documented Objective-C/Swift consumption surface.
 - [ ] Move the remaining Foundation-compatible providers from `ios/` in small tested groups.
   Done so far: statistics, runtime timing, numeric consistency, locale, application metadata,
-  telephony, audio latency, network. Still in `ios/`: device identity, hardware/fonts, geolocation,
-  media, GPU, security posture and integrity - every one of those except GPU hops to the main thread
-  inside the provider, so the dispatch-ownership decision below gates them. The package no longer builds for macOS, because CoreTelephony
+  telephony, audio latency, network, GPU benchmark, device identity. Still in `ios/`: hardware and
+  fonts, geolocation, media, security posture and integrity - every one of those hops to the main
+  thread inside the provider, so the dispatch-ownership decision below gates them. The package no longer builds for macOS, because CoreTelephony
   is unavailable there; iOS Simulator, device and Mac Catalyst destinations carry the tests. Preserve
   absent values, cached location, system framework use and current platform gates.
 - [ ] Extract timing/statistics, hardware/application/identity, integrity and other providers;
@@ -219,7 +223,14 @@ for compatibility changes and the difference between queue cancellation and inte
 - [x] Give the iOS module its own concurrent `methodQueue` so probes stop serializing on React
   Native's shared serial queue, and guard the battery-monitoring toggle that concurrency would
   otherwise expose. Recorded in [ADR-0005](adr/0005-ios-threading-contract.md).
-- [ ] Move the main-thread hops out of the `ios/` providers and into the binding as each is
+- [x] Establish the iOS thread-assertion pattern: `RNDIRequireWorkerThread` mirrors the Android
+  core's `GpuExecutionPolicy.requireWorker`, takes the thread as a parameter so both directions are
+  testable, raises rather than downgrading the result, and never dispatches. The GPU provider calls
+  it before any work.
+- [ ] Record that Mac Catalyst is not a simulator: `TARGET_OS_SIMULATOR` is 0 under `-macabi`, so the
+  GPU provider does not self-skip there and runs the real Metal path against the Mac's GPU. Any
+  assumption that a non-device build skips is wrong on Catalyst.
+- [ ] Move the main-thread hops out of the remaining `ios/` providers and into the binding as each is
   extracted, so the iOS SDK asserts its thread requirement the way the Android core does instead of
   dispatching on the caller's behalf. `SecurityPostureProvider` is the forcing case: tightest budget,
   two hops, and an Android counterpart that already went through ADR-0002.

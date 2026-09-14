@@ -1,19 +1,20 @@
 #import "DeviceIntel.h"
-#import "DeviceInfoProvider.h"
 #import "GeolocationInfoProvider.h"
-#import "GpuBenchmarkProvider.h"
 #import "HardwareInfoProvider.h"
 #import "JailbreakDetector.h"
 #import "MediaBluetoothAppsProvider.h"
 #import "SecurityPostureProvider.h"
-// ApplicationInfoProvider, AudioLatencyProvider, LocaleInfoProvider, NetworkInfoProvider,
-// NumericConsistencyProvider, RuntimeTimingProvider, TelephonyInfoProvider and their
-// SignalStatistics helper now live in the standalone `ios-device-risk-signals` Swift Package
-// (product `IOSDeviceRiskSignals`) under `sdks/ios/Sources/IOSDeviceRiskSignals`, with the headers
-// below published from that target's `include/` directory. This binding is a thin adapter over them
-// and keeps no copy of the collection logic.
+// ApplicationInfoProvider, AudioLatencyProvider, DeviceInfoProvider, GpuBenchmarkProvider,
+// LocaleInfoProvider, NetworkInfoProvider, NumericConsistencyProvider, RuntimeTimingProvider,
+// TelephonyInfoProvider and their SignalStatistics helper now live in the standalone
+// `ios-device-risk-signals` Swift Package (product `IOSDeviceRiskSignals`) under
+// `sdks/ios/Sources/IOSDeviceRiskSignals`, with the headers below published from that target's
+// `include/` directory. This binding is a thin adapter over them and keeps no copy of the
+// collection logic.
 #import "ApplicationInfoProvider.h"
 #import "AudioLatencyProvider.h"
+#import "DeviceInfoProvider.h"
+#import "GpuBenchmarkProvider.h"
 #import "LocaleInfoProvider.h"
 #import "NetworkInfoProvider.h"
 #import "NumericConsistencyProvider.h"

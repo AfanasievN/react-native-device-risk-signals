@@ -49,6 +49,9 @@ a worker thread; no permission or network operation is needed. A 50 ms draw-loop
 hard timeout: driver setup and `glFinish()` may take longer. Caller timeouts do not cancel a driver
 call. Keep this workload disabled by default until physical-device calibration.
 
+The calling contract - signatures, threading, lifecycle, timeouts, version gates and the limitations
+a consumer must design around - is in [`docs/ANDROID_SDK_API.md`](../../docs/ANDROID_SDK_API.md).
+
 Currently extracted:
 
 - `DeviceRiskSignals.collectDeviceIdentity()`

@@ -4,6 +4,7 @@
 // `sdks/ios/Sources/IOSDeviceRiskSignals/include/SignalStatistics.h`). Do not re-implement the
 // percentile/MAD/warm-up maths here; the package owns it and its tests pin the values.
 #import "SignalStatistics.h"
+#import "GpuExecutionPolicy.h"
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 
@@ -14,6 +15,11 @@ static const double kBudgetMs = 50.0;
 
 - (NSDictionary *)gpuBenchmark
 {
+  // Guard here, and before the simulator skip, so no caller can start Metal work on the main thread
+  // — the same position and the same reason as GpuBenchmarkCollector.collect() on Android. The
+  // binding satisfies this by owning dispatch (ADR-0005); this provider only states the requirement.
+  RNDIRequireWorkerThread([NSThread isMainThread]);
+
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
 
 #if TARGET_OS_SIMULATOR

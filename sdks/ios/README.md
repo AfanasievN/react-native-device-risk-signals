@@ -9,10 +9,13 @@ project. It is under active extraction from the React Native binding's `ios/` di
   longer builds for the host Mac and `swift test` no longer works, see
   [Building and testing](#building-and-testing)
 - **Dependencies:** Foundation, plus CoreTelephony for `TelephonyInfoProvider`, AVFoundation for
-  `AudioLatencyProvider`, and SystemConfiguration + CFNetwork for `NetworkInfoProvider`. All four are
-  picked up by clang module autolinking; the package declares no `linkerSettings`. It does not import
-  React Native or UIKit, performs no network request, adds no permission, and creates no persistent
-  device identifier.
+  `AudioLatencyProvider`, SystemConfiguration + CFNetwork for `NetworkInfoProvider`, Metal +
+  QuartzCore for `GpuBenchmarkProvider`, and UIKit for `DeviceInfoProvider`. All are picked up by
+  clang module autolinking; the package declares no `linkerSettings`. It does not import React
+  Native, performs no network request, adds no permission, and creates no persistent device
+  identifier. (UIKit is new as of `DeviceInfoProvider`: `UIDevice` is the only supported way to read
+  `systemName`/`systemVersion`/`userInterfaceIdiom`, and it is read behind a main-thread hop — see
+  below.)
 
 ## Status: in development, unpublished
 
@@ -40,6 +43,9 @@ Currently extracted:
 | `TelephonyInfoProvider.telephonySignals` | Opportunistic CoreTelephony carrier reads: active-SIM count, carrier name, MCC/MNC, ISO country code and the VoIP-allowed flag — all expected-absent on modern iOS, see below |
 | `NetworkInfoProvider.networkSignals` | Interface topology from `getifaddrs` (up, non-loopback names and their non-link-local IPv4/IPv6 addresses), transport classification from `SCNetworkReachability`, VPN presence from scoped system-proxy entries, and the configured HTTP proxy host and port |
 | `AudioLatencyProvider.audioLatency` | `AVAudioSession` property reads: output and input latency and IO buffer duration in milliseconds, the native sample rate in Hz, and whether anything was measured |
+| `DeviceInfoProvider.deviceIdentity` | Permission-free device and OS identity: the `"Apple"` manufacturer/brand constants, the `hw.machine` hardware model, `UIDevice`'s system name, system version and tablet idiom, the Mac Catalyst and iOS-app-on-Mac flags, and the `kern.osversion`/`version`/`osrelease`/`ostype` kernel fingerprint |
+| `GpuBenchmarkProvider.gpuBenchmark` | Metal GPU device name plus a blit-throughput count over a fixed time budget, the last command buffer's GPU time, and the operation-time statistics borrowed from `SignalStatistics`. Self-skips on the simulator |
+| `RNDIRequireWorkerThread` | Execution-thread contract for GPU collection: asserts, never dispatches. The iOS mirror of the Android core's `GpuExecutionPolicy.requireWorker` |
 | `RNDISummarize` / `RNDIWarmupSlope` | Shared statistics helpers: nearest-rank median/p95, median absolute deviation, coefficient of variation, and a first-half/second-half warm-up slope |
 
 `CFAbsoluteTimeGetCurrent` is a wall-clock read, deliberately not `mach_absolute_time` or
@@ -128,6 +134,59 @@ dictionary cannot show whether that held, the test suite swizzles the four mutat
 entry points and asserts that the provider calls none of them. The probe ships **disabled by
 default** (`src/probes/audioLatencyProbe.ts`), so those tests are the only routine guard on it.
 
+`DeviceInfoProvider` is the first extracted provider whose probe is **enabled by default and
+budgeted at 200 ms** — the tightest budget in the repository — and the first that imports UIKit. Two
+things about it are deliberate and easy to "tidy" into something worse:
+
+- **It hops to the main thread, and the hop moved with it.** `UIDevice` is declared
+  `NS_SWIFT_UI_ACTOR` in the SDK and none of `systemName`, `systemVersion` or `userInterfaceIdiom`
+  carries an `NS_SWIFT_NONISOLATED` exemption, so all three are main-actor isolated; the provider
+  wraps exactly those three reads in a `dispatch_sync` guarded by `[NSThread isMainThread]`.
+  [ADR-0005](../../docs/adr/0005-ios-threading-contract.md) plans to relocate hops of this kind into
+  the binding, but that is a separate slice, so the provider was moved byte-for-byte with the hop
+  intact. The `isMainThread` branch is not optional cleverness: without it, a main-thread caller
+  deadlocks instantly and permanently. Both branches are pinned by tests, and the main-thread one is
+  pinned by being the test itself — XCTest runs test methods on the main thread.
+- **`model` is `hw.machine`, not `UIDevice.model`.** `sysctlbyname("hw.machine")` gives
+  `"iPhone17,1"`; `UIDevice.model` gives the useless `"iPhone"`. On a simulator `hw.machine` is the
+  host architecture, which is the documented answer there rather than a bug. None of the four
+  `sysctl` keys it reads is an Apple Required-Reason API — `kern.boottime` is, and it is deliberately
+  not read.
+
+The two Mac fields answer different questions and must not be conflated: `isMacCatalystApp` is the
+compile-time `TARGET_OS_MACCATALYST` conditional, while `isIosAppOnMac` is the run-time answer for an
+unmodified iOS binary on Apple silicon macOS. Both branches of the first assign, so the key is never
+absent.
+
+`GpuBenchmarkProvider` ships **disabled by default** (`src/probes/gpuBenchmarkProbe.ts`) and is the
+only provider here that must *not* run on the main thread. That requirement is now stated as an
+executable precondition rather than a comment:
+
+```objc
+void RNDIRequireWorkerThread(BOOL isMainThread);   // raises NSInternalInconsistencyException
+```
+
+`-gpuBenchmark` calls it as its first statement, before the simulator skip — the same position and
+the same reason as `GpuBenchmarkCollector.collect()` on Android, whose comment reads "Guard here, not
+only in the facade, so no internal caller can start GL work on the UI thread". This is the inverse of
+`TransactionObservationSession.requireMainThread()` in the Android core and the shape ADR-0005
+prescribes for iOS: **assert a precondition, never dispatch.** A policy that quietly hopped to a
+worker queue would hide every caller's thread choice and turn a synchronous contract into an
+asynchronous one; a benchmark that ran anyway would block the UI for its whole budget and would
+measure a contended thread. The thread is a parameter, not an internal `+[NSThread isMainThread]`
+read, exactly as Kotlin's `requireWorker(isMainThread: Boolean)` — that keeps the observation at the
+call site, where ADR-0005 puts dispatch, and is what lets both directions be tested from one thread.
+`NSAssert` was rejected because it is unavailable in a C function and `NS_BLOCK_ASSERTIONS` compiles
+its C counterpart out of release builds, so the contract would evaporate in the configuration that
+ships. The raised exception carries byte-for-byte the message the Android core raises.
+
+The header also publishes `RNDIExecutionPolicyFailure(block)`, which runs a block and returns the
+exception it raised. It is a test seam and nothing in the collection paths calls it: Swift cannot
+catch an Objective-C exception, and this package's test target is Swift-only, so without a catch on
+the Objective-C side the rejecting direction of the contract would be unobservable and the policy
+would be no better than the comment it replaces. It is named after the policy so it is not mistaken
+for a general-purpose exception swallower.
+
 Everything else on iOS still lives in the React Native package's `ios/` directory and moves here
 incrementally.
 
@@ -139,6 +198,9 @@ sdks/ios/
   Sources/IOSDeviceRiskSignals/
     ApplicationInfoProvider.m
     AudioLatencyProvider.m
+    DeviceInfoProvider.m
+    GpuBenchmarkProvider.m
+    GpuExecutionPolicy.m
     LocaleInfoProvider.m
     NetworkInfoProvider.m
     NumericConsistencyProvider.m
@@ -148,6 +210,9 @@ sdks/ios/
     include/                      # public headers (SwiftPM convention)
       ApplicationInfoProvider.h
       AudioLatencyProvider.h
+      DeviceInfoProvider.h
+      GpuBenchmarkProvider.h
+      GpuExecutionPolicy.h
       LocaleInfoProvider.h
       NetworkInfoProvider.h
       NumericConsistencyProvider.h
@@ -158,6 +223,9 @@ sdks/ios/
     ApplicationInfoProviderTests.swift
     AudioLatencyProviderTests.swift
     BooleanBoxingTests.swift
+    DeviceInfoProviderTests.swift
+    GpuBenchmarkProviderTests.swift
+    GpuExecutionPolicyTests.swift
     LocaleInfoProviderTests.swift
     NetworkInfoProviderTests.swift
     ProviderTests.swift
@@ -167,7 +235,7 @@ sdks/ios/
 
 The implementation is Objective-C and was moved verbatim from `ios/`, not rewritten, so behaviour is
 byte-for-byte identical to what the published binding shipped: the same sample counts, the same
-statistics, and the same emitted keys, value types and omission rules. The eight headers in
+statistics, and the same emitted keys, value types and omission rules. The eleven headers in
 `include/` are the whole public surface; implementation details such as the percentile helper, the
 sample-count constant and `NetworkInfoProvider`'s reachability, VPN and proxy helpers are `static` or
 undeclared inside the `.m` files and are not exported. Tests are Swift and exercise the package only
@@ -212,9 +280,9 @@ hiding this provider behind a compile-time guard so the host kept building — w
 host suite compiled a stub and proved nothing about the code that ships.
 
 Mac Catalyst is **not** affected, and `device-risk-signals.json`'s `mac-catalyst` platform still
-holds: CoreTelephony is available there. Verified by building the package for it, which compiles
-`TelephonyInfoProvider.m` with `-target arm64-apple-ios15.1-macabi` and emits only a deprecation
-warning for the `subscriberCellularProvider` fallback:
+holds: CoreTelephony is available there, and so are Metal, QuartzCore and UIKit. Verified by building
+the package for it, which compiles `TelephonyInfoProvider.m` with `-target arm64-apple-ios15.1-macabi`
+and emits only a deprecation warning for the `subscriberCellularProvider` fallback:
 
 ```sh
 cd sdks/ios && xcodebuild build -scheme ios-device-risk-signals \
@@ -228,6 +296,13 @@ cd sdks/ios && xcodebuild build -scheme ios-device-risk-signals \
 A provider's output can depend on which destination compiled it, so a literal assertion can pin the
 destination rather than the provider. Measured on the Objective-C compile task, on the clang command
 line rather than assumed:
+
+One consequence of that table worth stating outright: **`TARGET_OS_SIMULATOR` is 0 under Mac
+Catalyst**, so a Catalyst build does not take `GpuBenchmarkProvider`'s self-skip branch — it compiles
+and runs the real Metal path against the Mac's GPU, and `DeviceInfoProvider` reports
+`isMacCatalystApp: true` with the Mac's `hw.machine`. Neither is a problem (Metal on Catalyst is a
+supported, full implementation), but a "skips on anything that is not a device" assumption is wrong
+there.
 
 | Context                                            | `TARGET_OS_SIMULATOR` | `DEBUG`   |
 | ---                                                | ---                   | ---       |
@@ -280,6 +355,38 @@ disabled-but-remembered proxy from disclosing its host, and the `proxyPort` boxi
 dictionary-level assertion can reach on an unproxied machine. The dictionary-level counterparts are
 still there and become load-bearing the moment the suite is pointed at a host with a VPN or a proxy.
 
+`DeviceInfoProviderTests` has the opposite problem to every suite above it: *everything* it
+observes is available on the test host, so every assertion compares the provider against an
+independent code path — `sysctlbyname` called directly from Swift for the hardware model and the four
+kernel strings, the Swift `UIDevice`/`ProcessInfo` API for the OS fields, and Swift's own
+`targetEnvironment(macCatalyst)` for the compile-time conditional. The key-pairing test is the
+load-bearing one: `kern.osrelease` and `kern.ostype` are adjacent in the source and produce very
+different strings ("25.0.0" and "Darwin"), which a non-empty-string assertion would accept either way
+round. The hop gets a test per branch, and the main-thread branch is the test itself.
+
+`GpuBenchmarkProviderTests` deliberately asserts **no timing, no draw-call count and no budget**. The
+probe ships disabled, its numbers are a fingerprint rather than a threshold, and every one of them
+depends on hardware, thermal state and scheduler luck, so "at least N draw calls" would pin the CI
+machine rather than the provider. What is pinned instead is structural: the key vocabulary, the
+two-key simulator skip, the rule that a skipped run carries no measurement keys and a completed one
+carries no skip reason, the three statistics keys appearing as a group, and — because the provider
+indexes `summary[@"median"]`, `summary[@"p95"]`, `summary[@"mad"]` and
+`summary[@"coefficientOfVariation"]` *by string* — the vocabulary `RNDISummarize` publishes. A rename
+inside `SignalStatistics` would not break the build; it would silently drop four fields from the
+payload on hardware that no simulator test could ever see.
+
+`GpuExecutionPolicyTests` is the mirror of `GpuExecutionPolicyTest.kt` and exercises both directions
+of the precondition, that it returns on the caller's own thread rather than dispatching, and the test
+seam itself — a seam that always returned `nil` would make the accepting direction pass by observing
+nothing, the same trap `AudioLatencyProviderTests` guards against for its swizzle.
+
+`DeviceInfoProvider`'s three booleans are deliberately **not** in `BooleanBoxingTests`' subject
+table, for the reason that table already states about `carrierAllowsVoip`: it asserts an exact count
+of inspected booleans. They are pinned in `DeviceInfoProviderTests` with the same CFBoolean-identity
+check and their own exact count, and `benchmarkPerformed` is pinned the same way in
+`GpuBenchmarkProviderTests`. `isTablet` is the one genuinely at risk there — it is a C `==`
+comparison, whose type is `int`, and only the explicit `(BOOL)` cast makes it a CFBoolean.
+
 `AudioLatencyProviderTests` asserts a *negative*: that reading latency never activates or
 reconfigures the shared `AVAudioSession`. `-[AVAudioSession sharedInstance]` is a singleton the
 provider reaches directly, with no seam to inject through and none added, so the four mutating
@@ -304,8 +411,10 @@ for the same reason — it appears only on a proxied host, so its boxing is pinn
 
 [`example/`](example/) is a development consumer that uses this package and nothing else — no React
 Native, no CocoaPods, no third-party dependency. It is a single UIKit app target with one button per
-provider (runtime timing, numeric consistency, locale, application, telephony, audio latency,
-network), printing each raw dictionary on screen as JSON. Collection happens only on an explicit
+provider it exercises (runtime timing, numeric consistency, locale, application, telephony, audio
+latency, network), printing each raw dictionary on screen as JSON. It has no button for
+`DeviceInfoProvider` or `GpuBenchmarkProvider` yet — adding them is an example-app change, not part
+of the extraction that moved them here. Collection happens only on an explicit
 press; nothing runs at launch, nothing is uploaded, and no score or verdict is derived.
 
 It exists to check the integration boundary from the outside: that the headers in `include/` are
@@ -326,14 +435,18 @@ both are documented degradations, explained in the [example README](example/READ
 ## Relationship to the React Native binding
 
 `react-native-device-risk-signals` is a thin adapter. `ios/DeviceIntel.mm` instantiates
-`ApplicationInfoProvider`, `AudioLatencyProvider`, `LocaleInfoProvider`, `NetworkInfoProvider`,
-`NumericConsistencyProvider`, `RuntimeTimingProvider` and `TelephonyInfoProvider` from this package,
-and `ios/GpuBenchmarkProvider.m` calls this package's `RNDISummarize`/`RNDIWarmupSlope`. There is no
-second copy of the collection logic in the binding, and this package must never depend on React
-Native, Flutter, or Capacitor.
+`ApplicationInfoProvider`, `AudioLatencyProvider`, `DeviceInfoProvider`, `GpuBenchmarkProvider`,
+`LocaleInfoProvider`, `NetworkInfoProvider`, `NumericConsistencyProvider`, `RuntimeTimingProvider`
+and `TelephonyInfoProvider` from this package. There is no second copy of the collection logic in
+the binding, and this package must never depend on React Native, Flutter, or Capacitor.
+
+The binding satisfies `RNDIRequireWorkerThread` for free: `DeviceIntel` declares its own concurrent
+`methodQueue` (ADR-0005), so `-getGpuBenchmark:reject:` never runs on the main thread. A host that
+called `-gpuBenchmark` directly from the main thread would now get an exception instead of a
+benchmark — that is the point of the precondition, not a regression.
 
 `RnDeviceIntel.podspec` compiles both roots, so its `s.frameworks` list still covers everything this
-package links: `AVFoundation`, `SystemConfiguration` and `CFNetwork` are all listed, and `ios/` still
-needs `AVFoundation` on its own account for `MediaBluetoothAppsProvider` and `SecurityPostureProvider`.
-The podspec needs no edit for this move. Its explanatory comments do still name `NetworkInfoProvider`
+package links: `AVFoundation`, `SystemConfiguration`, `CFNetwork`, `Metal` and `QuartzCore` are all
+listed, and `ios/` still needs `AVFoundation` on its own account for `MediaBluetoothAppsProvider` and
+`SecurityPostureProvider`. The podspec needs no edit for this move. Its explanatory comments do still name `NetworkInfoProvider`
 and `AudioLatencyProvider` as if they lived in `ios/`; that is stale prose, not a stale build setting.

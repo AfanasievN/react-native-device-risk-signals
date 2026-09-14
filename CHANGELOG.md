@@ -75,6 +75,15 @@ All notable public changes will be documented in this file.
 - Fixed the published example payloads: `website/examples/android-event.json` was missing the
   required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
   the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- iOS extraction continued: `GpuBenchmarkProvider` and `DeviceInfoProvider` moved into the package.
+  GPU collection now asserts a worker thread through `RNDIRequireWorkerThread`, the counterpart of the
+  Android core's `GpuExecutionPolicy.requireWorker`: it raises rather than returning a skipped result,
+  and it never dispatches on the caller's behalf.
+- Added `docs/ANDROID_SDK_API.md`: the calling contract for both standalone Android components -
+  every entry point and its raw keys, which calls assert a thread requirement and crash when it is
+  violated, the transaction session's lifecycle and what survives what, who owns timeouts and what a
+  timeout cannot cancel, the API-level gates each probe applies, and the limitations a consumer must
+  design around.
 - Added a native iOS consumer at `sdks/ios/example/`: a plain UIKit app that imports
   `IOSDeviceRiskSignals` as a local Swift package and exercises each extracted collection on an
   explicit button press, mirroring the native Android example. CI builds it.

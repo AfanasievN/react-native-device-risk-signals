@@ -88,7 +88,7 @@ share the generated [raw-signal contract](contract/README.md).
 | --- | --- | --- |
 | React Native | `react-native-device-risk-signals` | Published npm package |
 | Flutter | `flutter-device-risk-signals` | Planned; intended pub.dev coordinate `flutter_device_risk_signals` |
-| Native Android | `android-device-risk-signals` | In development; Maven artifact unpublished |
+| Native Android | `android-device-risk-signals` | In development; Maven artifact unpublished. [API reference](docs/ANDROID_SDK_API.md) |
 | Native Android, active probes | `android-active-probes-device-risk-signals` | In development; optional loopback component, Maven artifact unpublished |
 | Native iOS | `ios-device-risk-signals` | In development; Swift Package unpublished |
 | Capacitor | `capacitor-device-risk-signals` | Planned npm package |
