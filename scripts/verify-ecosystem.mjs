@@ -150,10 +150,91 @@ for (const relativePath of fs.readdirSync(androidCoreSource, {recursive: true}))
   }
 }
 
+// The iOS core mirrors the Android core boundary: collection logic lives in the standalone Swift
+// package, and the Objective-C++ React Native adapter stays in the binding. The checks below run
+// only once the package exists so the repository stays green before it lands.
+const iosComponentPath = componentById.ios?.path ?? "sdks/ios";
+const iosManifestRelativePath = path.join(iosComponentPath, "Package.swift");
+const iosPackageExists = fs.existsSync(path.join(root, iosManifestRelativePath));
+
+if (iosPackageExists) {
+  const iosSourceRoot = path.join(root, iosComponentPath);
+  const iosSourceExtensions = new Set([".swift", ".h", ".hpp", ".m", ".mm", ".c", ".cc", ".cpp"]);
+  const reactNativeMarkers = [
+    "#import <React/",
+    '#import "React',
+    "@import React",
+    "RCTBridgeModule",
+    "RCTPromiseResolveBlock",
+    "RCTPromiseRejectBlock",
+    "React-Core",
+  ];
+  // SwiftPM build output is not authored source; walking it would be slow and could report
+  // vendored code that this package never checks in.
+  const iosIgnoredDirectories = new Set([".build", ".swiftpm", "DerivedData"]);
+  function* iosSourceFiles(directory, relativeDirectory = "") {
+    for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
+      const relativePath = path.join(relativeDirectory, entry.name);
+      if (entry.isDirectory()) {
+        if (iosIgnoredDirectories.has(entry.name)) continue;
+        yield* iosSourceFiles(path.join(directory, entry.name), relativePath);
+      } else if (entry.isFile()) {
+        yield relativePath;
+      }
+    }
+  }
+  for (const relativePath of iosSourceFiles(iosSourceRoot)) {
+    const extension = path.extname(relativePath);
+    if (!iosSourceExtensions.has(extension)) continue;
+    const absolutePath = path.join(iosSourceRoot, relativePath);
+    const reportedPath = path.join(iosComponentPath, relativePath);
+    fs.readFileSync(absolutePath, "utf8")
+      .split("\n")
+      .forEach((line, index) => {
+        const marker =
+          reactNativeMarkers.find((candidate) => line.includes(candidate)) ??
+          (extension === ".swift" && /^\s*import\s+React/u.test(line) ? "import React" : undefined);
+        if (marker) {
+          failures.push(`ios core must not import React Native: ${reportedPath}:${index + 1} (${marker})`);
+        }
+      });
+  }
+
+  // Names are read from the ecosystem manifest, never hardcoded, so a rename fails in one place.
+  const iosManifestSource = fs.readFileSync(path.join(root, iosManifestRelativePath), "utf8");
+  const expectedPackageName = componentById.ios?.distribution?.name;
+  const expectedProductName = componentById.ios?.distribution?.productName;
+  if (!expectedPackageName || !expectedProductName) {
+    failures.push("ios distribution.name and distribution.productName must be declared in device-risk-signals.json");
+  } else {
+    // `(?:\s|\/\/[^\n]*)*` skips whitespace and comment lines between the call and its name label.
+    const declaredPackageName = /\bPackage\((?:\s|\/\/[^\n]*)*name:\s*"([^"]+)"/u.exec(iosManifestSource)?.[1];
+    if (declaredPackageName !== expectedPackageName) {
+      failures.push(`ios core must declare the package name ${expectedPackageName}: ${iosManifestRelativePath}`);
+    }
+    const declaredProductNames = [
+      ...iosManifestSource.matchAll(/\.library\((?:\s|\/\/[^\n]*)*name:\s*"([^"]+)"/gu),
+    ].map((match) => match[1]);
+    if (!declaredProductNames.includes(expectedProductName)) {
+      failures.push(`ios core must declare the library product ${expectedProductName}: ${iosManifestRelativePath}`);
+    }
+  }
+
+  // Target-to-target dependencies inside the package are fine; external packages are not.
+  iosManifestSource.split("\n").forEach((line, index) => {
+    if (line.includes(".package(")) {
+      failures.push(`ios core must not declare package dependencies: ${iosManifestRelativePath}:${index + 1}`);
+    }
+  });
+}
+
 if (failures.length > 0) {
   console.error("Device Risk Signals ecosystem verification failed:");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log(`Device Risk Signals ecosystem is valid for ${components.length} components.`);
+const iosSummary = iosPackageExists
+  ? ` iOS Swift package boundary verified at ${iosManifestRelativePath}.`
+  : ` iOS Swift package checks skipped: ${iosManifestRelativePath} does not exist yet.`;
+console.log(`Device Risk Signals ecosystem is valid for ${components.length} components.${iosSummary}`);

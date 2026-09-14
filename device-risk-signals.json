@@ -50,7 +50,7 @@
       "id": "ios",
       "libraryName": "ios-device-risk-signals",
       "kind": "sdk",
-      "status": "planned",
+      "status": "in-development",
       "platforms": ["ios", "mac-catalyst"],
       "path": "sdks/ios",
       "distribution": {

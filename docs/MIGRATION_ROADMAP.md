@@ -16,7 +16,7 @@ historical test evidence.
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
 | Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Transaction lifecycle and physical-device GL QA, Maven publication |
 | Android active probes | Separate optional component with the loopback Frida scan, JVM socket tests, lint and package-content gates, a native one-button demo, consumed by the binding | Host-permission outcome modeling, probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
-| iOS | Existing providers under `ios/` used by RN | Standalone SDK, package/consumer integration and release pipeline |
+| iOS | Swift package with the shared statistics helper, runtime timing and numeric consistency, consumed by the pod; remaining providers under `ios/` | Foundation and UIKit provider extraction, observer ownership, Catalyst/device destinations, native consumer and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
 | Flutter | Project naming decision and placeholder directory | Android/iOS adapter, Dart contract, examples and pub.dev release |
@@ -177,6 +177,11 @@ for compatibility changes and the difference between queue cancellation and inte
   the validator does not implement. They pin JSON shape only: no SDK executes them yet.
 - [ ] Make each implementation run the fixtures, so Kotlin, Swift and the bindings are checked
   against the same payloads rather than only their own unit tests.
+- [ ] Decide what to do about iOS boxing `signedZeroPreserved` and `subnormalPreserved` as `int`
+  rather than `BOOL`: the C `&&` expressions box with objCType `"i"`, so those fields reach
+  JavaScript as `1`/`0` while `src/NativeDeviceIntel.ts` and the published schema declare `boolean`.
+  Pre-existing and preserved by the extraction; an iOS event carrying them would fail the schema.
+  A test pins the current behavior so the change is deliberate when it happens.
 - [ ] Resolve two contract ambiguities the fixtures exposed: `schema_version` is typed `number` in
   `src/DeviceIntel.ts` while the schema pins `const: 1`, and `session_id`/`client_id` carry
   `minLength: 1` in the schema but are plain `string` in TypeScript, so an empty client id
@@ -189,7 +194,12 @@ for compatibility changes and the difference between queue cancellation and inte
 
 ## 4. Extract the iOS SDK
 
-- [ ] Add the `ios-device-risk-signals` package with product `IOSDeviceRiskSignals`, supported
+- [x] Add the `ios-device-risk-signals` package with product `IOSDeviceRiskSignals`. It carries the
+  first extracted group as unmodified Objective-C: `SignalStatistics`, `RuntimeTimingProvider` and
+  `NumericConsistencyProvider`, with 26 Swift XCTest cases and byte-identical maths. CocoaPods cannot
+  consume a local Swift Package, so `RnDeviceIntel.podspec` compiles the package sources as a second
+  source root, the same bridge the Android build uses. The component is now `in-development`.
+- [ ] Extend the package beyond pure computation: supported
   destinations, exported headers/types and a documented Objective-C/Swift consumption surface.
 - [ ] Move existing Foundation-compatible providers from `ios/` in small tested groups; preserve
   absent values, cached location, system framework use and current platform gates.

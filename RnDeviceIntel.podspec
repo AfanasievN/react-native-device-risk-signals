@@ -13,8 +13,12 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => ".git", :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,m,mm,swift,cpp}"
-  s.private_header_files = "ios/**/*.h"
+  # Two roots: the thin React Native adapter in ios/, and the standalone IOSDeviceRiskSignals
+  # package sources it delegates to. CocoaPods cannot consume a local Swift Package, so the pod
+  # compiles those sources directly - the same bridge android/build.gradle uses for the Android
+  # components. It goes away when the Swift Package is published and consumed as a dependency.
+  s.source_files = "ios/**/*.{h,m,mm,swift,cpp}", "sdks/ios/Sources/IOSDeviceRiskSignals/**/*.{h,m}"
+  s.private_header_files = "ios/**/*.h", "sdks/ios/Sources/IOSDeviceRiskSignals/include/*.h"
 
   # Apple privacy manifest — declares NSPrivacyTracking=false and ZERO Required-Reason APIs. Bundled
   # so App Store tooling picks it up. See ios/PrivacyInfo.xcprivacy.

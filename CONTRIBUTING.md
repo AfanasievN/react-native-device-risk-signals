@@ -104,6 +104,18 @@ which only compiles it:
 example/android/gradlew -p sdks/android :connectedDebugAndroidTest --no-daemon
 ```
 
+The standalone iOS Swift package builds and tests on the host toolchain, because everything
+extracted so far is pure Foundation computation:
+
+```sh
+swift build --package-path sdks/ios
+swift test --package-path sdks/ios
+```
+
+Changes to `RnDeviceIntel.podspec` or to the package's sources also need the example's pods
+reinstalled (`bundle exec pod install` in `example/ios`) and a simulator build, since the pod
+compiles the package sources directly.
+
 The example is an independent application. Install and verify it separately:
 
 ```sh

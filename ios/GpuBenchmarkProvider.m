@@ -1,4 +1,8 @@
 #import "GpuBenchmarkProvider.h"
+// RNDISummarize/RNDIWarmupSlope come from the `ios-device-risk-signals` Swift Package (product
+// `IOSDeviceRiskSignals`, header published from
+// `sdks/ios/Sources/IOSDeviceRiskSignals/include/SignalStatistics.h`). Do not re-implement the
+// percentile/MAD/warm-up maths here; the package owns it and its tests pin the values.
 #import "SignalStatistics.h"
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>

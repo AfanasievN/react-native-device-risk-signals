@@ -111,10 +111,15 @@ function podspecSources() {
 
   const podspec = readFileSync(resolve(podspecPath), "utf8");
 
-  const sourceFiles = podspec.match(/^\s*s\.source_files\s*=\s*"([^"]+)"/mu)?.[1];
-  if (sourceFiles === undefined) {
+  // s.source_files may list several roots: `s.source_files = "a/**/*.m", "b/**/*.{h,m}"`. Capturing
+  // only the first quoted glob would silently under-verify every root after it, so read the whole
+  // assignment line and require at least one glob.
+  const sourceFilesLine = podspec.match(/^\s*s\.source_files\s*=\s*(.+)$/mu)?.[1];
+  const sourceFileGlobs = sourceFilesLine === undefined ? [] : [...sourceFilesLine.matchAll(/"([^"]+)"/gu)].map((match) => match[1]);
+  if (sourceFileGlobs.length === 0) {
     result.parseErrors.push(`${podspecPath} declares no s.source_files glob, so the iOS sources cannot be derived`);
-  } else {
+  }
+  for (const sourceFiles of sourceFileGlobs) {
     // Supported forms: "dir/**/*.{a,b,c}" and "dir/**/*.ext".
     const braced = sourceFiles.match(/^(.+?)\/\*\*\/\*\.\{([^}]+)\}$/u);
     const single = sourceFiles.match(/^(.+?)\/\*\*\/\*\.([A-Za-z0-9]+)$/u);

@@ -90,7 +90,7 @@ share the generated [raw-signal contract](contract/README.md).
 | Flutter | `flutter-device-risk-signals` | Planned; intended pub.dev coordinate `flutter_device_risk_signals` |
 | Native Android | `android-device-risk-signals` | In development; Maven artifact unpublished |
 | Native Android, active probes | `android-active-probes-device-risk-signals` | In development; optional loopback component, Maven artifact unpublished |
-| Native iOS | `ios-device-risk-signals` | Planned Swift Package |
+| Native iOS | `ios-device-risk-signals` | In development; Swift Package unpublished |
 | Capacitor | `capacitor-device-risk-signals` | Planned npm package |
 | Browser | `web-device-risk-signals` | Planned npm package |
 

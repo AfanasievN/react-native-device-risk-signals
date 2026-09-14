@@ -62,7 +62,7 @@ logic after extraction is complete.
 | `sdks/android-active-probes/` | In development | Optional active Android component; the only component permitted loopback socket I/O, currently one localhost Frida scan |
 | `sdks/android-active-probes/example/` | Development consumer | One-button native app demonstrating the active probe; declares host `INTERNET` itself |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
-| `sdks/ios/` | Planned | Standalone iOS Swift Package with optional Mac Catalyst support |
+| `sdks/ios/` | In development | Standalone iOS Swift Package with optional Mac Catalyst support; currently the shared statistics helper plus runtime timing and numeric consistency |
 | `sdks/web/` | Planned | Browser SDK |
 | `bindings/react-native/` | Transitional placeholder | Future home of the existing npm binding |
 | `bindings/flutter/` | Planned | Dart/Flutter adapter |
@@ -82,7 +82,8 @@ directories intentionally contain no package manifests so they cannot be publish
 | Android identity, locale, timing, numeric vectors, audio, application, hardware, fonts, integrity, network, telephony, cached location, media/app audit, device posture, transaction observations and GPU | `sdks/android/` | `android-device-risk-signals` |
 | Android active loopback observation | `sdks/android-active-probes/` | `android-active-probes-device-risk-signals` |
 | Remaining Android providers | `android/` | `android-device-risk-signals` |
-| iOS providers | `ios/` | `ios-device-risk-signals` |
+| iOS runtime timing, numeric vectors and shared statistics | `sdks/ios/` | `ios-device-risk-signals` |
+| Remaining iOS providers | `ios/` | `ios-device-risk-signals` |
 | React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
 | Web observations | Not implemented | `web-device-risk-signals` |
 

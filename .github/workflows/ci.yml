@@ -124,6 +124,10 @@ jobs:
             example/package-lock.json
       - run: npm ci
       - run: npm ci --prefix example
+      - name: Test the standalone iOS Swift package
+        # Pure-computation targets, so the host toolchain exercises the shipping code. Simulator and
+        # Catalyst destinations come with the providers that need UIKit.
+        run: swift test --package-path sdks/ios
       - name: Install Ruby dependencies
         working-directory: example
         run: |

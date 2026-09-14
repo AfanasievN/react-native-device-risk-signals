@@ -35,6 +35,12 @@ All notable public changes will be documented in this file.
 - Fixed the published example payloads: `website/examples/android-event.json` was missing the
   required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
   the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- Started the iOS extraction: `sdks/ios/` is now a real Swift package, `ios-device-risk-signals`
+  with product `IOSDeviceRiskSignals`, carrying the shared statistics helper, runtime timing and
+  numeric consistency as unmodified Objective-C plus Swift tests. `RnDeviceIntel.podspec` compiles
+  those sources as a second root, so React Native behavior is unchanged; the component moved from
+  `planned` to `in-development` and remains unpublished. `npm run verify:ecosystem` now also enforces
+  that iOS sources import no React Native types.
 - Both Android components now configure `maven-publish` with a release AAR, a sources jar and full
   POM metadata, published to a file repository inside each component's build output. The React Native
   binding can build against those artifacts with `-PdeviceRiskSignalsUseArtifacts=true`, which CI

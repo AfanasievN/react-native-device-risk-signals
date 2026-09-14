@@ -40,6 +40,8 @@ android/build/
 /sdks/android-active-probes/.kotlin/
 /sdks/android-active-probes/build/
 /sdks/android-active-probes/example/build/
+/sdks/ios/.build/
+/sdks/ios/.swiftpm/
 
 # testing
 /junit.xml
