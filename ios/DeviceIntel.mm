@@ -22,6 +22,7 @@
 #import <React/RCTBridgeModule.h>
 
 @implementation DeviceIntel {
+  dispatch_queue_t _probeQueue;
   DeviceInfoProvider *_deviceInfo;
   JailbreakDetector *_jailbreak;
   NetworkInfoProvider *_network;
@@ -49,6 +50,10 @@ RCT_EXPORT_MODULE(DeviceIntel)
 {
   self = [super init];
   if (self) {
+    _probeQueue = dispatch_queue_create(
+      "com.reactnativedeviceintel.DeviceIntel.probes",
+      DISPATCH_QUEUE_CONCURRENT
+    );
     _deviceInfo = [DeviceInfoProvider new];
     _jailbreak = [JailbreakDetector new];
     _network = [NetworkInfoProvider new];
@@ -65,6 +70,26 @@ RCT_EXPORT_MODULE(DeviceIntel)
     _numericConsistency = [NumericConsistencyProvider new];
   }
   return self;
+}
+
+// Each probe runs on this module-owned CONCURRENT queue so the probes the JS registry fires in
+// parallel actually execute in parallel. Without a methodQueue of our own, RCTTurboModuleManager
+// falls back to `_sharedModuleQueue` — one DISPATCH_QUEUE_SERIAL queue
+// ("com.meta.react.turbomodulemanager.queue") shared with *every other* TurboModule in the host app
+// that also declares none (RCTTurboModuleManager.mm: the queue is created in -initWithBridge:, and
+// -_attachMethodQueue... assigns it whenever [module methodQueue] returns nil). Promise-returning
+// methods are dispatched through ModuleNativeMethodCallInvoker::invokeAsync, which is a plain
+// dispatch_async onto that queue, so on a serial queue every probe queued behind a slow one (GPU
+// benchmark, audio latency, geolocation) blows its short per-probe JS timeout while merely waiting
+// its turn — `src/probes/registry.ts` starts each timeout at dispatch, not when native work begins.
+// This is the iOS counterpart of the Android fix: see the `probeExecutor` comment in
+// android/src/main/java/com/reactnativedeviceintel/DeviceIntelModule.kt.
+// Providers are stateless per call, so concurrent invocation is safe. The one piece of
+// process-global state a probe touches — UIDevice.batteryMonitoringEnabled — is explicitly
+// serialized inside HardwareInfoProvider rather than relying on the queue to do it.
+- (dispatch_queue_t)methodQueue
+{
+  return _probeQueue;
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

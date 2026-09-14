@@ -21,6 +21,18 @@ All notable public changes will be documented in this file.
   returning the number `0` on the false path, because the JavaScript probe's `&&` now receives a
   boolean. `npm run verify:ios-booleans` fails the build if the pattern returns.
 
+### Fixed
+
+- iOS probes no longer serialize behind one another. `DeviceIntel` now declares its own concurrent
+  `methodQueue`; without one, React Native assigns a single serial queue shared with every other
+  module in the app that also declares none, while the JavaScript runner starts every probe together
+  and begins each timeout at dispatch. Probes were therefore spending their budgets waiting in line.
+  Measured on a harness with four 200 ms probes: 818 ms and no overlap before, 205 ms with four-way
+  overlap after. Probes that previously reported `timeout` purely from queueing should now return
+  data, so iOS payloads can contain fields that were previously missing. Android fixed the same
+  defect earlier; see [ADR-0005](docs/adr/0005-ios-threading-contract.md). A checkout that predates
+  the iOS extraction needs `pod install` in `example/ios` before it builds.
+
 ### Changed
 
 - `os_integrity` now has a 1000 ms probe timeout instead of 400 ms. Measured on an Android 15 arm64

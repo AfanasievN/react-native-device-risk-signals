@@ -216,6 +216,17 @@ for compatibility changes and the difference between queue cancellation and inte
   absent values, cached location, system framework use and current platform gates.
 - [ ] Extract timing/statistics, hardware/application/identity, integrity and other providers;
   resolve local-port behavior before moving socket operations.
+- [x] Give the iOS module its own concurrent `methodQueue` so probes stop serializing on React
+  Native's shared serial queue, and guard the battery-monitoring toggle that concurrency would
+  otherwise expose. Recorded in [ADR-0005](adr/0005-ios-threading-contract.md).
+- [ ] Move the main-thread hops out of the `ios/` providers and into the binding as each is
+  extracted, so the iOS SDK asserts its thread requirement the way the Android core does instead of
+  dispatching on the caller's behalf. `SecurityPostureProvider` is the forcing case: tightest budget,
+  two hops, and an Android counterpart that already went through ADR-0002.
+- [ ] Resolve the `UIDevice` contradiction before extracting either file: `DeviceInfoProvider` reads
+  `systemName`, `systemVersion` and `userInterfaceIdiom` off the main thread with no hop, while
+  `HardwareInfoProvider` documents that `UIDevice` requires the main thread and hops for it. Both
+  cannot be right, and the answer is the rule the remaining extractions will cite.
 - [ ] Define observer ownership and cleanup for screenshot/capture/transaction state; do not rely
   on RN types or global RN lifecycle inside the core.
 - [ ] Keep `ios/DeviceIntel.mm` as bridge glue; verify both direct native consumption and RN's

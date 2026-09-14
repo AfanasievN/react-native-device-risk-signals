@@ -2,6 +2,17 @@
 #import <CommonCrypto/CommonCrypto.h>
 #import <UIKit/UIKit.h>
 #import <mach/mach.h>
+#import <os/lock.h>
+
+// UIDevice.batteryMonitoringEnabled is process-global state that this probe mutates and restores.
+// The module now runs its probes on a concurrent queue (see -methodQueue in DeviceIntel.mm), so two
+// overlapping reads could otherwise interleave save and restore and leave monitoring permanently
+// enabled in the host app — exactly the side effect the comment below promises not to leave.
+// A process-wide lock makes that invariant local to the code that owns it instead of an incidental
+// side effect of the main-queue hop, which a separate decision is free to remove. The section is a
+// few UIKit property reads, is never entered recursively, and is only ever reached from the main
+// queue, so it cannot deadlock and is uncontended in practice.
+static os_unfair_lock sBatteryMonitoringLock = OS_UNFAIR_LOCK_INIT;
 
 @implementation HardwareInfoProvider
 
@@ -41,14 +52,18 @@
     UIDevice *device = [UIDevice currentDevice];
     // UIDevice is a process-wide singleton; enabling battery monitoring is required to read the level/
     // state but is global state — save and restore it so this passive probe leaves no side effect.
+    // The whole save/enable/read/restore sequence is one critical section: see sBatteryMonitoringLock.
+    os_unfair_lock_lock(&sBatteryMonitoringLock);
     BOOL previousBatteryMonitoring = device.batteryMonitoringEnabled;
     device.batteryMonitoringEnabled = YES;
     float level = device.batteryLevel; // -1 when unknown
+    UIDeviceBatteryState state = device.batteryState;
+    device.batteryMonitoringEnabled = previousBatteryMonitoring;
+    os_unfair_lock_unlock(&sBatteryMonitoringLock);
     if (level >= 0) {
       result[@"batteryLevel"] = @(level);
     }
-    result[@"batteryState"] = [self batteryStateString:device.batteryState];
-    device.batteryMonitoringEnabled = previousBatteryMonitoring;
+    result[@"batteryState"] = [self batteryStateString:state];
   };
   if ([NSThread isMainThread]) {
     work();
