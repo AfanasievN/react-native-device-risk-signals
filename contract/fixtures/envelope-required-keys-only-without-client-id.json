@@ -1,0 +1,16 @@
+{
+  "session_id": "checkout_01JCONFORMANCE",
+  "event_type": "device_intel_collection",
+  "schema_version": 1,
+  "collected_at": "2026-09-14T09:00:00.000Z",
+  "probes": {
+    "runtime": {
+      "status": "success",
+      "data": {
+        "platformOs": "android",
+        "isHermes": true,
+        "isBridgeless": true
+      }
+    }
+  }
+}

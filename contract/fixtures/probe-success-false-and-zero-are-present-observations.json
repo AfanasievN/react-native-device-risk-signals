@@ -1,0 +1,21 @@
+{
+  "session_id": "checkout_01JCONFORMANCE",
+  "event_type": "device_intel_collection",
+  "schema_version": 1,
+  "collected_at": "2026-09-14T09:00:00.000Z",
+  "probes": {
+    "os_integrity": {
+      "status": "success",
+      "data": {
+        "isEmulator": false,
+        "isDebuggerAttached": false,
+        "developerModeEnabled": false,
+        "suspiciousFilePathsFound": false,
+        "suspiciousPathCount": 0,
+        "injectedLibraryCount": 0,
+        "tracerPid": 0,
+        "suspiciousFilePaths": []
+      }
+    }
+  }
+}

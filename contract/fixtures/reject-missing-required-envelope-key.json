@@ -1,0 +1,13 @@
+{
+  "session_id": "checkout_01JCONFORMANCE",
+  "event_type": "device_intel_collection",
+  "schema_version": 1,
+  "probes": {
+    "runtime": {
+      "status": "success",
+      "data": {
+        "platformOs": "android"
+      }
+    }
+  }
+}

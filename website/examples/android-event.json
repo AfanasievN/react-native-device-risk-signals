@@ -9,6 +9,7 @@
       "status": "success",
       "data": {
         "manufacturer": "Google",
+        "brand": "google",
         "model": "Pixel 8",
         "systemName": "Android",
         "systemVersion": "15",

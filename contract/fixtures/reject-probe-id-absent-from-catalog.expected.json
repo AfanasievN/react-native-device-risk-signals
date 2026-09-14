@@ -1,0 +1,10 @@
+{
+  "fixture": "reject-probe-id-absent-from-catalog.json",
+  "pins": "A probe id that is not in contract/probe-catalog.json must be rejected, so an SDK cannot ship a probe the published catalog does not describe.",
+  "expect": "invalid",
+  "rejected_by": "catalog",
+  "expect_message_contains": "is not in contract/probe-catalog.json",
+  "notes": [
+    "The JSON Schema alone ACCEPTS this event: probes.additionalProperties deliberately allows any id so new probes are additive. The catalog cross-check is what pins the id set for a release, which is why rejected_by is 'catalog'."
+  ]
+}

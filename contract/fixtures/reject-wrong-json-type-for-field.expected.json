@@ -1,0 +1,7 @@
+{
+  "fixture": "reject-wrong-json-type-for-field.json",
+  "pins": "A declared field must carry its declared JSON type: the string \"false\" is not the boolean false, and a bridge that stringifies booleans is non-conforming.",
+  "expect": "invalid",
+  "rejected_by": "schema",
+  "expect_message_contains": "expected type boolean, got string"
+}

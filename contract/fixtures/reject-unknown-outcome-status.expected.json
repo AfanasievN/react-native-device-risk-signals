@@ -1,0 +1,7 @@
+{
+  "fixture": "reject-unknown-outcome-status.json",
+  "pins": "There are exactly four outcome states. A fifth spelling such as 'failed' must be rejected, not tolerated as an additive extension.",
+  "expect": "invalid",
+  "rejected_by": "schema",
+  "expect_message_contains": "matched 0 of 4 oneOf branches"
+}

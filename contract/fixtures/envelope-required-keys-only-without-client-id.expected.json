@@ -1,0 +1,8 @@
+{
+  "fixture": "envelope-required-keys-only-without-client-id.json",
+  "pins": "The five required envelope keys (session_id, event_type, schema_version, collected_at, probes) are sufficient: client_id is genuinely optional and an unauthenticated collection omits the key entirely rather than sending null or an empty string.",
+  "expect": "valid",
+  "notes": [
+    "Mirrors DeviceIntel.collect(), which spreads client_id into the event only when it is defined."
+  ]
+}

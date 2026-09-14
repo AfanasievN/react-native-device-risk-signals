@@ -1,0 +1,58 @@
+{
+  "session_id": "checkout_01JCONFORMANCE",
+  "event_type": "device_intel_collection",
+  "schema_version": 1,
+  "collected_at": "2026-09-14T09:00:00.000Z",
+  "probes": {
+    "device_identity": {
+      "status": "success",
+      "data": {
+        "manufacturer": "Google",
+        "model": "Pixel 8",
+        "brand": "google",
+        "systemName": "Android",
+        "systemVersion": "15",
+        "isTablet": false,
+        "androidBuild": {
+          "fingerprint": "google/example/device:15/AP4A.000000.000/00000000:user/release-keys",
+          "tags": "release-keys",
+          "buildType": "user",
+          "supportedAbis": [
+            "arm64-v8a",
+            "armeabi-v7a"
+          ],
+          "sdkInt": 35,
+          "buildTimeMs": 1767225600000
+        }
+      }
+    },
+    "os_integrity": {
+      "status": "success",
+      "data": {
+        "isEmulator": false,
+        "isDebuggerAttached": false,
+        "developerModeEnabled": true,
+        "suspiciousFilePaths": [
+          "/system/xbin/su",
+          "/sbin/su"
+        ],
+        "openReverseEngineeringPorts": [
+          27042,
+          27043
+        ]
+      }
+    },
+    "locale": {
+      "status": "success",
+      "data": {
+        "language": "en",
+        "languages": [
+          "en-GB",
+          "fr-FR"
+        ],
+        "timezoneOffsetMinutes": 0,
+        "uses24HourClock": true
+      }
+    }
+  }
+}

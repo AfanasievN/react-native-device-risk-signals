@@ -1,7 +1,8 @@
 # Device signal data dictionary
 
 This document describes what each probe can collect and why. The machine-readable source of truth is
-the exported `PROBE_CATALOG` constant in `src/probeCatalog.ts`. Applications can use it to build
+the exported `PROBE_CATALOG` constant, generated from `contract/source/probe-catalog.source.json`
+into `src/probeCatalog.ts`. Applications can use it to build
 configuration, consent, disclosure, and data-minimization interfaces.
 
 The SDK performs no upload, its Android library manifest declares no permissions, and it never shows

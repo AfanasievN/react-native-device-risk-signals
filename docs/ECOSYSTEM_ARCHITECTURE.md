@@ -76,7 +76,7 @@ directories intentionally contain no package manifests so they cannot be publish
 
 | Concern | Current source of truth | Target owner |
 | --- | --- | --- |
-| Probe ids, fields, privacy metadata | `src/probeCatalog.ts` | Versioned shared contract tooling |
+| Probe ids, privacy metadata, field lists | `contract/source/probe-catalog.source.json` | Versioned shared contract tooling |
 | TypeScript event/native contract | `src/NativeDeviceIntel.ts` | Shared contract plus binding-specific generated types |
 | Generated catalog/schema | `contract/` and `website/` | `contract/` with published documentation mirrors |
 | Android identity, locale, timing, numeric vectors, audio, application, hardware, fonts, integrity, network, telephony, cached location, media/app audit, device posture, transaction observations and GPU | `sdks/android/` | `android-device-risk-signals` |

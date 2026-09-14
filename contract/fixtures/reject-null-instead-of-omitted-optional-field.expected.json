@@ -1,0 +1,7 @@
+{
+  "fixture": "reject-null-instead-of-omitted-optional-field.json",
+  "pins": "An unobservable optional field is OMITTED, never sent as null. null is not an accepted spelling of absent anywhere in the contract.",
+  "expect": "invalid",
+  "rejected_by": "schema",
+  "expect_message_contains": "expected type string, got null"
+}

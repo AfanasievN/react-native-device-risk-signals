@@ -216,7 +216,7 @@ const expectedJson = `${JSON.stringify({
   ecosystem: "device-risk-signals",
   implementation_package: packageJson.name,
   sdk_version: packageJson.version,
-  source: "src/probeCatalog.ts",
+  source: "contract/source/probe-catalog.source.json",
   type_source: "src/NativeDeviceIntel.ts and src/probes/runtimeProbe.ts",
   probes: publishedProbes,
 }, null, 2)}\n`;
@@ -233,6 +233,7 @@ const expectedExamples = {
         status: "success",
         data: {
           manufacturer: "Google",
+          brand: "google",
           model: "Pixel 8",
           systemName: "Android",
           systemVersion: "15",
@@ -265,6 +266,8 @@ const expectedExamples = {
       device_identity: {
         status: "success",
         data: {
+          manufacturer: "Apple",
+          brand: "Apple",
           model: "iPhone",
           systemName: "iOS",
           systemVersion: "18.5",

@@ -1,0 +1,7 @@
+{
+  "fixture": "reject-skipped-without-reason.json",
+  "pins": "A skipped outcome must always say why; a bare skipped loses the distinction between disabled-by-config, withheld-by-consent and unsupported-on-platform.",
+  "expect": "invalid",
+  "rejected_by": "schema",
+  "expect_message_contains": "missing required property \"reason\""
+}

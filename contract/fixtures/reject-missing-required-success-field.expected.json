@@ -1,0 +1,7 @@
+{
+  "fixture": "reject-missing-required-success-field.json",
+  "pins": "A required success field may not be omitted: device_identity.brand is required, so omitting it is a failure rather than an 'unavailable' signal.",
+  "expect": "invalid",
+  "rejected_by": "schema",
+  "expect_message_contains": "missing required property \"brand\""
+}

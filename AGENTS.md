@@ -20,7 +20,9 @@ These rules apply to the entire repository.
 2. Implement the method on both Kotlin and Objective-C++, or add an explicit platform stub and gate
    the probe with `androidOnly`/`iosOnly`.
 3. Add the JS probe under `src/probes/` and register it in `src/probes/index.ts`.
-4. Add or update its descriptor in `src/probeCatalog.ts`, including selectable fields, platforms,
+4. Add or update its descriptor in `contract/source/probe-catalog.source.json`, then run
+   `node scripts/generate-probe-catalog.mjs --write`. Never hand-edit the generated
+   `src/probeCatalog.ts`; include selectable fields, platforms,
    sensitivity, permissions, data categories, default state, purpose, and notes.
 5. Update `docs/DATA_DICTIONARY.md` and privacy documentation.
 6. Add focused tests for registry composition, configuration validation, failure, timeout, and

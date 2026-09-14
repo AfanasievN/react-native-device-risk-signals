@@ -1,0 +1,8 @@
+{
+  "fixture": "probe-success-data-with-only-required-fields.json",
+  "pins": "A probe may report success carrying only its required fields, with every optional field omitted; an omitted optional field means 'could not observe' and must never be padded with a placeholder value.",
+  "expect": "valid",
+  "notes": [
+    "device_identity has 7 optional fields in contract/probe-catalog.json; none of them appear here."
+  ]
+}

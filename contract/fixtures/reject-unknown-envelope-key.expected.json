@@ -1,0 +1,7 @@
+{
+  "fixture": "reject-unknown-envelope-key.json",
+  "pins": "The envelope is closed: an unknown top-level key must be rejected. Additive growth happens inside probes, not by bolting fields onto the event — and a risk score is never part of the SDK's output.",
+  "expect": "invalid",
+  "rejected_by": "schema",
+  "expect_message_contains": "unexpected property \"risk_score\""
+}

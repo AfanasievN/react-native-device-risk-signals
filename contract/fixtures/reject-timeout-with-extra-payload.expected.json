@@ -1,0 +1,7 @@
+{
+  "fixture": "reject-timeout-with-extra-payload.json",
+  "pins": "A timeout outcome carries status and nothing else. A probe abandoned at its deadline has no data, and inventing a partial payload would make 'timeout' indistinguishable from a fast negative result.",
+  "expect": "invalid",
+  "rejected_by": "schema",
+  "expect_message_contains": "unexpected property \"data\""
+}

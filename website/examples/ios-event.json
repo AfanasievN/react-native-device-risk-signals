@@ -7,6 +7,8 @@
     "device_identity": {
       "status": "success",
       "data": {
+        "manufacturer": "Apple",
+        "brand": "Apple",
         "model": "iPhone",
         "systemName": "iOS",
         "systemVersion": "18.5",

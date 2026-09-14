@@ -1,0 +1,10 @@
+{
+  "fixture": "reject-unknown-field-in-known-probe.json",
+  "pins": "A success payload may only carry fields the catalog declares for that probe. This also pins the product boundary: the SDK emits raw observations and never a computed score.",
+  "expect": "invalid",
+  "rejected_by": "catalog",
+  "expect_message_contains": "is not a catalog field of probe \"device_identity\"",
+  "notes": [
+    "The JSON Schema alone ACCEPTS this: each success data object sets additionalProperties: true so new fields are additive. The catalog is what pins the field set for a release."
+  ]
+}

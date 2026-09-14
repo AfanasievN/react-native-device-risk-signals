@@ -19,7 +19,12 @@ By participating, you agree to follow the project [Code of Conduct](CODE_OF_COND
 - Document new platform permissions and privacy implications.
 - Add tests for new behavior and platform-specific fallbacks.
 - Keep risk verdicts and scoring logic out of the client library.
-- Keep `src/probeCatalog.ts` and `docs/DATA_DICTIONARY.md` synchronized with probe behavior.
+- Contract work: `npm run verify:catalog-source` checks that `src/probeCatalog.ts` still matches the
+  authored source, and `npm run verify:fixtures` validates `contract/fixtures/` and the published
+  example payloads against the schema and catalog. Both run inside `npm run verify`.
+- Author probe metadata in `contract/source/probe-catalog.source.json` and regenerate with
+  `node scripts/generate-probe-catalog.mjs --write`; `src/probeCatalog.ts` is generated and
+  `npm run verify` fails when it drifts. Keep `docs/DATA_DICTIONARY.md` synchronized with probe behavior.
 - Run `npm run docs:sync` when the public contract changes; generated files in `contract/` and
   `website/` must remain identical.
 - Update GitHub Pages in the same pull request when changing a component name/status, install

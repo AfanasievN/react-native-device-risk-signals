@@ -1,0 +1,5 @@
+{
+  "fixture": "envelope-with-optional-client-id.json",
+  "pins": "An authenticated collection stamps client_id alongside the required envelope keys; client_id is an app-supplied account id, never a device-derived identifier.",
+  "expect": "valid"
+}

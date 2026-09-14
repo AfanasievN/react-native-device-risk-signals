@@ -169,7 +169,7 @@ const catalogJsonPath = path.join(siteRoot, "probe-catalog.json");
 if (fs.existsSync(catalogJsonPath)) {
   const publishedCatalog = JSON.parse(fs.readFileSync(catalogJsonPath, "utf8"));
   assert(publishedCatalog.catalog_version === 2, "Published probe catalog must declare catalog_version 2");
-  assert(publishedCatalog.source === "src/probeCatalog.ts", "Published probe catalog must identify its source of truth");
+  assert(publishedCatalog.source === "contract/source/probe-catalog.source.json", "Published probe catalog must identify its source of truth");
   assert(publishedCatalog.sdk_version === JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version, "Published probe catalog must identify the SDK version");
   assert(publishedCatalog.probes.length === probeCatalog.length, "Published probe catalog must include every probe");
   for (const descriptor of probeCatalog) {

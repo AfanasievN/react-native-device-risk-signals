@@ -21,6 +21,17 @@ All notable public changes will be documented in this file.
   [ADR-0003](docs/adr/0003-active-loopback-probe-component.md).
 - Android internals: GPU collection moved into the passive core with a worker-thread contract and
   best-effort restoration of a changed EGL binding, covered by an instrumented EGL suite.
+- Probe metadata is now authored in `contract/source/probe-catalog.source.json`; `src/probeCatalog.ts`
+  is generated from it and `npm run verify` fails when the two drift. The generated file is
+  byte-identical to the previous hand-written one, so the `react-native-device-risk-signals/catalog`
+  subpath export, the `ProbeId` literal union and `getProbeDescriptor` are unchanged. Recorded in
+  [ADR-0004](docs/adr/0004-neutral-contract-authoring.md).
+- Fixed the published example payloads: `website/examples/android-event.json` was missing the
+  required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
+  the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- The published probe catalog's `source` field now reads `contract/source/probe-catalog.source.json`
+  instead of `src/probeCatalog.ts`, because the latter is generated. Provenance metadata only:
+  `catalog_version`, `sdk_version` and `schema_version` are untouched.
 
 ### Compatibility and privacy
 

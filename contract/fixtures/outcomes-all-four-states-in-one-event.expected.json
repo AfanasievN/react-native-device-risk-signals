@@ -1,0 +1,9 @@
+{
+  "fixture": "outcomes-all-four-states-in-one-event.json",
+  "pins": "All four probe outcome states coexist in one event and each carries exactly its own payload: success has data, skipped has a reason, timeout has nothing beyond status, error has an error message.",
+  "expect": "valid",
+  "notes": [
+    "Matches ProbeOutcome<T> in src/probes/types.ts and the outcomes produced by collectAll in src/probes/registry.ts.",
+    "A skipped probe is still reported; silence is not a substitute for an explicit skipped outcome."
+  ]
+}

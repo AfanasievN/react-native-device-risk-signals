@@ -1,0 +1,8 @@
+{
+  "fixture": "probe-success-nested-object-and-string-and-number-arrays.json",
+  "pins": "Nested objects (androidBuild), arrays of strings (supportedAbis, suspiciousFilePaths, languages) and arrays of numbers (openReverseEngineeringPorts) cross the envelope with their JSON types intact — no stringified numbers, no comma-joined arrays, no flattened nesting.",
+  "expect": "valid",
+  "notes": [
+    "Bridge marshalling is the usual place this breaks: a native map that stringifies numbers still 'works' until a consumer compares types."
+  ]
+}

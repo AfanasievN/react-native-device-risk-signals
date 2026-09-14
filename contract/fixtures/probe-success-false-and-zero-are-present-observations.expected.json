@@ -1,0 +1,9 @@
+{
+  "fixture": "probe-success-false-and-zero-are-present-observations.json",
+  "pins": "boolean false, numeric 0 and the empty array are PRESENT observations and must be serialized as such. An implementation that drops falsy values turns 'observed, negative' into 'could not observe', which is a different fact.",
+  "expect": "valid",
+  "notes": [
+    "This is the repository's core semantic: absent means unobservable, false/0 means observed-and-negative.",
+    "Every SDK must emit these keys here; a conforming implementation cannot omit them as an optimization."
+  ]
+}

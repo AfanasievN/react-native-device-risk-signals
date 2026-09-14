@@ -150,11 +150,22 @@ for compatibility changes and the difference between queue cancellation and inte
 
 - [ ] Define a framework-neutral authoring source for probe ids, fields, types, platform support,
   sensitivity, defaults, permissions, omission rules and collection outcomes. Today authoring still
-  lives in `src/probeCatalog.ts` and `src/NativeDeviceIntel.ts`.
+  lives in `src/NativeDeviceIntel.ts` for field types; probe metadata now lives in
+  `contract/source/probe-catalog.source.json` per [ADR-0004](adr/0004-neutral-contract-authoring.md).
 - [ ] Define contract versioning and compatibility checks independently from package versions and
   `schema_version`; avoid changing the event envelope merely because a package moves.
-- [ ] Add shared conformance fixtures for nested objects, string/number arrays, booleans, zeroes,
-  absent fields, and `success`/`skipped`/`timeout`/`error` outcomes.
+- [x] Add shared conformance fixtures for nested objects, string/number arrays, booleans, zeroes,
+  absent fields, and `success`/`skipped`/`timeout`/`error` outcomes. `contract/fixtures/` holds six
+  positive and eleven negative fixtures, each with a sidecar stating what it pins;
+  `npm run verify:fixtures` validates them and the published example payloads against the schema and
+  the catalog, and fails if a negative fixture stops being rejected or if the schema grows a keyword
+  the validator does not implement. They pin JSON shape only: no SDK executes them yet.
+- [ ] Make each implementation run the fixtures, so Kotlin, Swift and the bindings are checked
+  against the same payloads rather than only their own unit tests.
+- [ ] Resolve two contract ambiguities the fixtures exposed: `schema_version` is typed `number` in
+  `src/DeviceIntel.ts` while the schema pins `const: 1`, and `session_id`/`client_id` carry
+  `minLength: 1` in the schema but are plain `string` in TypeScript, so an empty client id
+  type-checks and produces a schema-invalid event.
 - [ ] Decide which SDK utilities construct collection outcomes/envelopes and which stay caller-owned.
   The current standalone Android facade returns raw models only; it does not implement RN's runner.
 - [ ] Generate or validate native/binding models against the same fixtures, while keeping RN

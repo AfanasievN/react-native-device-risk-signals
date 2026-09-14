@@ -9,7 +9,8 @@
     "architectureDecisions": [
       "docs/adr/0001-platform-sdk-monorepo.md",
       "docs/adr/0002-explicit-android-transaction-session.md",
-      "docs/adr/0003-active-loopback-probe-component.md"
+      "docs/adr/0003-active-loopback-probe-component.md",
+      "docs/adr/0004-neutral-contract-authoring.md"
     ],
     "versioning": "independent",
     "currentPublishedComponent": "react-native",
