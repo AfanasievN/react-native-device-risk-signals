@@ -73,4 +73,11 @@ describe("osIntegrityProbes", () => {
     await scan?.collect();
     expect(mockNative.getFridaScanSignals).toHaveBeenCalled();
   });
+
+  it("gives os_integrity a budget that survives a cold first call", () => {
+    // Measured on an Android 15 arm64 emulator: the first native collection of these 51 fields took
+    // 510 ms, later ones 260-347 ms. The previous 400 ms budget timed out that cold call, so the
+    // heaviest passive probe reported `timeout` on the first collection after launch.
+    expect(byId(loadOsProbes("android"), "os_integrity")?.timeoutMs).toBe(1000);
+  });
 });

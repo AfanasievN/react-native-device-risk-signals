@@ -23,7 +23,12 @@ import type {Probe} from "./types";
 export const osIntegrityProbes: Probe[] = [
   {
     id: "os_integrity",
-    timeoutMs: 400,
+    // 1000 ms, not 400: this is the heaviest passive probe (51 fields, many /proc reads, reflection
+    // and finite package lookups) and its FIRST call pays cold-start cost. Measured on an Android 15
+    // arm64 emulator: 510 ms cold, then 260-347 ms. At 400 ms the first collection after launch
+    // reported `timeout` instead of data. Raising the ceiling does not slow a healthy call, it only
+    // widens the worst case before the runner gives up.
+    timeoutMs: 1000,
     enabled: () => true,
     collect: () => NativeDeviceIntel.getOsIntegrity(),
   } satisfies Probe<OsIntegritySignals>,

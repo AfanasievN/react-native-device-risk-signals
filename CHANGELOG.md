@@ -6,6 +6,13 @@ All notable public changes will be documented in this file.
 
 ### Changed
 
+- `os_integrity` now has a 1000 ms probe timeout instead of 400 ms. Measured on an Android 15 arm64
+  emulator, the first native collection of its 51 fields took 510 ms and later ones 260-347 ms, so
+  the first collection after app launch reported `timeout` rather than data. A healthy call is not
+  slowed; only the worst case before the runner gives up is longer. Applications that budget total
+  collection time or override `timeoutMs` for this probe should re-check their settings, and probe
+  latency still needs calibration on representative physical devices.
+
 - Android internals: the localhost Frida scan moved out of the React Native module into a new
   optional component, `android-active-probes-device-risk-signals` under `sdks/android-active-probes/`,
   whose contract permits loopback socket I/O only. The passive `android-device-risk-signals` core
