@@ -62,7 +62,7 @@ logic after extraction is complete.
 | `sdks/android-active-probes/` | In development | Optional active Android component; the only component permitted loopback socket I/O, currently one localhost Frida scan |
 | `sdks/android-active-probes/example/` | Development consumer | One-button native app demonstrating the active probe; declares host `INTERNET` itself |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
-| `sdks/ios/` | In development | Standalone iOS Swift Package with optional Mac Catalyst support; currently the shared statistics helper plus runtime timing and numeric consistency |
+| `sdks/ios/` | In development | Standalone iOS Swift Package with optional Mac Catalyst support; currently the shared statistics helper, runtime timing, numeric consistency, locale and application metadata |
 | `sdks/web/` | Planned | Browser SDK |
 | `bindings/react-native/` | Transitional placeholder | Future home of the existing npm binding |
 | `bindings/flutter/` | Planned | Dart/Flutter adapter |

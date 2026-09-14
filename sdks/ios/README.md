@@ -29,6 +29,7 @@ Currently extracted:
 
 | Symbol | Raw observation |
 | --- | --- |
+| `ApplicationInfoProvider.applicationSignals` | Host-app identity from the main bundle: short version, build, bundle id, executable name, minimum OS version, App Store receipt presence and environment, app-extension and embedded-provisioning-profile flags, and the compile-time simulator/debuggable pair |
 | `LocaleInfoProvider.localeSignals` | Language/country/currency codes, decimal and grouping separators, the preferred-language ordering, measurement system, time-zone id and UTC offset in minutes, calendar identifier, first day of week, and whether the locale uses a 24-hour clock |
 | `RuntimeTimingProvider.runtimeTimingSignals` | Clock-source name, sample count, smallest observed positive delta, and median/p95/MAD of 256 back-to-back `CFAbsoluteTimeGetCurrent` deltas in nanoseconds |
 | `NumericConsistencyProvider.numericConsistencySignals` | A fixed 1024-round 32-bit FNV-style digest, five transcendental double results, and two IEEE-754 behaviour flags (signed zero, subnormals) |
@@ -48,6 +49,18 @@ The omission is pinned by a test — do not add an active-keyboard read here wit
 policy decision, and note that doing so would also invalidate the binding's privacy manifest, which
 declares zero Required-Reason APIs.
 
+`ApplicationInfoProvider` deliberately does **not** report `getTaskAllowEntitlement`, even though
+the shared `ApplicationSignals` contract reserves that field. Reading the `get-task-allow`
+entitlement needs `SecTaskCreateFromSelf` / `SecTaskCopyValueForEntitlement`, which the public
+iPhoneOS `Security` headers do not declare; reaching them would take hand-written extern
+declarations and cross this package's public-system-API boundary. Reserved means absent, not
+`false` — emitting `false` would claim the entitlement was checked and found off. The omission is
+pinned by a test.
+
+All of `ApplicationInfoProvider`'s reads are `NSBundle`/`NSFileManager` calls against the host app's
+own bundle. It enumerates nothing outside that bundle, adds no permission, and creates no
+identifier.
+
 Everything else on iOS still lives in the React Native package's `ios/` directory and moves here
 incrementally.
 
@@ -57,16 +70,19 @@ incrementally.
 sdks/ios/
   Package.swift
   Sources/IOSDeviceRiskSignals/
+    ApplicationInfoProvider.m
     LocaleInfoProvider.m
     NumericConsistencyProvider.m
     RuntimeTimingProvider.m
     SignalStatistics.m
     include/                      # public headers (SwiftPM convention)
+      ApplicationInfoProvider.h
       LocaleInfoProvider.h
       NumericConsistencyProvider.h
       RuntimeTimingProvider.h
       SignalStatistics.h
   Tests/IOSDeviceRiskSignalsTests/
+    ApplicationInfoProviderTests.swift
     LocaleInfoProviderTests.swift
     ProviderTests.swift
     SignalStatisticsTests.swift
@@ -74,7 +90,7 @@ sdks/ios/
 
 The implementation is Objective-C and was moved verbatim from `ios/`, not rewritten, so behaviour is
 byte-for-byte identical to what the published binding shipped: the same sample counts, the same
-statistics, and the same emitted keys, value types and omission rules. The four headers in
+statistics, and the same emitted keys, value types and omission rules. The five headers in
 `include/` are the whole public surface; implementation details such as the percentile helper and
 the sample-count constant are `static` inside the `.m` files and are not exported. Tests are Swift
 and exercise the package only through that public surface.
@@ -93,8 +109,33 @@ providers that later need an iOS-only framework will need a simulator destinatio
 example:
 
 ```sh
-xcodebuild test -scheme IOSDeviceRiskSignals -destination 'platform=iOS Simulator,name=iPhone 17'
+cd sdks/ios && xcodebuild test -scheme ios-device-risk-signals \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
+
+(The scheme is the *package* name, `ios-device-risk-signals`, not the library product name.)
+
+Run that simulator destination as well as `swift test` whenever a provider's output depends on
+conditional compilation, because the two compile the same source with different macros. Measured on
+the Objective-C compile task for `ApplicationInfoProvider.m`:
+
+| Context                                            | `TARGET_OS_SIMULATOR` | `DEBUG`   |
+| ---                                                | ---                   | ---       |
+| `swift test`, host `arm64-apple-macosx12.0`        | 0                     | 1         |
+| `swift test -c release`, host                      | 0                     | undefined |
+| `xcodebuild test`, `arm64-apple-ios15.1-simulator` | 1                     | undefined |
+| CocoaPods `RnDeviceIntel`, Debug                   | 1 simulator / 0 device | 1        |
+| CocoaPods `RnDeviceIntel`, Release                 | 1 simulator / 0 device | undefined |
+
+The `xcodebuild` row is the one that catches people out: building this package with `xcodebuild`
+compiles the Objective-C target with `-DSWIFT_PACKAGE -DXcode` and **no** `-DDEBUG`, even in the
+Debug configuration, while the Swift test target *is* compiled with `-DDEBUG`. A test that mirrored
+its own `#if DEBUG` onto an Objective-C `#if DEBUG` field would therefore pass under `xcodebuild`
+for the wrong reason. `ApplicationInfoProviderTests` pins the parts that hold in every context — the
+key vocabulary, the omission rules, the boxing, and the rule that a simulator build is always
+reported debuggable — mirrors `TARGET_OS_SIMULATOR` through Swift's independent
+`targetEnvironment(simulator)`, and skips the `DEBUG`-dependent assertion under `xcodebuild` with a
+message saying why rather than asserting something that only looks true.
 
 `LocaleInfoProviderTests` is the first suite whose subject is not pure computation: `-localeSignals`
 reads the *host's* locale, time zone and calendar, with no seam to inject a fixed one. Those tests
@@ -106,7 +147,8 @@ provider's `-[NSLocale objectForKey:]` reads, so a swapped key still fails.
 ## Relationship to the React Native binding
 
 `react-native-device-risk-signals` is a thin adapter. `ios/DeviceIntel.mm` instantiates
-`LocaleInfoProvider`, `RuntimeTimingProvider` and `NumericConsistencyProvider` from this package,
+`ApplicationInfoProvider`, `LocaleInfoProvider`, `RuntimeTimingProvider` and
+`NumericConsistencyProvider` from this package,
 and `ios/GpuBenchmarkProvider.m` calls this package's `RNDISummarize`/`RNDIWarmupSlope`. There is no
 second copy of the collection logic in the binding, and this package must never depend on React
 Native, Flutter, or Capacitor.

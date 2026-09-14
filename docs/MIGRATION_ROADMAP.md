@@ -16,7 +16,7 @@ historical test evidence.
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
 | Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Transaction lifecycle and physical-device GL QA, Maven publication |
 | Android active probes | Separate optional component with the loopback Frida scan, JVM socket tests, lint and package-content gates, a native one-button demo, consumed by the binding | Host-permission outcome modeling, probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
-| iOS | Swift package with the shared statistics helper, runtime timing and numeric consistency, consumed by the pod; remaining providers under `ios/` | Foundation and UIKit provider extraction, observer ownership, Catalyst/device destinations, native consumer and release pipeline |
+| iOS | Swift package with the shared statistics helper, runtime timing, numeric consistency, locale and application metadata, tested on simulator/device/Catalyst and consumed by the pod; remaining providers under `ios/` | Foundation and UIKit provider extraction, observer ownership, Catalyst/device destinations, native consumer and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
 | Flutter | Project naming decision and placeholder directory | Android/iOS adapter, Dart contract, examples and pub.dev release |
@@ -177,16 +177,23 @@ for compatibility changes and the difference between queue cancellation and inte
   the validator does not implement. They pin JSON shape only: no SDK executes them yet.
 - [ ] Make each implementation run the fixtures, so Kotlin, Swift and the bindings are checked
   against the same payloads rather than only their own unit tests.
-- [ ] Fix iOS boxing C comparison results as `int` rather than `BOOL`. `@(expr)` on a C `==`/`&&`
-  expression produces objCType `"i"`, not a `CFBoolean`, so the field arrives in JavaScript as
-  `1`/`0` while `src/NativeDeviceIntel.ts` and the published schema declare `boolean`. Known
-  occurrences: `signedZeroPreserved` and `subnormalPreserved` in `NumericConsistencyProvider`, and
-  `uses24HourClock` in `LocaleInfoProvider`. The last one matters most: `locale` is enabled by
-  default, so this is in production traffic today, Android emits a real boolean for the same field
-  (`DateFormat.is24HourFormat`), and an iOS event carrying it fails the published schema. All three
-  are pre-existing and were preserved deliberately by the extraction, with tests pinning the current
-  behavior; fixing them changes an emitted value type and belongs in a breaking release with notes.
-  Audit the remaining `ios/` providers for the same pattern before extracting them.
+- [ ] Fix iOS boxing C comparison results as `int` rather than `BOOL`. `@(expr)` on a C `==`, `>`,
+  `!` or `&&` expression produces objCType `"i"`, not a `CFBoolean`, so the field arrives as `1`/`0`
+  while the contract and the published schema declare `boolean` and Android emits a real boolean.
+  A measured audit found **fourteen** affected fields, not the three first noticed: `isTablet`;
+  `suspiciousFilePathsFound`, `injectedLibrariesFound`, `hookFrameworkFound` and
+  `suspiciousEnvironmentVariablesFound`; `isConnected`; `isScreenMirrored` and `accessibilityRunning`
+  in media; `uses24HourClock`; `measured`; `isInteractive` and `accessibilityRunning` in transaction
+  safety; `signedZeroPreserved` and `subnormalPreserved`. Eight sit in probes that are enabled by
+  default, so iOS payloads for `device_identity`, `os_integrity`, `network`,
+  `media_bluetooth_apps` and `locale` fail schema validation today. Every other iOS boolean boxes
+  correctly because it comes from a `BOOL` property, method or literal.
+  The fix is an explicit `(BOOL)` cast or a `BOOL` local at each site; `expr ? YES : NO` does not
+  work, because the conditional operator promotes both branches back to `int`. It changes an emitted
+  value type, so it needs a breaking release with notes, inverted tests where the current behavior is
+  pinned, and a correction to the data dictionary. Three sites are already extracted and pinned by
+  tests; eleven are still in `ios/`, so fix them separately from the byte-identical moves rather than
+  quietly during extraction.
 - [ ] Resolve two contract ambiguities the fixtures exposed: `schema_version` is typed `number` in
   `src/DeviceIntel.ts` while the schema pins `const: 1`, and `session_id`/`client_id` carry
   `minLength: 1` in the schema but are plain `string` in TypeScript, so an empty client id
@@ -206,7 +213,10 @@ for compatibility changes and the difference between queue cancellation and inte
   source root, the same bridge the Android build uses. The component is now `in-development`.
 - [ ] Extend the package beyond pure computation: supported
   destinations, exported headers/types and a documented Objective-C/Swift consumption surface.
-- [ ] Move existing Foundation-compatible providers from `ios/` in small tested groups; preserve
+- [ ] Move the remaining Foundation-compatible providers from `ios/` in small tested groups.
+  Done so far: statistics, runtime timing, numeric consistency, locale, application metadata.
+  Still in `ios/`: device identity, hardware/fonts, network, telephony, geolocation, media, audio,
+  GPU, security posture and integrity. Preserve
   absent values, cached location, system framework use and current platform gates.
 - [ ] Extract timing/statistics, hardware/application/identity, integrity and other providers;
   resolve local-port behavior before moving socket operations.

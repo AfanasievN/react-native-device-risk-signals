@@ -253,13 +253,29 @@ dependencies are introduced. Instrumented and physical-device GL/coexistence QA 
 
 ## Known platform inconsistency
 
-Three iOS fields arrive as `1`/`0` instead of `true`/`false`: `uses24HourClock` in `locale`, and
-`signedZeroPreserved` and `subnormalPreserved` in `numeric_consistency`. The Objective-C providers
-box a C comparison result, which produces a number rather than a boolean over the bridge, while the
-TypeScript contract and the published JSON Schema declare `boolean` and Android emits real booleans.
-`locale` is enabled by default, so this reaches production payloads today. Treat those three fields
-as truthy/falsy rather than strictly equal to `true` until the change lands in a breaking release;
-it is tracked in [the migration checklist](MIGRATION_ROADMAP.md).
+Fourteen iOS fields arrive as `1`/`0` instead of `true`/`false`. In Objective-C, `@(expr)` on a C
+comparison or logical expression boxes an `int` rather than a boolean, so the value crosses the
+bridge as a number. The TypeScript contract and the published JSON Schema declare `boolean`, and
+Android emits real booleans, so the two platforms disagree and an affected iOS event fails schema
+validation. A measured audit of every boolean field produced this list:
+
+| Probe | Fields | Default |
+| --- | --- | --- |
+| `device_identity` | `isTablet` | On |
+| `os_integrity` | `suspiciousFilePathsFound`, `injectedLibrariesFound`, `hookFrameworkFound`, `suspiciousEnvironmentVariablesFound` | On |
+| `network` | `isConnected` | On |
+| `media_bluetooth_apps` | `isScreenMirrored`, `accessibilityRunning` | On |
+| `locale` | `uses24HourClock` | On |
+| `audio_latency` | `measured` | Off |
+| `transaction_safety` | `isInteractive`, `accessibilityRunning` | Off |
+| `numeric_consistency` | `signedZeroPreserved`, `subnormalPreserved` | Off |
+
+Every other boolean field on iOS boxes correctly, because it comes from a `BOOL` property, a `BOOL`
+method result or a literal. Until the fix lands in a breaking release, treat the fields above as
+truthy/falsy rather than strictly equal to `true`, and expect schema validation of iOS payloads for
+those probes to fail. `numeric_consistency.signedZeroPreserved` and `subnormalPreserved` are further
+distorted in JavaScript: the probe's `&&` returns the number `0` on the false path. Tracked in
+[the migration checklist](MIGRATION_ROADMAP.md).
 
 ## Data minimization guidance
 
