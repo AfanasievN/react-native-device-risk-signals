@@ -35,6 +35,15 @@ All notable public changes will be documented in this file.
 - Fixed the published example payloads: `website/examples/android-event.json` was missing the
   required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
   the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- iOS extraction continued: `LocaleInfoProvider` moved into the package unchanged, with 13 Swift
+  tests including one pinning the Required-Reason field that must stay absent. CI now runs the
+  package's tests on an iOS Simulator destination and builds it for device and Mac Catalyst, instead
+  of a macOS-host `swift test` that proved nothing about an iOS binary.
+- Documented a platform inconsistency the extraction surfaced: `uses24HourClock`,
+  `signedZeroPreserved` and `subnormalPreserved` arrive from iOS as `1`/`0` rather than `true`/`false`
+  because the Objective-C providers box a C comparison result. Android emits real booleans and the
+  schema declares `boolean`, so treat those three as truthy/falsy until a breaking release fixes them.
+  Behavior is unchanged by the move and is now pinned by tests.
 - Started the iOS extraction: `sdks/ios/` is now a real Swift package, `ios-device-risk-signals`
   with product `IOSDeviceRiskSignals`, carrying the shared statistics helper, runtime timing and
   numeric consistency as unmodified Objective-C plus Swift tests. `RnDeviceIntel.podspec` compiles

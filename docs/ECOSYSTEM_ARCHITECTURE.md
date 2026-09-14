@@ -221,7 +221,7 @@ Required checks grow with the repository:
 | Shared contract | generation drift, schema/catalog validity, compatibility tests |
 | Android SDK | JVM unit tests, instrumented GPU suite compilation, Android lint with warnings as errors, release AAR, package-content gate, native consumer build |
 | Android active probes | JVM socket tests against a local server, Android lint with warnings as errors, release AAR, package-content gate proving loopback-only content and no permission |
-| iOS SDK | Swift tests, build for supported destinations, native consumer build |
+| iOS SDK | XCTest on an iOS Simulator destination, builds for device and Mac Catalyst, native consumer build |
 | Web SDK | unit tests, typecheck, browser compatibility and package-content checks |
 | Bindings | framework tests, native integration builds, package-content checks |
 

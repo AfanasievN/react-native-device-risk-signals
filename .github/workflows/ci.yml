@@ -124,10 +124,22 @@ jobs:
             example/package-lock.json
       - run: npm ci
       - run: npm ci --prefix example
-      - name: Test the standalone iOS Swift package
-        # Pure-computation targets, so the host toolchain exercises the shipping code. Simulator and
-        # Catalyst destinations come with the providers that need UIKit.
-        run: swift test --package-path sdks/ios
+      - name: Test the standalone iOS Swift package on a simulator
+        working-directory: sdks/ios
+        # `swift test` builds for macOS, so it would not prove anything about an iOS binary. The
+        # scheme name is the package name, and xcodebuild generates it into .swiftpm; the simulator
+        # device is resolved at run time because runner images rotate device names.
+        run: |
+          device=$(xcrun simctl list devices available | grep -Eo 'iPhone [0-9A-Za-z ]+' | head -1 | sed 's/ *$//')
+          echo "Using simulator: $device"
+          xcodebuild test -scheme ios-device-risk-signals -destination "platform=iOS Simulator,name=$device"
+      - name: Build the iOS package for device and Mac Catalyst
+        working-directory: sdks/ios
+        # Different triples from the simulator: catches simulator-only API use, and makes the
+        # mac-catalyst platform declared in device-risk-signals.json true rather than aspirational.
+        run: |
+          xcodebuild build -scheme ios-device-risk-signals -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO
+          xcodebuild build -scheme ios-device-risk-signals -destination 'platform=macOS,variant=Mac Catalyst'
       - name: Install Ruby dependencies
         working-directory: example
         run: |

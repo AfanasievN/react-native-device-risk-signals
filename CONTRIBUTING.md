@@ -104,12 +104,23 @@ which only compiles it:
 example/android/gradlew -p sdks/android :connectedDebugAndroidTest --no-daemon
 ```
 
-The standalone iOS Swift package builds and tests on the host toolchain, because everything
-extracted so far is pure Foundation computation:
+The standalone iOS Swift package has a fast host loop and a real one. `swift test` compiles for
+macOS, so it proves nothing about an iOS binary; it is honest today only because everything extracted
+so far is pure Foundation computation, and it stops being honest as soon as a provider is gated
+behind `#if TARGET_OS_IOS`. Use it while iterating:
 
 ```sh
-swift build --package-path sdks/ios
 swift test --package-path sdks/ios
+```
+
+CI runs the real destinations, and so should you before sending a change. The scheme name is the
+package name, not the product name, and xcodebuild generates it on demand:
+
+```sh
+cd sdks/ios
+xcodebuild test -scheme ios-device-risk-signals -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+xcodebuild build -scheme ios-device-risk-signals -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO
+xcodebuild build -scheme ios-device-risk-signals -destination 'platform=macOS,variant=Mac Catalyst'
 ```
 
 Changes to `RnDeviceIntel.podspec` or to the package's sources also need the example's pods

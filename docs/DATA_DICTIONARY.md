@@ -251,6 +251,16 @@ Cleanup attempts to restore a previously changed EGL binding and releases only o
 driver failure can prevent restoration. No shared-display termination, permissions or new runtime
 dependencies are introduced. Instrumented and physical-device GL/coexistence QA remains necessary.
 
+## Known platform inconsistency
+
+Three iOS fields arrive as `1`/`0` instead of `true`/`false`: `uses24HourClock` in `locale`, and
+`signedZeroPreserved` and `subnormalPreserved` in `numeric_consistency`. The Objective-C providers
+box a C comparison result, which produces a number rather than a boolean over the bridge, while the
+TypeScript contract and the published JSON Schema declare `boolean` and Android emits real booleans.
+`locale` is enabled by default, so this reaches production payloads today. Treat those three fields
+as truthy/falsy rather than strictly equal to `true` until the change lands in a breaking release;
+it is tracked in [the migration checklist](MIGRATION_ROADMAP.md).
+
 ## Data minimization guidance
 
 - Start with an explicit `consentFor(...)` allowlist instead of enabling everything implicitly.

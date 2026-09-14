@@ -177,11 +177,16 @@ for compatibility changes and the difference between queue cancellation and inte
   the validator does not implement. They pin JSON shape only: no SDK executes them yet.
 - [ ] Make each implementation run the fixtures, so Kotlin, Swift and the bindings are checked
   against the same payloads rather than only their own unit tests.
-- [ ] Decide what to do about iOS boxing `signedZeroPreserved` and `subnormalPreserved` as `int`
-  rather than `BOOL`: the C `&&` expressions box with objCType `"i"`, so those fields reach
-  JavaScript as `1`/`0` while `src/NativeDeviceIntel.ts` and the published schema declare `boolean`.
-  Pre-existing and preserved by the extraction; an iOS event carrying them would fail the schema.
-  A test pins the current behavior so the change is deliberate when it happens.
+- [ ] Fix iOS boxing C comparison results as `int` rather than `BOOL`. `@(expr)` on a C `==`/`&&`
+  expression produces objCType `"i"`, not a `CFBoolean`, so the field arrives in JavaScript as
+  `1`/`0` while `src/NativeDeviceIntel.ts` and the published schema declare `boolean`. Known
+  occurrences: `signedZeroPreserved` and `subnormalPreserved` in `NumericConsistencyProvider`, and
+  `uses24HourClock` in `LocaleInfoProvider`. The last one matters most: `locale` is enabled by
+  default, so this is in production traffic today, Android emits a real boolean for the same field
+  (`DateFormat.is24HourFormat`), and an iOS event carrying it fails the published schema. All three
+  are pre-existing and were preserved deliberately by the extraction, with tests pinning the current
+  behavior; fixing them changes an emitted value type and belongs in a breaking release with notes.
+  Audit the remaining `ios/` providers for the same pattern before extracting them.
 - [ ] Resolve two contract ambiguities the fixtures exposed: `schema_version` is typed `number` in
   `src/DeviceIntel.ts` while the schema pins `const: 1`, and `session_id`/`client_id` carry
   `minLength: 1` in the schema but are plain `string` in TypeScript, so an empty client id
