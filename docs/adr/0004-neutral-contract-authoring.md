@@ -1,6 +1,7 @@
 # ADR-0004: Probe catalog authoring leaves the React Native package
 
-- Status: accepted for the catalog half; type authoring, contract versioning and cross-SDK generation remain open
+- Status: accepted for probe metadata and field types; contract versioning, generated TypeScript and
+  cross-SDK generation remain open
 - Date: 2026-09-14
 - Follows: [ADR-0001](0001-platform-sdk-monorepo.md)
 
@@ -28,10 +29,11 @@ This slice moves authoring only. No probe id, field, type, default, permission o
 no generated artifact changes except the one provenance string. The following stay open and are
 tracked in the migration checklist:
 
-- Field TYPES are still derived by parsing `src/NativeDeviceIntel.ts` and `src/probes/runtimeProbe.ts`
-  with the TypeScript compiler API, and the published `fieldTypes` values are raw TypeScript source
-  text such as `string[]` and `AndroidBuildInfo`. Until that moves, the contract still embeds
-  binding syntax and a new probe still needs a hand-written entry in the id-to-type-name map in
+- Field TYPES were still parsed out of TypeScript when this ADR was first written. The update below
+  supersedes that bullet: they now come from `contract/source/signal-types.source.json`. What
+  remains true is that the published `fieldTypes` values are raw TypeScript source text such as
+  `string[]` and `AndroidBuildInfo`, so the contract still embeds binding syntax, and that a new
+  probe still needs a hand-written entry in the id-to-type-name map in
   `scripts/read-signal-contract.mjs`.
 - `sdk_version` in the published catalog is still the npm package version, so the contract cannot yet
   be versioned or released independently.
@@ -43,9 +45,11 @@ tracked in the migration checklist:
 ## Update, 2026-09-14: field types
 
 The second half landed the same day. `contract/source/signal-types.source.json` now authors, per
-probe, the type name and every field's published type string, optionality and JSON Schema fragment,
-and it absorbs the probe-id-to-type-name map that used to be hand-maintained inside
-`scripts/read-signal-contract.mjs`. `scripts/sync-pages-catalog.mjs` builds the published
+probe, the type name and every field's published type string, optionality and JSON Schema fragment.
+It mirrors the probe-id-to-type-name map for publishing, but does not yet replace it:
+`scripts/read-signal-contract.mjs` still owns its own copy, which the generator and the drift guard
+use when deriving from TypeScript, so a new probe still needs that hand-edited entry. Removing the
+duplicate is follow-up work. `scripts/sync-pages-catalog.mjs` builds the published
 `fieldTypes`, `fieldSchemas` and `optionalFields` from that file and no longer parses TypeScript at
 all; every generated artifact stayed byte-identical through the switch.
 

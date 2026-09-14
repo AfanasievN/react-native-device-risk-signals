@@ -15,7 +15,7 @@ Every pull request runs the following compatibility checks:
 | --- | --- |
 | React Native | 0.76.9, 0.81.6, and 0.86.0 |
 | Architecture | New Architecture and TurboModule contract parity |
-| Android | Native unit tests, example debug build, and Android lint |
+| Android | Native unit tests, example debug build, Android lint with warnings as errors for both standalone components, AAR package-content gate, instrumented-suite compilation, and a binding build against locally published component artifacts |
 | iOS | CocoaPods installation and example simulator build |
 | JavaScript | Jest, TypeScript declarations, package contents, and documentation links |
 

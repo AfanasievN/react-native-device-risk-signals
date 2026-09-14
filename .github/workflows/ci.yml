@@ -93,14 +93,20 @@ jobs:
       - run: npm ci
       - run: npm ci --prefix example
       - name: Test and lint standalone Android SDK, build native consumer
-        run: example/android/gradlew -p sdks/android :testDebugUnitTest :compileDebugAndroidTestKotlin :lintRelease :assembleRelease :example:assembleDebug --no-daemon
+        run: example/android/gradlew -p sdks/android :testDebugUnitTest :compileDebugAndroidTestKotlin :lintRelease :assembleRelease :example:assembleDebug :publishReleasePublicationToLocalBuildRepository --no-daemon
       - name: Test and lint optional Android active-probes component
-        run: example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :lintRelease :assembleRelease :example:assembleDebug --no-daemon
+        run: example/android/gradlew -p sdks/android-active-probes :testDebugUnitTest :lintRelease :assembleRelease :example:assembleDebug :publishReleasePublicationToLocalBuildRepository --no-daemon
       - name: Verify Android package contents
         run: npm run verify:android-aar
       - name: Compile Android example and native module
         working-directory: example/android
         run: ./gradlew :react-native-device-risk-signals:testDebugUnitTest :app:assembleDebug lintDebug --no-daemon
+      - name: Build the binding against published component artifacts
+        working-directory: example/android
+        # Proves the binding compiles against the AARs rather than the component sources, which is
+        # also what makes Kotlin `internal` a real boundary. Source consumption stays the default
+        # until the components are published to a registry.
+        run: ./gradlew :react-native-device-risk-signals:compileDebugKotlin :react-native-device-risk-signals:testDebugUnitTest :app:assembleDebug -PdeviceRiskSignalsUseArtifacts=true --no-daemon
 
   ios-native:
     name: iOS native build

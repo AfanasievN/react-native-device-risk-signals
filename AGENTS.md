@@ -6,8 +6,9 @@ These rules apply to the entire repository.
 
 - The SDK collects raw device and runtime observations. It must not calculate a risk score, return a
   trusted/untrusted verdict, or make a blocking decision.
-- The SDK performs no network requests. Applications own authentication, serialization, retries,
-  storage, and transport of collected events.
+- The SDK performs no network requests, with one recorded exception: the optional active-probes
+  component connects to loopback only, per [ADR-0003](docs/adr/0003-active-loopback-probe-component.md).
+  Applications own authentication, serialization, retries, storage, and transport of collected events.
 - Never add persistent device identifiers, vendor endpoints, credentials, customer-specific names,
   `QUERY_ALL_PACKAGES`, or permission prompts.
 - Treat high-entropy fields, location, telephony, accessibility, local addresses, and app visibility
@@ -52,7 +53,8 @@ observations have been calibrated on representative physical devices.
 
 - `docs/ECOSYSTEM_ARCHITECTURE.md` and `device-risk-signals.json` are normative for component
   boundaries, naming, dependencies, lifecycle, and releases.
-- Android collection logic belongs in `sdks/android/`; React Native conversion belongs in `android/`.
+- Passive Android collection logic belongs in `sdks/android/` and active/loopback collection in
+  `sdks/android-active-probes/`; React Native conversion belongs in `android/`.
   Standalone Android source must not import `com.facebook.react`.
 - iOS collection logic will move to `sdks/ios/`; Objective-C++ React Native code must remain a thin
   adapter and new providers should avoid React Native types.

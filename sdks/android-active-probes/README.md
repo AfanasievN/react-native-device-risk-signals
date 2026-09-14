@@ -71,6 +71,21 @@ button again:
 adb shell "echo 'REJECT frida' | nc -L -p 27042 -s 127.0.0.1"
 ```
 
+## Local publication
+
+The component publishes a release AAR, a sources jar and full POM metadata to a file repository
+inside its own build output, so artifact consumption can be verified without any registry:
+
+```sh
+example/android/gradlew -p sdks/android-active-probes :publishReleasePublicationToLocalBuildRepository --no-daemon
+```
+
+The result lands in `sdks/android-active-probes/build/local-maven` under ``io.github.afanasievn:android-active-probes-device-risk-signals``.
+Nothing is written to `~/.m2` and no credentials are involved. A real Maven Central release still
+needs signing, a javadoc or Dokka artifact, Sonatype namespace verification, the staging flow and a
+version other than `0.1.0-SNAPSHOT`; those are tracked in
+[the migration checklist](../../docs/MIGRATION_ROADMAP.md).
+
 ## Build and test
 
 From the repository root, reusing the existing Gradle wrapper:

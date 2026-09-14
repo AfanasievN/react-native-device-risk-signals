@@ -75,8 +75,9 @@ A [native Android example](sdks/android/example/README.md)
 consumes this partial SDK without React Native; the Maven artifact is not published yet.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.
 OS integrity includes existing process-local Frida evidence. The separate localhost Frida scan now
-lives in the optional `android-active-probes` component, the only component allowed loopback socket
-I/O; the passive core still opens no socket. See
+lives in the `android-active-probes` component, the only component allowed loopback socket I/O; the
+passive core still opens no socket. The component is optional for a native Android host, but the npm
+package always ships it and the probe is on by default. See
 [ADR-0003](docs/adr/0003-active-loopback-probe-component.md).
 iOS, Web, Flutter, and Capacitor remain planned. All surfaces
 share the generated [raw-signal contract](contract/README.md).
@@ -332,7 +333,7 @@ The response below was collected by the included Signal Bench app on an iOS Simu
 session id, timestamp, and local IP addresses were replaced with safe example values.
 
 <details>
-<summary>View the complete JSON response (11 successful probes, 4 skipped)</summary>
+<summary>View the complete JSON response (11 successful probes, 6 skipped)</summary>
 
 ```json
 {
@@ -808,7 +809,10 @@ React Native version.
 ### What permissions does it require?
 
 The Android library manifest declares no permissions. Signal availability can still depend on the
-host application's existing permissions, platform restrictions, and OS version. Android 14+
+host application's existing permissions, platform restrictions, and OS version. One case is easy to
+miss: `os_integrity_frida_scan` is enabled by default and opens a TCP connect to `127.0.0.1:27042`,
+and an application that has not declared `INTERNET` cannot open that socket at all, so both of its
+flags read `false` exactly as if nothing were listening. Android 14+
 screenshot and Android 15+ recording observations require the host to declare their optional
 install-time detection permissions; the SDK never displays a runtime prompt. Audit each enabled probe
 against your privacy policy and store requirements.
@@ -858,7 +862,10 @@ npm run verify
 ```
 
 When adding a probe, implement both native platforms or an explicit platform fallback, register the
-probe in `src/probes/index.ts`, document its privacy impact, and add focused tests.
+probe in `src/probes/index.ts`, document its privacy impact, and add focused tests. Probe metadata
+and field types are authored in `contract/source/*.source.json` and regenerated with
+`node scripts/generate-probe-catalog.mjs --write` and `node scripts/generate-signal-types.mjs --write`;
+`src/probeCatalog.ts` is generated and must not be hand-edited.
 
 `npm run build` compiles the JavaScript entrypoint and TypeScript declarations into `lib/`.
 `npm pack --dry-run` shows exactly which files would be published. Maintainers should follow

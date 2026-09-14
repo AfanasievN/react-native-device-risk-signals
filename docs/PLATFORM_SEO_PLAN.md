@@ -20,6 +20,7 @@ this document does not create these routes or authorize a repository/domain rena
 | --- | --- | --- | --- |
 | `react-native-device-risk-signals` | React Native Android/iOS teams | `/react-native/` | Active npm package: install and open the tested RN integration guide |
 | `android-device-risk-signals` | Native Android Kotlin/Java teams | `/android/` | In development, unpublished: inspect source/native example and migration status |
+| `android-active-probes-device-risk-signals` | Native Android teams opting into active checks | `/android/` | In development, unpublished: shares the Android route; loopback-only active probes |
 | `ios-device-risk-signals` | Native iOS Swift/Objective-C teams | `/ios/` | Planned standalone SDK: read scope and migration roadmap |
 | `web-device-risk-signals` | Browser application teams | `/web/` | Planned: read browser scope and capability roadmap |
 | `flutter-device-risk-signals` | Flutter Android/iOS teams | `/flutter/` | Planned: read binding roadmap; future pub.dev name is `flutter_device_risk_signals` |

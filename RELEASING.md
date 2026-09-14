@@ -76,6 +76,8 @@ short-lived OIDC credentials. Draft and prerelease GitHub Releases do not publis
 
 ## What consumers receive
 
-The npm archive contains compiled JavaScript and TypeScript declarations, the TurboModule spec, and
-the Android and iOS native sources. React Native autolinking discovers the native package after
+The npm archive contains compiled JavaScript and TypeScript declarations, the TurboModule spec, the
+Android and iOS native sources, the standalone Android component sources the binding compiles, and
+the `contract/` authoring sources, fixtures and generated artifacts. `npm run verify:package` checks
+that every path the Android build needs is actually in the archive. React Native autolinking discovers the native package after
 installation. Codegen and native compilation happen when the consumer builds their application.

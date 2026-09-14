@@ -31,6 +31,42 @@ apply plugin: "kotlin-android"
 
 apply plugin: "com.facebook.react"
 
+// How the two standalone components (sdks/android, sdks/android-active-probes) reach this module.
+//
+// The default is source consumption: their Kotlin source directories are added to this library's
+// own source set. That has to stay the default because neither component is published to any Maven
+// registry yet, so an npm consumer building node_modules/react-native-device-risk-signals/android
+// through React Native autolinking has nothing to resolve the coordinates from. The default path
+// therefore declares no repository and no external dependency, which also keeps this library
+// compatible with consumer apps that set RepositoriesMode.FAIL_ON_PROJECT_REPOS - a repository
+// declared unconditionally in a library build script fails those builds outright.
+//
+// -PdeviceRiskSignalsUseArtifacts=true switches to artifact consumption: the source directories are
+// dropped and the two components are resolved as AARs from the file repositories their own builds
+// publish into (./gradlew -p sdks/<component> :publishReleasePublicationToLocalBuildRepository).
+// It exists only to prove artifact consumption - including that the components' Kotlin `internal`
+// declarations really do become unreachable from this binding - before the components are
+// published. It is a verification flag, never a supported consumer option, and it must be deleted
+// once the coordinates below exist on a real registry and this module can depend on them
+// unconditionally.
+def useComponentArtifacts = project.hasProperty("deviceRiskSignalsUseArtifacts") &&
+  project.property("deviceRiskSignalsUseArtifacts").toString().toBoolean()
+
+if (useComponentArtifacts) {
+  repositories {
+    // Resolved relative to this module, so this also works through the symlinked monorepo checkout
+    // the example app uses (example/node_modules/react-native-device-risk-signals -> repo root).
+    maven {
+      name = "deviceRiskSignalsAndroidLocalBuild"
+      url = uri(file("../sdks/android/build/local-maven"))
+    }
+    maven {
+      name = "deviceRiskSignalsAndroidActiveProbesLocalBuild"
+      url = uri(file("../sdks/android-active-probes/build/local-maven"))
+    }
+  }
+}
+
 android {
   namespace "com.reactnativedeviceintel"
 
@@ -41,8 +77,10 @@ android {
   sourceSets {
     main {
       java.srcDirs += ["${project.buildDir}/generated/source/codegen/java"]
-      java.srcDirs += [file("../sdks/android/src/main/kotlin")]
-      java.srcDirs += [file("../sdks/android-active-probes/src/main/kotlin")]
+      if (!useComponentArtifacts) {
+        java.srcDirs += [file("../sdks/android/src/main/kotlin")]
+        java.srcDirs += [file("../sdks/android-active-probes/src/main/kotlin")]
+      }
     }
   }
 
@@ -77,6 +115,11 @@ dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:${getExtOrDefault('kotlinVersion')}"
   testImplementation "junit:junit:4.13.2"
+
+  if (useComponentArtifacts) {
+    implementation "io.github.afanasievn:android-device-risk-signals:0.1.0-SNAPSHOT"
+    implementation "io.github.afanasievn:android-active-probes-device-risk-signals:0.1.0-SNAPSHOT"
+  }
 }
 
 react {

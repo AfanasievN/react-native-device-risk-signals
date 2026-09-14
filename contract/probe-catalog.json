@@ -4,7 +4,7 @@
   "implementation_package": "react-native-device-risk-signals",
   "sdk_version": "0.8.1",
   "source": "contract/source/probe-catalog.source.json",
-  "type_source": "src/NativeDeviceIntel.ts and src/probes/runtimeProbe.ts",
+  "type_source": "contract/source/signal-types.source.json",
   "probes": [
     {
       "id": "device_identity",

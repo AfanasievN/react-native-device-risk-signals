@@ -19,3 +19,25 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Only used by the -PdeviceRiskSignalsUseArtifacts=true verification mode of
+// react-native-device-risk-signals (see android/build.gradle). Gradle resolves repositories per
+// consuming project, so the file repositories the library declares for itself cover only its own
+// compile classpath; :app resolves the same coordinates transitively on its runtime classpath and
+// needs them declared here as well. This is exactly what a real consumer app would have to do
+// until the two components are published to a registry, and it is why artifact consumption cannot
+// become the default before then. Delete this block together with the flag.
+if (providers.gradleProperty("deviceRiskSignalsUseArtifacts").getOrElse("false").toBoolean()) {
+    project(":app") {
+        repositories {
+            maven {
+                name = "deviceRiskSignalsAndroidLocalBuild"
+                url = uri("${rootDir}/../../sdks/android/build/local-maven")
+            }
+            maven {
+                name = "deviceRiskSignalsAndroidActiveProbesLocalBuild"
+                url = uri("${rootDir}/../../sdks/android-active-probes/build/local-maven")
+            }
+        }
+    }
+}

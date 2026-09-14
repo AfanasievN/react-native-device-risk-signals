@@ -63,7 +63,10 @@ npm pack --dry-run
 ```
 
 `npm run verify:contract` is part of `verify` and checks every TurboModule method across the
-TypeScript spec, Kotlin implementation, and Objective-C++ implementation.
+TypeScript spec, Kotlin implementation, and Objective-C++ implementation. Also inside `verify`:
+`verify:ecosystem` validates `device-risk-signals.json` against the component rules, and
+`verify:package` checks both the working tree and the file list `npm pack` would ship, so a change to
+the `files` allow-list cannot silently stop shipping a source tree the Android build needs.
 
 Changes to the standalone Android SDK also run:
 

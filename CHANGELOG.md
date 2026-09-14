@@ -24,8 +24,9 @@ All notable public changes will be documented in this file.
 - Field types are now authored in `contract/source/signal-types.source.json`. The published
   `fieldTypes`, `fieldSchemas` and `optionalFields` are built from it and no longer from parsing
   `src/NativeDeviceIntel.ts`; every generated artifact is byte-identical through the switch.
-  `npm run verify:signal-types` fails if the TypeScript declarations drift from the authored source,
-  and the probe-id-to-type-name map that lived inside a script is now part of the contract source.
+  `npm run verify:signal-types` fails if the TypeScript declarations drift from the authored source.
+  The probe-id-to-type-name map is mirrored into the contract source but still duplicated in
+  `scripts/read-signal-contract.mjs`, which a follow-up change should remove.
 - Probe metadata is now authored in `contract/source/probe-catalog.source.json`; `src/probeCatalog.ts`
   is generated from it and `npm run verify` fails when the two drift. The generated file is
   byte-identical to the previous hand-written one, so the `react-native-device-risk-signals/catalog`
@@ -34,6 +35,15 @@ All notable public changes will be documented in this file.
 - Fixed the published example payloads: `website/examples/android-event.json` was missing the
   required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
   the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- Both Android components now configure `maven-publish` with a release AAR, a sources jar and full
+  POM metadata, published to a file repository inside each component's build output. The React Native
+  binding can build against those artifacts with `-PdeviceRiskSignalsUseArtifacts=true`, which CI
+  exercises; source consumption stays the default until the components reach a registry, because an
+  autolinked library cannot add a repository to a consumer's build.
+- `npm run verify:package` now also inspects the file list `npm pack` would ship, deriving the
+  required paths from `android/build.gradle` and the podspec, so dropping a `files` entry can no
+  longer break consumer builds while every check stays green.
+- The published catalog's `type_source` field now reads `contract/source/signal-types.source.json`.
 - The published probe catalog's `source` field now reads `contract/source/probe-catalog.source.json`
   instead of `src/probeCatalog.ts`, because the latter is generated. Provenance metadata only:
   `catalog_version`, `sdk_version` and `schema_version` are untouched.

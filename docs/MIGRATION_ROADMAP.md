@@ -114,7 +114,12 @@ for compatibility changes and the difference between queue cancellation and inte
   inaccessible procfs, activity recreation, and expensive-probe latency/cleanup.
 - [ ] Keep existing default/omission changes separate from mechanical extraction and document any
   source or event compatibility impact.
-- [ ] Configure Maven publication, signing, sources/documentation artifacts and component release
+- [x] Configure Maven publication for both Android components: `maven-publish`, a release
+  publication with a sources jar and full POM metadata, published to a file repository inside each
+  component's build output. CI publishes there and builds the binding against the result.
+- [ ] Complete the registry half of publication: signing, a javadoc or Dokka artifact, Sonatype
+  namespace verification, credentials, the staging/release flow, a real version instead of
+  `0.1.0-SNAPSHOT`, and component release
   automation; verify installation from the intended registry in a clean native consumer.
 - [ ] Publish platform documentation and a tested binding-to-SDK compatibility range before marking
   Android `active`. A locally built AAR does not satisfy this gate.

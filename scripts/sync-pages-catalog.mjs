@@ -222,7 +222,7 @@ const expectedJson = `${JSON.stringify({
   implementation_package: packageJson.name,
   sdk_version: packageJson.version,
   source: "contract/source/probe-catalog.source.json",
-  type_source: "src/NativeDeviceIntel.ts and src/probes/runtimeProbe.ts",
+  type_source: "contract/source/signal-types.source.json",
   probes: publishedProbes,
 }, null, 2)}\n`;
 const expectedSchema = `${JSON.stringify(buildEventSchema(catalog, signalContract), null, 2)}\n`;

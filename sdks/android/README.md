@@ -125,11 +125,7 @@ process-local Frida observations, including `/proc`, mapped libraries, thread na
 evidence. It returns raw fields, not an integrity verdict. Finite known-package observations depend
 on the host application's package visibility: `false` can mean not visible, not necessarily absent.
 The standalone SDK manifest adds no package queries; the React Native manifest keeps its existing
-queries. The legacy React Native localhost TCP Frida scan remains in its adapter and is an
-unresolved exception to the no-network architecture; the standalone SDK exposes no scan method.
-
-`collectMediaBluetoothApps()` preserves audio-route/music state, bonded Bluetooth count, display
-counts, finite known-package matches and enabled accessibility service names. Its legacy
+queries. The active localhost Frida scan lives in the optional [active-probes component](../android-active-probes/README.md) per [ADR-0003](../../docs/adr/0003-active-loopback-probe-component.md); this passive core exposes no scan method and opens no socket. Its legacy
 `installedFlaggedApps` name denotes list matches, not a risk verdict. Accessibility read failures
 still collapse into an empty list; music-read failures still become false. These inherited fallbacks
 need separate compatibility work and must not be interpreted as confirmed absence.
@@ -207,6 +203,21 @@ example/android/gradlew -p sdks/android :connectedDebugAndroidTest --no-daemon
 Emulated GL is not a driver. A driver refusing restoration, a surfaceless or non-default-display
 caller, GL/camera/video coexistence, Activity teardown mid-benchmark and resource growth across
 runs still require physical-device QA, which remains a release gate.
+
+## Local publication
+
+The component publishes a release AAR, a sources jar and full POM metadata to a file repository
+inside its own build output, so artifact consumption can be verified without any registry:
+
+```sh
+example/android/gradlew -p sdks/android :publishReleasePublicationToLocalBuildRepository --no-daemon
+```
+
+The result lands in `sdks/android/build/local-maven` under ``io.github.afanasievn:android-device-risk-signals``.
+Nothing is written to `~/.m2` and no credentials are involved. A real Maven Central release still
+needs signing, a javadoc or Dokka artifact, Sonatype namespace verification, the staging flow and a
+version other than `0.1.0-SNAPSHOT`; those are tracked in
+[the migration checklist](../../docs/MIGRATION_ROADMAP.md).
 
 ## Development distribution
 
