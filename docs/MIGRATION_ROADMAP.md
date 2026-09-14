@@ -234,7 +234,14 @@ for compatibility changes and the difference between queue cancellation and inte
   CocoaPods integration with the same implementation.
 - [ ] Package existing privacy resources correctly, audit API usage and avoid introducing
   Required-Reason APIs, persistent identifiers, permission prompts or new runtime dependencies.
-- [ ] Add native consumer, tests and builds for supported simulator/device/Catalyst destinations;
+- [x] Add a native iOS consumer: `sdks/ios/example/` is a plain UIKit app that imports the package
+  as a local Swift package and calls only its public API, with one button per available collection
+  and nothing collected on launch. Verified on a simulator with real values, and built in CI.
+- [ ] Give the iOS package a facade comparable to Android's `DeviceRiskSignals`. Today a consumer
+  instantiates seven separate providers and fans out by hand, and each returns an untyped
+  `NSDictionary` rather than a typed model with `toRawMap()`. The native example makes that gap
+  concrete.
+- [ ] Add tests and builds for the remaining supported destinations;
   perform physical-device QA and test clean package installation before activation.
 - [ ] Establish a tested Swift Package distribution layout and independent release workflow before
   advertising an install URL. The current `sdks/ios/` directory is only a placeholder.

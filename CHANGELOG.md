@@ -75,6 +75,9 @@ All notable public changes will be documented in this file.
 - Fixed the published example payloads: `website/examples/android-event.json` was missing the
   required `brand` field and `ios-event.json` was missing `manufacturer` and `brand`, so both failed
   the schema they illustrate. They are now validated on every run by `npm run verify:fixtures`.
+- Added a native iOS consumer at `sdks/ios/example/`: a plain UIKit app that imports
+  `IOSDeviceRiskSignals` as a local Swift package and exercises each extracted collection on an
+  explicit button press, mirroring the native Android example. CI builds it.
 - iOS extraction continued: `AudioLatencyProvider` and `NetworkInfoProvider` moved into the package
   unchanged. The network tests pin every dropping rule the provider relies on for privacy - loopback
   and IPv6 link-local addresses, the `AF_LINK` skip that keeps hardware addresses out, and the

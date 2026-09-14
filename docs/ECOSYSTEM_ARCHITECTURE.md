@@ -61,6 +61,7 @@ logic after extraction is complete.
 | `sdks/android/` | In development | Sixteen standalone collections plus explicit transaction sessions: identity, locale, timing, numeric vectors, audio properties, application, hardware, fonts, passive integrity, network, telephony, cached location, media/app audit, device posture, transaction snapshot, worker-only GPU |
 | `sdks/android-active-probes/` | In development | Optional active Android component; the only component permitted loopback socket I/O, currently one localhost Frida scan |
 | `sdks/android-active-probes/example/` | Development consumer | One-button native app demonstrating the active probe; declares host `INTERNET` itself |
+| `sdks/ios/example/` | Development consumer | Native iOS app consuming the Swift package without React Native |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
 | `sdks/ios/` | In development | Standalone iOS Swift Package with optional Mac Catalyst support; currently the shared statistics helper, runtime timing, numeric consistency, locale, application metadata, telephony, audio latency and network |
 | `sdks/web/` | Planned | Browser SDK |

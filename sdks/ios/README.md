@@ -300,6 +300,29 @@ check instead. `NetworkInfoProvider.proxyPort` is in the table's number column b
 for the same reason — it appears only on a proxied host, so its boxing is pinned in
 `NetworkInfoProviderTests` by feeding the private proxy helper a synthesised settings dictionary.
 
+## Native example app
+
+[`example/`](example/) is a development consumer that uses this package and nothing else — no React
+Native, no CocoaPods, no third-party dependency. It is a single UIKit app target with one button per
+provider (runtime timing, numeric consistency, locale, application, telephony, audio latency,
+network), printing each raw dictionary on screen as JSON. Collection happens only on an explicit
+press; nothing runs at launch, nothing is uploaded, and no score or verdict is derived.
+
+It exists to check the integration boundary from the outside: that the headers in `include/` are
+reachable from a plain Swift target through `import IOSDeviceRiskSignals`, with no bridging header
+and no build-setting help. The Xcode project is hand-written and checked in, because this repository
+has no project generator and a seven-button development app is not worth adding one for.
+
+```sh
+xcodebuild build \
+  -project sdks/ios/example/IOSDeviceRiskSignalsExample.xcodeproj \
+  -scheme IOSDeviceRiskSignalsExample \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
+Telephony returns an empty dictionary on a simulator and network reports the host Mac's interfaces;
+both are documented degradations, explained in the [example README](example/README.md).
+
 ## Relationship to the React Native binding
 
 `react-native-device-risk-signals` is a thin adapter. `ios/DeviceIntel.mm` instantiates

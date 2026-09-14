@@ -42,6 +42,7 @@ android/build/
 /sdks/android-active-probes/example/build/
 /sdks/ios/.build/
 /sdks/ios/.swiftpm/
+/sdks/ios/example/**/xcuserdata/
 
 # testing
 /junit.xml

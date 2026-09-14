@@ -133,6 +133,13 @@ jobs:
           device=$(xcrun simctl list devices available | grep -Eo 'iPhone [0-9A-Za-z ]+' | head -1 | sed 's/ *$//')
           echo "Using simulator: $device"
           xcodebuild test -scheme ios-device-risk-signals -destination "platform=iOS Simulator,name=$device"
+      - name: Build the native iOS consumer
+        # The example app consumes the package's public API only, with no React Native, and is the
+        # iOS counterpart of the native Android example.
+        run: |
+          xcodebuild build -project sdks/ios/example/IOSDeviceRiskSignalsExample.xcodeproj \
+            -scheme IOSDeviceRiskSignalsExample \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
       - name: Build the iOS package for device and Mac Catalyst
         working-directory: sdks/ios
         # Different triples from the simulator: catches simulator-only API use, and makes the
