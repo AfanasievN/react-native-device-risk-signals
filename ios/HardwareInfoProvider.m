@@ -34,7 +34,9 @@ static os_unfair_lock sBatteryMonitoringLock = OS_UNFAIR_LOCK_INIT;
     result[@"processResidentMemoryBytes"] = @(residentMemory);
   }
 
-  // UIScreen / UIDevice / UIFont must be touched on the main thread; TurboModule methods run off it.
+  // UIScreen and UIDevice are both NS_SWIFT_UI_ACTOR in the SDK, so they must be touched on the
+  // main thread; TurboModule methods run off it. UIFont is NS_SWIFT_SENDABLE and is read
+  // directly in fontsFingerprint below.
   void (^work)(void) = ^{
     UIScreen *screen = [UIScreen mainScreen];
     CGRect bounds = screen.bounds;
@@ -75,18 +77,13 @@ static os_unfair_lock sBatteryMonitoringLock = OS_UNFAIR_LOCK_INIT;
 }
 
 // fonts — split out of hardwareSignals into its own probe (isolated, generous timeout on the JS side).
-// UIFont must be touched on the main thread; TurboModule methods run off it, so dispatch there.
+// No main-thread hop: UIFont is declared NS_SWIFT_SENDABLE in the SDK and neither +familyNames nor
+// +fontNamesForFamilyName: is main-actor isolated, unlike UIScreen and UIDevice which are both
+// NS_SWIFT_UI_ACTOR. Enumerating the system font table is the most expensive read in this file, so
+// holding the main thread for it cost the host application for no reason.
 - (NSDictionary *)fontsFingerprint
 {
-  __block NSString *digest = nil;
-  void (^work)(void) = ^{
-    digest = [self fontsDigest];
-  };
-  if ([NSThread isMainThread]) {
-    work();
-  } else {
-    dispatch_sync(dispatch_get_main_queue(), work);
-  }
+  NSString *digest = [self fontsDigest];
   return digest ? @{@"fontsDigest" : digest} : @{};
 }
 

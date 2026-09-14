@@ -47,9 +47,23 @@ depends on is exactly what this ADR plans to move.
 
 ## Open items
 
-The contradiction between `DeviceInfoProvider`, which reads `UIDevice` off the main thread, and
-`HardwareInfoProvider`, which documents that `UIDevice` requires the main thread and hops for it,
-must be resolved before either is extracted; both cannot be right. `ios/` still has no test target,
+The `UIDevice` contradiction is resolved, and both files were half right. The SDK settles it:
+`UIDevice` and `UIScreen` are declared `NS_SWIFT_UI_ACTOR`, and no property of `UIDevice` carries an
+`NS_SWIFT_NONISOLATED` exemption - the only exemptions in that header are notification-name
+constants - so `systemName`, `systemVersion`, `userInterfaceIdiom` and the battery properties are all
+main-actor isolated. `DeviceInfoProvider` now hops for its three reads. `UIFont`, by contrast, is
+`NS_SWIFT_SENDABLE` with no isolation on `+familyNames` or `+fontNamesForFamilyName:`, so the font
+hop was never needed and is gone; that was the most expensive main-thread hold in the codebase.
+A Main Thread Checker harness was attempted first and abandoned: its control case used
+`-[UIScreen setBrightness:]`, which does not merely warn off the main thread but aborts the process
+through a BoardServices barrier assertion, so the harness died before measuring anything. The SDK
+annotations are a stronger source anyway, being Apple's own machine-checkable declaration.
+
+One consequence to watch: `device_identity` has the tightest budget in the repository at 200 ms, and
+it now waits on the main thread. The hop itself costs about 0.009 ms when the main thread is idle,
+but a busy main thread charges the probe a full remaining work item. If that probe starts reporting
+timeouts on real devices, the answer is to raise its budget as `os_integrity` already needed, not to
+put the reads back off-thread. `ios/` still has no test target,
 so changes there are verified by compilation, scratch harnesses and the example app build rather than
 by automated tests. Physical-device validation is still required for the cost of the LaunchServices
 `canOpenURL:` reads, font enumeration off the main thread, and whether the tightest probe budgets

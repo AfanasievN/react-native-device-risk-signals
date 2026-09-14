@@ -7,14 +7,25 @@
 
 - (NSDictionary *)deviceIdentity
 {
-  UIDevice *device = [UIDevice currentDevice];
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
   result[@"manufacturer"] = @"Apple";
   result[@"model"] = [self hardwareModel];
   result[@"brand"] = @"Apple";
-  result[@"systemName"] = device.systemName;
-  result[@"systemVersion"] = device.systemVersion;
-  result[@"isTablet"] = @((BOOL)(device.userInterfaceIdiom == UIUserInterfaceIdiomPad));
+  // UIDevice is declared NS_SWIFT_UI_ACTOR in the SDK and none of these properties carries an
+  // NS_SWIFT_NONISOLATED exemption (the only exemptions in UIDevice.h are the notification-name
+  // constants), so Apple isolates the whole class to the main actor. These reads used to happen on
+  // the TurboModule thread, contradicting the rule HardwareInfoProvider states and follows.
+  void (^work)(void) = ^{
+    UIDevice *device = [UIDevice currentDevice];
+    result[@"systemName"] = device.systemName;
+    result[@"systemVersion"] = device.systemVersion;
+    result[@"isTablet"] = @((BOOL)(device.userInterfaceIdiom == UIUserInterfaceIdiomPad));
+  };
+  if ([NSThread isMainThread]) {
+    work();
+  } else {
+    dispatch_sync(dispatch_get_main_queue(), work);
+  }
 #if TARGET_OS_MACCATALYST
   result[@"isMacCatalystApp"] = @YES;
 #else

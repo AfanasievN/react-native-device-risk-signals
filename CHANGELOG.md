@@ -33,6 +33,17 @@ All notable public changes will be documented in this file.
   defect earlier; see [ADR-0005](docs/adr/0005-ios-threading-contract.md). A checkout that predates
   the iOS extraction needs `pod install` in `example/ios` before it builds.
 
+### Fixed
+
+- iOS `device_identity` now reads `UIDevice` on the main thread. The SDK declares `UIDevice`
+  `NS_SWIFT_UI_ACTOR` with no exemption for `systemName`, `systemVersion` or `userInterfaceIdiom`,
+  so those reads were violating Apple's declared threading contract while a sibling provider
+  documented and followed the opposite rule.
+- iOS font enumeration no longer blocks the main thread. `UIFont` is declared `NS_SWIFT_SENDABLE`
+  and neither `+familyNames` nor `+fontNamesForFamilyName:` is main-actor isolated, so the hop was
+  never required; it was the most expensive main-thread hold in the library, on the probe with the
+  largest budget.
+
 ### Changed
 
 - `os_integrity` now has a 1000 ms probe timeout instead of 400 ms. Measured on an Android 15 arm64

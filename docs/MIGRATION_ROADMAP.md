@@ -223,10 +223,11 @@ for compatibility changes and the difference between queue cancellation and inte
   extracted, so the iOS SDK asserts its thread requirement the way the Android core does instead of
   dispatching on the caller's behalf. `SecurityPostureProvider` is the forcing case: tightest budget,
   two hops, and an Android counterpart that already went through ADR-0002.
-- [ ] Resolve the `UIDevice` contradiction before extracting either file: `DeviceInfoProvider` reads
-  `systemName`, `systemVersion` and `userInterfaceIdiom` off the main thread with no hop, while
-  `HardwareInfoProvider` documents that `UIDevice` requires the main thread and hops for it. Both
-  cannot be right, and the answer is the rule the remaining extractions will cite.
+- [x] Resolve the `UIDevice` contradiction. The SDK annotations decide it: `UIDevice` and `UIScreen`
+  are `NS_SWIFT_UI_ACTOR` with no property exemptions, so `DeviceInfoProvider` gained the hop it was
+  missing; `UIFont` is `NS_SWIFT_SENDABLE`, so the font enumeration hop was unnecessary and is gone.
+- [ ] Watch `device_identity` under its 200 ms budget now that it hops to the main thread, and
+  measure it on a physical device with a busy UI before assuming the budget still holds.
 - [ ] Define observer ownership and cleanup for screenshot/capture/transaction state; do not rely
   on RN types or global RN lifecycle inside the core.
 - [ ] Keep `ios/DeviceIntel.mm` as bridge glue; verify both direct native consumption and RN's
