@@ -91,6 +91,15 @@ All notable public changes will be documented in this file.
   open; they depend on credentials held outside this repository.
 
 ### Fixed
+- Development-dependency advisories are cleared down to the ones that need a React Native upgrade:
+  27 rows to 4 at the root and 19 to 4 in the example app. The root cause of the largest group was
+  ours - `package.json` pinned `brace-expansion` to `5.0.8` through an `overrides` entry, and the
+  fix for the DoS advisory shipped in `5.0.9`, so our own pin was holding the vulnerable version in
+  place. Jest also moved to 30 in both trees. None of this ever reached a consumer: the published
+  package declares no runtime dependencies at all, only peer dependencies on `react` and
+  `react-native`, and the tarball ships no part of the example app. The four remaining rows are two
+  `image-size` denial-of-service advisories reached through `metro`; no patched `1.x` exists, so
+  they need React Native 0.87 in the build toolchain.
 
 - iOS probes no longer serialize behind one another. `DeviceIntel` now declares its own concurrent
   `methodQueue`; without one, React Native assigns a single serial queue shared with every other
