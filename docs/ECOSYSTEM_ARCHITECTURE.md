@@ -192,10 +192,18 @@ Current transition rules:
 - `react-native-device-risk-signals` remains the only published component.
 - Existing tags `vX.Y.Z` and the current GitHub Release workflow refer only to that npm package.
 - Planned/in-development components must not be presented as installable registry packages.
-- The first published version of each Android component is `0.1.0`, following the `0.1.0-SNAPSHOT`
-  they already carry. It is deliberately not `1.0.0`: representative physical-device QA has not
-  happened, so a version implying stability would misstate what the artifact is. The version is
-  declared once per component in its `gradle.properties` and overridden by the release workflow.
+- The passive core `io.github.afanasievn:android-device-risk-signals` is released first and alone, at
+  `0.1.0`. It is deliberately not `1.0.0`: representative physical-device QA has not happened, so a
+  version implying stability would misstate what the artifact is. Releasing it does not make the
+  component `active` in `device-risk-signals.json`; that status has its own gates.
+- `android-active-probes-device-risk-signals` stays unpublished for now and keeps `0.1.0-SNAPSHOT`.
+  It ships its loopback probe enabled by default, which is a defensible inherited default inside
+  this repository and a different thing once any consumer can add the coordinate and get loopback
+  scanning without asking for it. Publishing it is a separate decision, not a follow-up chore.
+- The two components are versioned independently, so their versions are expected to differ. Each is
+  declared once in its own `gradle.properties`, mirrored by one default per component in the React
+  Native binding's artifact-mode dependency, and `npm run verify:android-version` compares each
+  binding default against its own component only - never one component against the other.
 - Publication order is fixed, because reversing it breaks consumers. Maven Central first, so a
   native Android host has something to depend on; then the React Native binding switches from
   compiling the SDK source directories to consuming those artifacts, which it already proves in CI

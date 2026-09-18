@@ -53,6 +53,12 @@ All notable public changes will be documented in this file.
   boolean. `npm run verify:ios-booleans` fails the build if the pattern returns.
 
 ### Added
+- The passive Android core is staged for its first Maven Central release at `0.1.0`, and the React
+  Native binding's artifact-mode default follows it. The optional active-probes component stays at
+  `0.1.0-SNAPSHOT` and is not being published: it ships its loopback probe enabled, which is a
+  different proposition once any consumer can add the coordinate. Nothing is on a registry until the
+  release workflow runs and the deployment is published by hand, and `device-risk-signals.json` still
+  reports both components unpublished.
 - Everything the Android components need for a Maven Central release that does not require a key is
   in place: a single declared version per component, `signing` that activates only when an in-memory
   key is present, the Central Portal repository gated on credentials, and a manual-dispatch release

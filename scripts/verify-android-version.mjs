@@ -1,77 +1,92 @@
 #!/usr/bin/env node
-// Drift guard: the Android component version is declared in three places, and a release that
-// updates only some of them fails in the one path CI exercises least.
+// Drift guard: each Android component's version is declared in two places, and a release that
+// updates only one fails in the path CI exercises least.
 //
-//   sdks/android/gradle.properties                  deviceRiskSignalsVersion
-//   sdks/android-active-probes/gradle.properties    deviceRiskSignalsVersion
-//   android/build.gradle                            componentVersion default, used by the
-//                                                   -PdeviceRiskSignalsUseArtifacts path
+//   sdks/android/gradle.properties                deviceRiskSignalsVersion
+//   android/build.gradle                          coreVersion default
 //
-// A stale default in the binding resolves nothing once the components carry a real version, and
-// only the artifact-mode CI job would notice. This check is cheap and runs with the rest.
+//   sdks/android-active-probes/gradle.properties  deviceRiskSignalsVersion
+//   android/build.gradle                          activeProbesVersion default
+//
+// The two components are versioned INDEPENDENTLY - docs/ECOSYSTEM_ARCHITECTURE.md, "Versioning and
+// releases" - so this never compares one component against the other. It only checks that the
+// React Native binding's artifact-mode default for a component matches that component's own
+// declaration. A stale default resolves nothing once that component carries a real version, and
+// only the -PdeviceRiskSignalsUseArtifacts CI job would notice.
 import { readFileSync } from 'node:fs';
 
-const sources = [
+const BINDING = 'android/build.gradle';
+
+const components = [
   {
-    path: 'sdks/android/gradle.properties',
-    label: 'passive core component',
-    read: (text) => /^deviceRiskSignalsVersion=(.+)$/m.exec(text)?.[1]?.trim(),
+    label: 'passive core',
+    properties: 'sdks/android/gradle.properties',
+    bindingProperty: 'deviceRiskSignalsCoreVersion',
+    coordinate: 'io.github.afanasievn:android-device-risk-signals',
   },
   {
-    path: 'sdks/android-active-probes/gradle.properties',
-    label: 'active probes component',
-    read: (text) => /^deviceRiskSignalsVersion=(.+)$/m.exec(text)?.[1]?.trim(),
-  },
-  {
-    path: 'android/build.gradle',
-    label: 'React Native binding artifact-mode default',
-    read: (text) =>
-      /findProperty\("deviceRiskSignalsComponentVersion"\)\s*\?:\s*"([^"]+)"/.exec(text)?.[1]?.trim(),
+    label: 'active probes',
+    properties: 'sdks/android-active-probes/gradle.properties',
+    bindingProperty: 'deviceRiskSignalsActiveProbesVersion',
+    coordinate: 'io.github.afanasievn:android-active-probes-device-risk-signals',
   },
 ];
 
-const found = [];
 const failures = [];
+let bindingText;
+try {
+  bindingText = readFileSync(BINDING, 'utf8');
+} catch (error) {
+  console.error(`${BINDING} could not be read (${error.code ?? error.message}).`);
+  process.exit(1);
+}
 
-for (const source of sources) {
-  let text;
+const checked = [];
+
+for (const component of components) {
+  let declared;
   try {
-    text = readFileSync(source.path, 'utf8');
+    declared = /^deviceRiskSignalsVersion=(.+)$/m.exec(readFileSync(component.properties, 'utf8'))?.[1]?.trim();
   } catch (error) {
-    failures.push(`${source.path} could not be read (${error.code ?? error.message}).`);
+    failures.push(`${component.properties} could not be read (${error.code ?? error.message}).`);
     continue;
   }
-  const version = source.read(text);
-  if (!version) {
+  if (!declared) {
     failures.push(
-      `${source.path} no longer declares a version this check can find. If the declaration moved, ` +
-        'update scripts/verify-android-version.mjs rather than dropping the guard.',
+      `${component.properties} no longer declares deviceRiskSignalsVersion. If the declaration ` +
+        'moved, update scripts/verify-android-version.mjs rather than dropping the guard.',
     );
     continue;
   }
-  found.push({ ...source, version });
-}
 
-const versions = new Set(found.map((entry) => entry.version));
-if (versions.size > 1) {
-  failures.push(
-    'Android component versions disagree:\n' +
-      found.map((entry) => `  ${entry.version.padEnd(16)} ${entry.path} (${entry.label})`).join('\n'),
-  );
-}
-
-// The binding may also name the coordinates; a rename there would silently resolve nothing.
-const bindingText = readFileSync('android/build.gradle', 'utf8');
-for (const coordinate of [
-  'io.github.afanasievn:android-device-risk-signals',
-  'io.github.afanasievn:android-active-probes-device-risk-signals',
-]) {
-  if (!bindingText.includes(coordinate)) {
+  const pattern = new RegExp(`findProperty\\("${component.bindingProperty}"\\)\\s*\\?:\\s*"([^"]+)"`);
+  const bindingDefault = pattern.exec(bindingText)?.[1]?.trim();
+  if (!bindingDefault) {
     failures.push(
-      `android/build.gradle no longer declares ${coordinate}. Coordinates are normative in ` +
+      `${BINDING} no longer declares a default for ${component.bindingProperty} ` +
+        `(${component.label}). The artifact-mode dependency would fall back to whatever is left.`,
+    );
+    continue;
+  }
+
+  if (bindingDefault !== declared) {
+    failures.push(
+      `${component.label}: ${component.properties} declares ${declared}, but ${BINDING} defaults ` +
+        `${component.bindingProperty} to ${bindingDefault}. Artifact-mode builds would resolve a ` +
+        'version that is not the one being built.',
+    );
+    continue;
+  }
+
+  if (!bindingText.includes(component.coordinate)) {
+    failures.push(
+      `${BINDING} no longer declares ${component.coordinate}. Coordinates are normative in ` +
         'device-risk-signals.json; update both together.',
     );
+    continue;
   }
+
+  checked.push(`${component.label} ${declared}`);
 }
 
 if (failures.length > 0) {
@@ -79,6 +94,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(
-  `Verified the Android component version ${[...versions][0]} agrees across ${found.length} declarations.`,
-);
+console.log(`Verified the binding tracks each Android component version: ${checked.join(', ')}.`);

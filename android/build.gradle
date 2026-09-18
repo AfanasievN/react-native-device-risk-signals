@@ -52,10 +52,14 @@ apply plugin: "com.facebook.react"
 def useComponentArtifacts = project.hasProperty("deviceRiskSignalsUseArtifacts") &&
   project.property("deviceRiskSignalsUseArtifacts").toString().toBoolean()
 
-// Must match `deviceRiskSignalsVersion` in both components' gradle.properties; the drift guard
-// named below enforces it. Overridable the same way the components are, so a release build can
-// point the binding at the version it just published.
-def componentVersion = project.findProperty("deviceRiskSignalsComponentVersion") ?: "0.1.0-SNAPSHOT"
+// One default per component, because the two are versioned independently: the architecture's
+// "Versioning and releases" section says components carry their own semantic versions, and the
+// passive core is being released before the optional active component. Each must match
+// `deviceRiskSignalsVersion` in that component's own gradle.properties; `npm run
+// verify:android-version` enforces it per component. Overridable so a release build can point the
+// binding at the version it just published.
+def coreVersion = project.findProperty("deviceRiskSignalsCoreVersion") ?: "0.1.0"
+def activeProbesVersion = project.findProperty("deviceRiskSignalsActiveProbesVersion") ?: "0.1.0-SNAPSHOT"
 
 if (useComponentArtifacts) {
   repositories {
@@ -122,12 +126,11 @@ dependencies {
   testImplementation "junit:junit:4.13.2"
 
   if (useComponentArtifacts) {
-    // Kept in one place because this is the third file that names a component version, after each
-    // component's own gradle.properties. `npm run verify:android-version` fails when the three
-    // disagree - a stale coordinate here would resolve nothing on the day the components are
-    // released, and only in the artifact path that CI alone exercises.
-    implementation "io.github.afanasievn:android-device-risk-signals:${componentVersion}"
-    implementation "io.github.afanasievn:android-active-probes-device-risk-signals:${componentVersion}"
+    // `npm run verify:android-version` fails when either default drifts from its component's
+    // gradle.properties - a stale coordinate here would resolve nothing on the day that component
+    // is released, and only in the artifact path that CI alone exercises.
+    implementation "io.github.afanasievn:android-device-risk-signals:${coreVersion}"
+    implementation "io.github.afanasievn:android-active-probes-device-risk-signals:${activeProbesVersion}"
   }
 }
 
