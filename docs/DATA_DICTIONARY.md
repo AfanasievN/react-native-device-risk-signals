@@ -119,6 +119,16 @@ from the host application's authorization. On iOS 15 and newer, a cached locatio
 `isSimulatedBySoftware` and `isProducedByAccessory` from `CLLocationSourceInformation`. Those source
 fields are omitted when there is no cached location or the OS does not expose source information.
 
+`geolocation.locationAgeMs` is the age of the cached fix in whole milliseconds, clamped at zero for a
+fix timestamped in the future. It is a JSON number and always has been, but up to and including the
+previous release the Android side computed it as a 64-bit value and then narrowed it to a 32-bit
+integer, so any age past `Int.MAX_VALUE` ms (about 24.86 days) wrapped and could surface as a small
+or negative number — a 30-day-old fix was emitted as `-1702967296`. Android now carries the age as a
+64-bit value end to end, and iOS is explicitly 64-bit too, so the emitted number is the true age.
+Consumers no longer need to reject negative `locationAgeMs` values as suspect, but a consumer that
+stored the field in a 32-bit column should widen it: an age larger than 2147483647 is now possible
+and legitimate.
+
 `mockLocationAppsFound` is retained in the optional public type for compatibility but is **not populated**.
 Android has no safe complete app-level implementation without broad installed-package enumeration,
 which this SDK prohibits. Use the direct `isFromMockProvider` observation when an Android cached
@@ -145,12 +155,23 @@ Frida evidence beyond the port connect covers worker-thread names (`fridaThreadN
 those `/proc`-derived fields — plus `suOnPath` — is **omitted when its source cannot be read**, because
 SELinux routinely denies these paths to third-party apps; an absent field means unknown and must not be
 defaulted to `false`. The separate legacy RN active scan's `fridaHandshakeReject` is not a
-`/proc` field: it records a REJECT-like response prefix, not service identity. Its current socket
+`/proc` field: it records a REJECT-like response prefix, not service identity. Its socket
 errors/timeouts collapse into false flags rather than distinct unavailable outcomes. This active
 TCP scan is collected by the optional `android-active-probes` component, not the no-network core; see
-[ADR-0003](adr/0003-active-loopback-probe-component.md). Its single-read handshake, collapsed false
-flags and shared connect/read timeout are unchanged by that move and remain tracked in the migration
-checklist. One consequence is now device-verified: a host application that has not declared
+[ADR-0003](adr/0003-active-loopback-probe-component.md). **Breaking behavior change:** that component
+no longer performs a single six-byte read bounded by one shared 700 ms connect/read timeout. The
+reply is a TCP stream, so it is now reassembled across reads until the `REJECT` prefix is decided or
+the read budget is spent, and connect (700 ms) and read (800 ms, a budget for the whole read rather
+than per call) have separate budgets, giving a documented worst case of 1500 ms per scan.
+`fridaHandshakeReject` therefore reports `true` for replies that previously reported `false` — a
+`REJECT` line split across TCP segments, or one arriving later than the old shared value but inside
+the read budget. Field names and types are unchanged; historical values must not be compared across
+this change, and the observed rate of `fridaHandshakeReject = true` is expected to rise. The
+collapsed false flags for `defaultPortOpen` and for handshake failures are **not** fixed and remain
+tracked in the migration checklist. The probe is declared **enabled by default** in the component as
+well as in the probe catalog (`DeviceRiskActiveProbes.FRIDA_SCAN_ENABLED_BY_DEFAULT`, pinned by a
+test); that default is inherited from the pre-extraction React Native package, not justified by
+physical-device QA, which has not happened. One consequence is now device-verified: a host application that has not declared
 `INTERNET` cannot open the socket at all, so both flags read `false` while a listener is running.
 Treat `false` as unknown unless you know the host declares that permission. `collectOsIntegrity()` in the standalone SDK includes passive observations only and does
 not add package-visibility declarations; package presence flags are limited by the native host's

@@ -6,6 +6,37 @@ All notable public changes will be documented in this file.
 
 ### Breaking
 
+- The Android active-probes component now reassembles the frida handshake reply across reads and
+  gives connect and read separate budgets. It previously performed exactly one `read` of up to six
+  bytes using the connect timeout as the read timeout, so a `REJECT` line split across TCP segments,
+  trickled out byte by byte, or arriving after that shared 700 ms read as "no REJECT".
+  `os_integrity.fridaHandshakeReject` can therefore now be `true` where the same device and the same
+  listener previously produced `false`, and the observed rate of `true` should rise. Values recorded
+  before and after this change must not be compared: a stored `false` and a new `true` can describe
+  the same device. Field names, types, host, port, the `REJECT` prefix and the
+  `scanPerformed`/`scannedPort`/`defaultPortOpen` semantics are unchanged. Connect keeps its 700 ms
+  budget; the read budget is 800 ms and covers the whole read rather than each call, so a listener
+  trickling bytes cannot extend the call, and the documented worst case per scan is 1500 ms. The
+  remaining defect is untouched and still recorded: every handshake failure collapses to `false`, so
+  a non-`REJECT` answer and a failed read remain indistinguishable, and a `REJECT`-like reply still
+  does not authenticate a service.
+
+- Android `geolocation.locationAgeMs` is now a 64-bit millisecond age. The collector narrowed the
+  `Long` difference to an `Int`, so a cached fix older than `Int.MAX_VALUE` ms - about 24.86 days,
+  which a stale fix or a device clock moved backwards reaches routinely - wrapped: a 30-day-old fix
+  was emitted as `-1702967296`. The serialized JSON type does not change; it was a number and still
+  is, and the TypeScript declaration, catalog and event schema are byte-identical. What changes is
+  the value for such fixes, and that values above `2147483647` are now reachable. Consumers storing
+  the field in a 32-bit column must widen it, and any ingestion rule treating a negative
+  `locationAgeMs` as suspect becomes dead code, because negatives can no longer be produced. This is
+  source-breaking for standalone Kotlin hosts of `sdks/android`: `GeolocationSignals.locationAgeMs`
+  is `Long?`, its positional constructor slot takes a `Long?`, and `toRawMap()` boxes a
+  `java.lang.Long`. That component is not published, so no released artifact is affected. The React
+  Native value converter needed no change - it already routes `Long` through `putDouble`, which
+  carries a millisecond age exactly far beyond any real value. iOS did not share the defect: it
+  boxed an `NSInteger`, already 64-bit on every supported target, and now says `int64_t` so the
+  width is stated rather than inherited.
+
 - iOS now emits real booleans for fourteen fields that previously crossed the bridge as `1`/`0`:
   `device_identity.isTablet`; `os_integrity.suspiciousFilePathsFound`, `injectedLibrariesFound`,
   `hookFrameworkFound` and `suspiciousEnvironmentVariablesFound`; `network.isConnected`;
@@ -20,6 +51,22 @@ All notable public changes will be documented in this file.
   true` start working. `numeric_consistency.signedZeroPreserved` and `subnormalPreserved` also stop
   returning the number `0` on the false path, because the JavaScript probe's `&&` now receives a
   boolean. `npm run verify:ios-booleans` fails the build if the pattern returns.
+
+### Added
+
+- The Android active-probes component declares its default explicitly.
+  `DeviceRiskActiveProbes.FRIDA_SCAN_PROBE_ID` and `FRIDA_SCAN_ENABLED_BY_DEFAULT = true` state in
+  code what a native host previously had to infer, since the component expressed no default at all
+  and simply ran whatever was called. The value matches the React Native catalog, and the exemption
+  from the AGENTS.md rule that a new sensitive probe ships disabled is written out: this probe is not
+  new, it shipped enabled before extraction and ADR-0003 preserved that default, so turning it off
+  would itself be the behavior change. The declaration also records that representative
+  physical-device QA has not happened and that no benchmark justifies the cost - "enabled" is
+  inherited behavior, not a recommendation. A test pins the constant against the catalog source.
+- Both Android components now publish a javadoc jar rendered from their KDoc by Dokka, alongside the
+  AAR and sources jar, so the publication carries the artifact Maven Central requires instead of
+  leaving it for release day. Signing, Sonatype namespace verification and a real version remain
+  open; they depend on credentials held outside this repository.
 
 ### Fixed
 

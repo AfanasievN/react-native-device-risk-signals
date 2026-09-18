@@ -209,7 +209,8 @@ runs still require physical-device QA, which remains a release gate.
 
 ## Local publication
 
-The component publishes a release AAR, a sources jar and full POM metadata to a file repository
+The component publishes a release AAR, a sources jar, a Dokka-rendered javadoc jar and full POM
+metadata to a file repository
 inside its own build output, so artifact consumption can be verified without any registry:
 
 ```sh
@@ -217,10 +218,11 @@ example/android/gradlew -p sdks/android :publishReleasePublicationToLocalBuildRe
 ```
 
 The result lands in `sdks/android/build/local-maven` under ``io.github.afanasievn:android-device-risk-signals``.
-Nothing is written to `~/.m2` and no credentials are involved. A real Maven Central release still
-needs signing, a javadoc or Dokka artifact, Sonatype namespace verification, the staging flow and a
-version other than `0.1.0-SNAPSHOT`; those are tracked in
-[the migration checklist](../../docs/MIGRATION_ROADMAP.md).
+Nothing is written to `~/.m2` and no credentials are involved. The javadoc jar is rendered from the
+KDoc rather than being an empty placeholder, so it satisfies Maven Central's requirement with real
+documentation. A real Maven Central release still needs signing, Sonatype namespace verification,
+the staging flow and a version other than `0.1.0-SNAPSHOT`; those live outside this repository and
+are tracked in [the migration checklist](../../docs/MIGRATION_ROADMAP.md).
 
 ## Development distribution
 

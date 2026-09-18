@@ -37,7 +37,7 @@ internal class GeolocationCollector(private val context: Context) {
           altitudeMeters = if (location.hasAltitude()) location.altitude else null,
           provider = location.provider,
           isFromMockProvider = isMock(location),
-          locationAgeMs = (System.currentTimeMillis() - location.time).coerceAtLeast(0).toInt(),
+          locationAgeMs = locationAgeMs(System.currentTimeMillis(), location.time),
         )
       }
     }
@@ -106,6 +106,14 @@ internal class GeolocationCollector(private val context: Context) {
   }
 
   companion object {
+    /**
+     * Age of a cached fix in milliseconds, clamped at zero for a fix timestamped in the future.
+     * Kept as a `Long`: narrowing to `Int` wraps past `Int.MAX_VALUE` ms (~24.86 days), which a
+     * long-cached fix or a backwards device clock reaches routinely.
+     */
+    internal fun locationAgeMs(nowMs: Long, fixTimeMs: Long): Long =
+      (nowMs - fixTimeMs).coerceAtLeast(0)
+
     private val PROVIDERS = listOf(
       LocationManager.NETWORK_PROVIDER,
       LocationManager.GPS_PROVIDER,

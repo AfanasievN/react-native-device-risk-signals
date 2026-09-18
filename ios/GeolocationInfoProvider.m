@@ -63,7 +63,10 @@
       }
       NSTimeInterval age = -[location.timestamp timeIntervalSinceNow];
       if (age >= 0) {
-        result[@"locationAgeMs"] = @((NSInteger)(age * 1000));
+        // 64-bit on purpose, matching the Kotlin Long: a 32-bit millisecond age wraps past
+        // ~24.86 days, which a long-cached fix or a backwards device clock reaches routinely.
+        // NSInteger is already 64-bit on every supported (arm64) iOS target; int64_t says so.
+        result[@"locationAgeMs"] = @((int64_t)(age * 1000));
       }
     }
   }

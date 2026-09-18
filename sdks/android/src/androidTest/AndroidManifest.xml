@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Test-only manifest. It is merged into the androidTest APK only and is never part of the published
+  library, which still declares no permissions and no components (src/main/AndroidManifest.xml).
+
+  The two capture-detection permissions are declared so that the instrumented suite exercises the
+  granted branch of TransactionObservationSession.attach(): real registerScreenCaptureCallback /
+  addScreenRecordingCallback registration and the matching unregistration on detach(). Both are
+  install-time (normal) permissions, so they are granted without a prompt; neither is requested at
+  runtime and neither reaches a consumer of the library.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
+  <uses-permission android:name="android.permission.DETECT_SCREEN_RECORDING" />
+
+  <application>
+    <activity
+      android:name="io.github.afanasievn.devicerisksignals.TransactionTestActivity"
+      android:exported="false"
+      android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+    <activity
+      android:name="io.github.afanasievn.devicerisksignals.SecondTransactionTestActivity"
+      android:exported="false"
+      android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+  </application>
+
+</manifest>

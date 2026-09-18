@@ -12,7 +12,11 @@ data class GeolocationSignals(
   val altitudeMeters: Double? = null,
   val provider: String? = null,
   val isFromMockProvider: Boolean? = null,
-  val locationAgeMs: Int? = null,
+  /**
+   * Age of the cached fix in milliseconds. `Long` because an `Int` overflows past ~24.86 days and
+   * a cached fix — or a device clock moved backwards — can easily exceed that.
+   */
+  val locationAgeMs: Long? = null,
 ) {
   fun toRawMap(): Map<String, Any> = buildMap {
     hasCoarsePermission?.let { put("hasCoarsePermission", it) }

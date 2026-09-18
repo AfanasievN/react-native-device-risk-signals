@@ -172,7 +172,9 @@ queries, runtime dependencies or native frameworks were added. Protected reads u
 host permissions; no permission prompts occur. Inherited limitations remain explicit follow-ups:
 some geolocation helpers collapse failures into false, and `locationAgeMs` retains its 32-bit
 narrowing (overflow is possible after roughly 24.86 days). Fixing those semantics requires separate
-regression and compatibility work, not an undocumented change during a provider move.
+regression and compatibility work, not an undocumented change during a provider move. (The
+`locationAgeMs` narrowing has since been fixed as its own documented change — see
+[`ANDROID_SDK_API.md` §7.3](ANDROID_SDK_API.md#73-locationagems-is-a-long-it-used-to-narrow-to-an-int).)
 
 RED: new model/policy tests failed on missing core types; the native example failed on missing facade
 methods. GREEN: those same targets pass after extraction. Tests cover omitted values, false/zero,

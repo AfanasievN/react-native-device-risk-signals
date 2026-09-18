@@ -1,6 +1,7 @@
 # Device Risk Signals migration checklist
 
-Last reviewed: 2026-09-09, including the active-probe native demo and its host-permission finding.
+Last reviewed: 2026-09-18, including the instrumented transaction-lifecycle suite, the active
+probe's declared default and the javadoc artifact.
 
 This is the remaining-work checklist for the [ecosystem architecture](ECOSYSTEM_ARCHITECTURE.md).
 It describes repository implementation, not a claim that local commits have been pushed, deployed,
@@ -14,8 +15,8 @@ historical test evidence.
 | Area | Implemented | Still missing |
 | --- | --- | --- |
 | Shared contract | Generated catalog and event schema in `contract/`, mirrored to Pages | Independent authoring/versioning and cross-SDK conformance fixtures |
-| Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU with an instrumented EGL suite, native example and CI checks | Transaction lifecycle and physical-device GL QA, Maven publication |
-| Android active probes | Separate optional component with the loopback Frida scan, JVM socket tests, lint and package-content gates, a native one-button demo, consumed by the binding | Host-permission outcome modeling, probe-default decision, physical-device QA, iOS loopback resolution, Maven publication |
+| Android | Sixteen typed collections, explicit transaction sessions, worker-only GPU, instrumented EGL and transaction-lifecycle suites, native example, CI checks, AAR with sources and javadoc | Physical-device QA (GL drivers, OEM windows, denied permissions), registry publication |
+| Android active probes | Separate optional component with the loopback Frida scan, a declared default, reassembled handshake reads with split timeouts, JVM socket tests, lint and package-content gates, a native one-button demo, consumed by the binding | Host-permission outcome modeling, remaining collapsed false flags, physical-device QA, iOS loopback resolution, registry publication |
 | iOS | Swift package with nine extracted collections tested on simulator/device/Catalyst and consumed by the pod; remaining providers under `ios/` | Foundation and UIKit provider extraction, observer ownership, Catalyst/device destinations, native consumer and release pipeline |
 | React Native | Active npm package at the root; extracted Android methods delegate to core | Complete thin adapter, released SDK dependencies and relocation |
 | Web | Project naming decision and placeholder directory | SDK implementation, capability catalog, browser tests and npm release |
@@ -55,9 +56,10 @@ Moving all `.kt` files into the SDK is not the goal. Thread dispatch, framework 
 conversion and RN error translation stay at the binding boundary.
 
 Network, telephony and cached-location extraction is implemented. Physical-device QA remains a
-release gate. Track the inherited `locationAgeMs` 32-bit narrowing separately: an old cached fix
-can overflow after roughly 24.86 days; fixing its representation needs regression and compatibility
-review rather than a silent change during extraction.
+release gate. The inherited `locationAgeMs` 32-bit narrowing is fixed: the age is a `Long` end to
+end, so a fix older than roughly 24.86 days no longer wraps to a negative value. The serialized JSON
+type is unchanged, but the Kotlin signature is source-breaking for standalone hosts; iOS never
+shared the defect because `NSInteger` is already 64-bit on every supported target.
 
 Media/Bluetooth/finite app audit and point-in-time device security posture are also extracted.
 Host-owned visibility and Bluetooth permissions, finite lists and existing fallbacks are unchanged.
@@ -79,9 +81,22 @@ for compatibility changes and the difference between queue cancellation and inte
 - [x] Omit unsupported partial-obscuration below API 29; preserve false after an observable clean touch.
 - [x] Invalidate detached callback generations, including wrappers retained by a third party, and
   keep input forwarding unchanged. Pure lifecycle tests cover stale tokens and terminal close.
-- [ ] Add instrumented/physical tests for no activity, repeated attach, activity switch/destroy,
-  nested wrappers, registration failure, permissions, API 24/28/29/34/35 gates and collect/dispose
-  races. Pure-state/queue regressions and successful compilation do not cover Android framework behavior.
+- [x] Add an instrumented suite for the transaction session: no activity, lifecycle calls from a
+  background thread on the real `Looper`, repeated attach, detach/reattach, activity switch, activity
+  destroyed mid-session, a wrapper installed before attach and another wrapped around ours after it, a
+  retained stale-generation callback, the granted-permission registration path, the API 29/34/35 gates
+  and a three-reader snapshot race across 40 attach/detach cycles. Fifteen tests, executed on an API 35
+  arm64 emulator alongside the ten GPU tests; CI compiles the suite but has no device to run it.
+- [ ] Cover what that suite cannot reach: the API 24/28/29 low-side branches (the gate tests already
+  branch on `SDK_INT`, so they need only an older AVD, which was not created); the permission-denied
+  branch of `attach()`, which needs a second test APK because permissions are per-APK; a genuine
+  callback registration failure, which no emulator provokes - a destroyed Activity does not, so the
+  `safe {}` swallow path stays unproven; real obscured touches, which need a second app holding
+  `SYSTEM_ALERT_WINDOW`; and real screenshot/recording events firing.
+- [ ] Decide whether `attach()` should refuse a destroyed Activity. On API 35 neither
+  `registerScreenCaptureCallback` nor `addScreenRecordingCallback` rejects one, so the session reports
+  `screenshotObservationActive = true` for coverage it cannot have. The instrumented suite pins the
+  observed platform behavior so a change becomes visible; this is host misuse today, but it is silent.
 - [x] Add `collectGpuBenchmark()` with UI-thread rejection and documented dedicated-worker ownership.
   Cleanup attempts to restore a changed EGL binding and never terminates the shared display.
 - [x] Test shader/program failure ownership, independent cleanup order, unchanged-binding behavior
@@ -104,9 +119,13 @@ for compatibility changes and the difference between queue cancellation and inte
 - [x] Document the final synchronous/lifecycle API, concurrency rules, cancellation/timeout ownership,
   cleanup obligations, supported Android versions and per-probe capabilities:
   [`ANDROID_SDK_API.md`](ANDROID_SDK_API.md), written against the code with file:line citations.
-- [ ] Decide the active probe's default in the component itself. The React Native catalog ships
-  `os_integrity_frida_scan` enabled, AGENTS.md requires a new sensitive probe to ship disabled, and
-  the standalone component expresses no default at all - a native host today gets whatever it calls.
+- [x] Decide the active probe's default in the component itself. `DeviceRiskActiveProbes` now
+  declares `FRIDA_SCAN_PROBE_ID` and `FRIDA_SCAN_ENABLED_BY_DEFAULT = true`, matching the React
+  Native catalog, with the AGENTS.md exemption written out: the probe is not new, it shipped enabled
+  before extraction and ADR-0003 preserved that default, so switching it off would itself be the
+  behavior change. The declaration states plainly that physical-device QA has not happened and that
+  no benchmark justifies the cost. A test pins the constant against the catalog source, and the test
+  task declares that source as an input so the pin cannot go stale behind an up-to-date check.
 - [x] Complete standalone Android lint and native-consumer checks in CI, plus package-content checks
   proving the AAR contains no RN/other-platform implementation or unintended dependency. Both
   components run `:lintRelease` with `warningsAsErrors`/`checkAllWarnings` plus test sources, and
@@ -121,10 +140,14 @@ for compatibility changes and the difference between queue cancellation and inte
 - [x] Configure Maven publication for both Android components: `maven-publish`, a release
   publication with a sources jar and full POM metadata, published to a file repository inside each
   component's build output. CI publishes there and builds the binding against the result.
-- [ ] Complete the registry half of publication: signing, a javadoc or Dokka artifact, Sonatype
-  namespace verification, credentials, the staging/release flow, a real version instead of
-  `0.1.0-SNAPSHOT`, and component release
-  automation; verify installation from the intended registry in a clean native consumer.
+- [x] Produce the javadoc artifact Maven Central requires. Both components apply
+  `org.jetbrains.dokka-javadoc` and attach a `-javadoc.jar` rendered from the KDoc - real
+  documentation, not an empty placeholder - next to the AAR and sources jar in each local
+  publication.
+- [ ] Complete the rest of the registry half: signing, Sonatype namespace verification, credentials,
+  the staging/release flow, a real version instead of `0.1.0-SNAPSHOT`, and component release
+  automation; verify installation from the intended registry in a clean native consumer. These
+  depend on a GPG key and registry accounts that do not exist in this repository.
 - [ ] Publish platform documentation and a tested binding-to-SDK compatibility range before marking
   Android `active`. A locally built AAR does not satisfy this gate.
 
@@ -134,17 +157,23 @@ for compatibility changes and the difference between queue cancellation and inte
   The scan moved into the optional `sdks/android-active-probes/` component, whose contract permits
   loopback socket I/O only; the core gained no socket API and no `INTERNET` declaration, and the
   binding delegates to the component. Emitted fields, types and the probe default are unchanged.
-- [ ] Decide whether an active probe stays enabled by default. ADR-0003 deliberately flipped no
-  default, so an active loopback probe currently ships on in React Native.
+- [x] Decide whether an active probe stays enabled by default. Resolved as enabled, declared
+  explicitly in the component as well as the React Native catalog, with the reasoning and the
+  missing QA recorded rather than implied.
 - [ ] Model "the host cannot open a socket" as its own outcome. Device evidence: an application that
   has not declared `INTERNET` is outside the `inet` group, so the scan reports `defaultPortOpen` and
   `fridaHandshakeReject` as false even with a listener on 127.0.0.1:27042, indistinguishable from
   nothing listening. The component must keep declaring no permission; the fix belongs in the result
   contract, not the manifest.
-- [ ] Fix the scan's single-read/partial-response behavior and its ambiguous false flags, and split
-  the shared connect/read timeout. Relocation preserved all three defects deliberately; each fix
-  changes emitted meaning and needs tests, contract/privacy updates and breaking-release notes.
-  A REJECT-like response does not authenticate a service.
+- [x] Fix the scan's single-read/partial-response behavior and split the shared connect/read
+  timeout. The handshake reply is now reassembled across reads until the `REJECT` prefix is decided
+  or the read budget is spent, short-circuiting on a disagreeing byte or a mid-prefix EOF; connect
+  (700 ms) and read (800 ms) have separate budgets, the read budget covers the whole read rather
+  than each call, and the worst case is a documented 1500 ms. `fridaHandshakeReject` can now be true
+  where it was false, so values from before and after must not be compared.
+- [ ] Fix the scan's remaining ambiguous false flags. Every handshake failure still collapses to
+  `false`, indistinguishable from a listener that answered something other than `REJECT`. A
+  REJECT-like response still does not authenticate a service.
 - [ ] Resolve the iOS loopback port check in `ios/JailbreakDetector.m` (`openReverseEngineeringPorts`,
   ports 27042/4444/22/44) under the same component rule before extracting iOS integrity code.
 - [ ] **Unavailable values:** audit legacy false/empty fallbacks separately. Preserve current behavior

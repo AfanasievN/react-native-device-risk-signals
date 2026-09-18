@@ -10,8 +10,9 @@ without React Native:
 
 Neither artifact is published to a public registry today. Both are versioned `0.1.0-SNAPSHOT`
 (`sdks/android/build.gradle.kts:9`, `sdks/android-active-probes/build.gradle.kts:9`) and are
-published only to a file repository inside each component's build output; the registry half of
-publication — signing, javadoc, Sonatype namespace verification, a real version — is an open gate in
+published only to a file repository inside each component's build output. Each publication now
+carries a Dokka-rendered javadoc jar alongside the AAR and sources jar; the rest of the registry half
+of publication — signing, Sonatype namespace verification, a real version — is an open gate in
 [`MIGRATION_ROADMAP.md`](MIGRATION_ROADMAP.md). Treat the API below as implemented and tested but not
 yet released, and do not assume source or binary stability across snapshots.
 
@@ -106,14 +107,30 @@ Three details of that map are easy to get wrong:
 ```kotlin
 class DeviceRiskActiveProbes {
   fun collectFridaScan(): FridaScanSignals
+
+  companion object {
+    const val FRIDA_SCAN_PROBE_ID = "os_integrity_frida_scan"
+    const val FRIDA_SCAN_ENABLED_BY_DEFAULT = true
+  }
 }
 ```
 
-One TCP connect to `127.0.0.1:27042` plus an unauthenticated `AUTH` handshake, with 700 ms used as
-both connect and read timeout (`FridaScanCollector.kt:26-28`, `:79-84`). Raw keys: `scanPerformed`,
-`scannedPort`, `defaultPortOpen`, `fridaHandshakeReject`. Host, port and timeout are constructor
-seams on the internal collector for tests only; the public class always uses production defaults
-(`FridaScanCollector.kt:21-24`).
+One TCP connect to `127.0.0.1:27042` plus an unauthenticated `AUTH` handshake. Raw keys:
+`scanPerformed`, `scannedPort`, `defaultPortOpen`, `fridaHandshakeReject`. Host, port and the two
+timeouts are constructor seams on the internal collector for tests only; the public class always
+uses production defaults.
+
+Connect and read have **separate** budgets: 700 ms for the connect, 800 ms for the whole handshake
+read (not per `read` call — each read gets whatever is left). The documented worst case for one call
+is 1500 ms, `FridaScanCollector.WORST_CASE_TIMEOUT_MS`; a failed or timed-out connect never spends
+the read budget.
+
+The component has no probe registry, so its default state is **declared** rather than switched:
+`FRIDA_SCAN_ENABLED_BY_DEFAULT` is `true`, mirroring `enabledByDefault` for `FRIDA_SCAN_PROBE_ID` in
+`contract/source/probe-catalog.source.json` and pinned to it by `DeviceRiskActiveProbesDefaultsTest`.
+The probe is enabled because it is not new — it shipped on in React Native before extraction and
+ADR-0003 preserved that default. Representative physical-device QA has not happened and no benchmark
+justifies the cost; "enabled" is inherited behavior, not a recommendation.
 
 ### 1.4 Permissions the host must already hold
 
@@ -293,9 +310,11 @@ exactly two time bounds inside the SDK:
   creation, shader compilation and teardown, none of which are timed. The emitted `durationMs`
   measures the loop only (`:177`). On a slow or contended GPU the call can take substantially longer
   than 50 ms, and nothing inside the SDK will stop it.
-- **Active probe socket timeout — 700 ms.** `CONNECT_TIMEOUT_MS = 700` is used as both the connect
-  timeout and `soTimeout` (`FridaScanCollector.kt:51`, `:54`, `:82`), so worst case is roughly 1.4 s
-  of blocking per call.
+- **Active probe socket budgets — 700 ms connect + 800 ms read.** `CONNECT_TIMEOUT_MS = 700` bounds
+  the TCP connect and `READ_TIMEOUT_MS = 800` bounds the **whole** handshake read rather than each
+  `read` call, so a listener that trickles bytes cannot extend it. Worst case is
+  `WORST_CASE_TIMEOUT_MS = 1500` ms of blocking per call, plus scheduling. A connect that fails or
+  times out never spends the read budget.
 
 Everything else is unbounded in principle. `collectOsIntegrity()` in particular performs dozens of
 filesystem reads whose latency depends on the ROM and SELinux policy.
@@ -430,19 +449,37 @@ Two consequences:
    own manifest will see every app-presence field read `false` or empty**, indistinguishable from a
    clean device. `KnownAppLists.allQueriedPackages` gives you the exact list to declare.
 
-### 7.3 `locationAgeMs` narrows a `Long` to an `Int`
+### 7.3 `locationAgeMs` is a `Long` (it used to narrow to an `Int`)
 
 ```kotlin
-locationAgeMs = (System.currentTimeMillis() - location.time).coerceAtLeast(0).toInt()
+locationAgeMs = locationAgeMs(System.currentTimeMillis(), location.time)
+// companion: (nowMs - fixTimeMs).coerceAtLeast(0)   -> Long
 ```
-(`GeolocationCollector.kt:40`)
+(`GeolocationCollector.kt:40`, `:109-115`)
 
-The age is computed as a `Long` and then narrowed. `Int.MAX_VALUE` milliseconds is about 24.9 days,
-so a cached fix older than that — or any fix whose timestamp is far in the past because of a device
-clock change — wraps and can surface as a small or negative value. The field is typed `Int?`
-(`GeolocationSignals.kt:15`), so the truncation is in the model, not only the conversion. Do not
-treat `locationAgeMs` as reliable for long-stale fixes; cross-check against `provider` and
-`accuracyMeters`, and reject negative values at ingestion.
+**Fixed.** The age is computed and carried as a `Long`, and `GeolocationSignals.locationAgeMs` is
+typed `Long?` (`GeolocationSignals.kt:15-19`). A fix timestamped in the future still clamps to `0`.
+
+Previously the `Long` age was narrowed with `.toInt()` and the model field was `Int?`.
+`Int.MAX_VALUE` milliseconds is about 24.86 days, so a cached fix older than that — or any fix whose
+timestamp is far in the past because of a device clock change — wrapped and surfaced as a small or
+negative value: a 30-day-old fix was emitted as `-1702967296`.
+
+What changes for a consumer:
+
+- The emitted value is now the true age. Negative values are no longer produced at all, so a rule
+  that rejected or flagged them can be dropped (it will simply never fire).
+- Ages above `2147483647` are now possible and legitimate. Widen any 32-bit column, field, or parser
+  that stores `locationAgeMs`.
+- Kotlin source compatibility: a native host that assigned `GeolocationSignals.locationAgeMs` to an
+  `Int` or passed an `Int` positionally to the constructor must change that to a `Long`. The raw map
+  from `toRawMap()` now boxes a `java.lang.Long` under `"locationAgeMs"` instead of an
+  `java.lang.Integer`, so a host that casts the map value to `Int` must cast to `Long`.
+- React Native / JSON consumers are unaffected in type: the value was and stays a JSON number. The
+  React Native converter routes `Long` through `putDouble`
+  (`android/src/main/java/com/reactnativedeviceintel/ReactNativeValueConverter.kt:20`) because the
+  bridge cannot carry an exact Int64; a millisecond age is exact well past the double-safe range of
+  2^53 ms (≈285,000 years), so no precision is lost in practice.
 
 ### 7.4 The active probe's preserved defects
 
@@ -454,14 +491,17 @@ implementation, so a consumer must model them rather than assume they will be fi
 - `defaultPortOpen = false` conflates connection refused, connect timeout, a missing `INTERNET`
   permission and any other socket failure. The consumer cannot tell "nothing listens" from "we could
   not find out" (`FridaScanCollector.kt:71-75`).
-- `fridaHandshakeReject` reads exactly **one** `read` of up to 6 bytes. A partial or slow response
-  reads as "no REJECT"; the prefix is never reassembled across reads
-  (`FridaScanCollector.kt:59-63`).
 - Every handshake failure — read timeout, reset, EOF, write error — collapses to `false`,
-  indistinguishable from a listener that answered something other than `REJECT`
-  (`FridaScanCollector.kt:64-68`).
+  indistinguishable from a listener that answered something other than `REJECT`.
 - A `REJECT`-like reply does not authenticate any service. Any listener can answer with those bytes,
-  so the flag is evidence, never identification (`FridaScanCollector.kt:39-41`).
+  so the flag is evidence, never identification.
+
+One ported defect is **fixed**, and the fix changed emitted meaning. `fridaHandshakeReject` no longer
+comes from a single `read` of up to six bytes under one shared timeout: the reply is reassembled
+across reads until the prefix is decided or the read budget is spent, and connect and read have
+separate budgets. The flag now reports `true` for a `REJECT` line split across TCP segments or
+arriving later than the old shared 700 ms value but within the 800 ms read budget. Field names and
+types are unchanged; do not compare values recorded across this change. See the component README.
 
 ### 7.5 GPU benchmark self-skips, and the skip is a build-string guess
 

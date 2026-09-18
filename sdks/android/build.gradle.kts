@@ -3,6 +3,10 @@ plugins {
   id("com.android.library") version "8.7.2"
   id("org.jetbrains.kotlin.android") version "2.0.21"
   id("maven-publish")
+  // Dokka renders the KDoc into the javadoc jar Maven Central requires. `dokka-javadoc` is
+  // applied alone: it brings the Dokka base plugin with it, and applying both declares the
+  // `dokkaPlugin` configuration twice.
+  id("org.jetbrains.dokka-javadoc") version "2.0.0"
 }
 
 group = "io.github.afanasievn"
@@ -38,7 +42,8 @@ android {
   publishing {
     // Only the release variant is published; a debug variant would ship an unoptimised build with
     // no consumer value. The sources jar is required by Maven Central and lets consumers step into
-    // the collector implementation. No javadoc/dokka jar is produced here - see the README note.
+    // the collector implementation. The javadoc jar is rendered
+    // from the KDoc by Dokka and attached to the publication below.
     singleVariant("release") {
       withSourcesJar()
     }
@@ -90,6 +95,17 @@ dependencies {
   androidTestImplementation("junit:junit:4.13.2")
   androidTestImplementation("androidx.test:runner:1.6.2")
   androidTestImplementation("androidx.test.ext:junit:1.2.1")
+  // ActivityScenario, for instrumented tests that need a real Activity and a real window callback
+  // chain. Test-only: no consumer of the published library resolves it.
+  androidTestImplementation("androidx.test:core:1.6.1")
+}
+
+// Maven Central rejects a publication without a javadoc artifact. This one is real documentation
+// rendered from the KDoc, not an empty placeholder: an empty jar would satisfy the validator while
+// telling a consumer nothing.
+val javadocJar by tasks.registering(Jar::class) {
+  archiveClassifier.set("javadoc")
+  from(tasks.named("dokkaGeneratePublicationJavadoc"))
 }
 
 publishing {
@@ -115,6 +131,9 @@ publishing {
         groupId = project.group.toString()
         artifactId = publishedArtifactId
         version = project.version.toString()
+        // The sources jar comes from `withSourcesJar()` above; the javadoc jar has no AGP
+        // equivalent, so it is attached explicitly.
+        artifact(javadocJar)
 
         pom {
           name.set("Android Device Risk Signals")
