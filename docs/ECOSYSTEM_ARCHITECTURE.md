@@ -192,6 +192,22 @@ Current transition rules:
 - `react-native-device-risk-signals` remains the only published component.
 - Existing tags `vX.Y.Z` and the current GitHub Release workflow refer only to that npm package.
 - Planned/in-development components must not be presented as installable registry packages.
+- The first published version of each Android component is `0.1.0`, following the `0.1.0-SNAPSHOT`
+  they already carry. It is deliberately not `1.0.0`: representative physical-device QA has not
+  happened, so a version implying stability would misstate what the artifact is. The version is
+  declared once per component in its `gradle.properties` and overridden by the release workflow.
+- Publication order is fixed, because reversing it breaks consumers. Maven Central first, so a
+  native Android host has something to depend on; then the React Native binding switches from
+  compiling the SDK source directories to consuming those artifacts, which it already proves in CI
+  under `-PdeviceRiskSignalsUseArtifacts=true`; then a new npm release ships that binding. A binding
+  that names a coordinate before the registry has it fails at install time for every consumer.
+- Switching the binding to artifacts changes what an npm consumer resolves: the tarball stops
+  carrying the Kotlin sources and the build gains an external Maven dependency. Maven Central is
+  already declared by every React Native project, so that transition is silent; any other registry
+  would require consumers to add a repository, which is a breaking packaging change and must be
+  released as one.
+- `device-risk-signals.json` keeps `distribution.published = false` for a component until its
+  artifact is actually resolvable from the named registry, not when its release workflow exists.
 
 Target tag format after per-component release workflows exist:
 

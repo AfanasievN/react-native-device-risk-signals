@@ -52,6 +52,11 @@ apply plugin: "com.facebook.react"
 def useComponentArtifacts = project.hasProperty("deviceRiskSignalsUseArtifacts") &&
   project.property("deviceRiskSignalsUseArtifacts").toString().toBoolean()
 
+// Must match `deviceRiskSignalsVersion` in both components' gradle.properties; the drift guard
+// named below enforces it. Overridable the same way the components are, so a release build can
+// point the binding at the version it just published.
+def componentVersion = project.findProperty("deviceRiskSignalsComponentVersion") ?: "0.1.0-SNAPSHOT"
+
 if (useComponentArtifacts) {
   repositories {
     // Resolved relative to this module, so this also works through the symlinked monorepo checkout
@@ -117,8 +122,12 @@ dependencies {
   testImplementation "junit:junit:4.13.2"
 
   if (useComponentArtifacts) {
-    implementation "io.github.afanasievn:android-device-risk-signals:0.1.0-SNAPSHOT"
-    implementation "io.github.afanasievn:android-active-probes-device-risk-signals:0.1.0-SNAPSHOT"
+    // Kept in one place because this is the third file that names a component version, after each
+    // component's own gradle.properties. `npm run verify:android-version` fails when the three
+    // disagree - a stale coordinate here would resolve nothing on the day the components are
+    // released, and only in the artifact path that CI alone exercises.
+    implementation "io.github.afanasievn:android-device-risk-signals:${componentVersion}"
+    implementation "io.github.afanasievn:android-active-probes-device-risk-signals:${componentVersion}"
   }
 }
 

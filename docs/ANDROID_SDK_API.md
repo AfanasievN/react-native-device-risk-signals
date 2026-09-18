@@ -8,13 +8,23 @@ without React Native:
 | Passive core | `sdks/android/` | `io.github.afanasievn:android-device-risk-signals` | `io.github.afanasievn.devicerisksignals.DeviceRiskSignals` |
 | Active probes (optional) | `sdks/android-active-probes/` | `io.github.afanasievn:android-active-probes-device-risk-signals` | `io.github.afanasievn.devicerisksignals.active.DeviceRiskActiveProbes` |
 
-Neither artifact is published to a public registry today. Both are versioned `0.1.0-SNAPSHOT`
-(`sdks/android/build.gradle.kts:9`, `sdks/android-active-probes/build.gradle.kts:9`) and are
-published only to a file repository inside each component's build output. Each publication now
-carries a Dokka-rendered javadoc jar alongside the AAR and sources jar; the rest of the registry half
-of publication — signing, Sonatype namespace verification, a real version — is an open gate in
-[`MIGRATION_ROADMAP.md`](MIGRATION_ROADMAP.md). Treat the API below as implemented and tested but not
-yet released, and do not assume source or binary stability across snapshots.
+Neither artifact is published to a public registry today. Both default to `0.1.0-SNAPSHOT`, declared
+once per component as the `deviceRiskSignalsVersion` property in `sdks/android/gradle.properties` and
+`sdks/android-active-probes/gradle.properties`, and both are published only to a file repository
+inside each component's build output.
+
+The build itself is now release-ready: each publication carries a Dokka-rendered javadoc jar
+alongside the AAR and sources jar, the `signing` plugin produces the `.asc` signatures Maven Central
+requires as soon as an in-memory key is supplied (and creates no task at all without one), the
+Central Portal repository is declared with credentials read from the environment, and
+`.github/workflows/publish-android.yml` runs the release manually, one component at a time, with no
+git tag. What is missing is entirely outside the code: a Sonatype Central Portal account, the
+verified `io.github.afanasievn` namespace, a GPG key, the four repository secrets and a decision on
+the first real version — see [`RELEASING.md`](../RELEASING.md), with the remaining release gates in
+[`MIGRATION_ROADMAP.md`](MIGRATION_ROADMAP.md).
+
+Treat the API below as implemented and tested but not yet released, and do not assume source or
+binary stability across snapshots.
 
 The two components are independent. The passive core never opens a socket; the active component is
 the single documented exception and performs loopback socket I/O only

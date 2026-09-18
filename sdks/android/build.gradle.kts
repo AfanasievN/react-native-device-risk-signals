@@ -3,6 +3,10 @@ plugins {
   id("com.android.library") version "8.7.2"
   id("org.jetbrains.kotlin.android") version "2.0.21"
   id("maven-publish")
+  // Signing is applied unconditionally but only *configured* when a key is actually present (see
+  // the `signing` block at the end of this file). Applying the plugin costs nothing without a key;
+  // it is what lets a release build produce the `.asc` signatures Maven Central requires.
+  id("signing")
   // Dokka renders the KDoc into the javadoc jar Maven Central requires. `dokka-javadoc` is
   // applied alone: it brings the Dokka base plugin with it, and applying both declares the
   // `dokkaPlugin` configuration twice.
@@ -10,7 +14,12 @@ plugins {
 }
 
 group = "io.github.afanasievn"
-version = "0.1.0-SNAPSHOT"
+
+// Single declared place for this component's version: `gradle.properties` in this directory. A
+// release changes that one line; CI overrides it without editing a file, either with
+// `-PdeviceRiskSignalsVersion=X.Y.Z` or with the `ORG_GRADLE_PROJECT_deviceRiskSignalsVersion`
+// environment variable. The default stays `0.1.0-SNAPSHOT`: no release version is implied here.
+version = providers.gradleProperty("deviceRiskSignalsVersion").get()
 
 // Coordinates are normative in device-risk-signals.json (component "android",
 // distribution.name = "io.github.afanasievn:android-device-risk-signals"). They are spelled out
@@ -118,8 +127,34 @@ publishing {
       name = "localBuild"
       url = uri(layout.buildDirectory.dir("local-maven"))
     }
-    // No remote registry, credentials or signing configuration is declared here on purpose: this
-    // component is not published yet (device-risk-signals.json, distribution.published = false).
+    // The Maven Central target. Declaring it changes nothing about the local flow above: this
+    // repository is only ever contacted by
+    // `publishReleasePublicationToCentralPortalOssrhStagingRepository`, and that task fails
+    // immediately without credentials. Nothing here can publish by accident, and no credential is
+    // stored in the repository - both values come from properties or the matching
+    // `ORG_GRADLE_PROJECT_*` environment variables, which CI fills from secrets.
+    //
+    // Sonatype OSSRH (oss.sonatype.org / s01.oss.sonatype.org) was retired on 2025-06-30 and is
+    // replaced by the Central Portal. `maven-publish` has no official Central Portal plugin, so the
+    // documented path for a plain `maven-publish` build is the Portal's OSSRH Staging API
+    // compatibility endpoint below; the deployment then has to be released from the Portal (the
+    // release workflow calls the documented `/manual/upload/defaultRepository/<namespace>` endpoint
+    // so the upload becomes visible there).
+    // https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/
+    // https://central.sonatype.org/publish/publish-portal-snapshots/
+    maven {
+      name = "centralPortalOssrhStaging"
+      url =
+        if (version.toString().endsWith("-SNAPSHOT")) {
+          uri("https://central.sonatype.com/repository/maven-snapshots/")
+        } else {
+          uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+        }
+      credentials {
+        username = providers.gradleProperty("centralPortalUsername").orNull
+        password = providers.gradleProperty("centralPortalPassword").orNull
+      }
+    }
   }
 
   publications {
@@ -174,5 +209,38 @@ publishing {
         }
       }
     }
+  }
+}
+
+// Signing is gated on a key actually being available. With no key - every local build, every pull
+// request, the whole CI task list - no signing task is created at all, so `:assembleRelease`,
+// `:lintRelease` and `:publishReleasePublicationToLocalBuildRepository` behave exactly as they did
+// before signing existed. With a key, every artifact in the publication (AAR, sources jar, javadoc
+// jar, POM, module metadata) gains the detached `.asc` signature Maven Central requires.
+//
+// The key is read in memory only; no keyring file is expected and nothing is written to the
+// developer's GnuPG home. CI supplies the three values as `ORG_GRADLE_PROJECT_signingInMemoryKey`,
+// `ORG_GRADLE_PROJECT_signingInMemoryKeyPassword` and, optionally,
+// `ORG_GRADLE_PROJECT_signingInMemoryKeyId` (only needed to pick one subkey out of a key that has
+// several). The key itself is the ASCII-armored secret key, newlines included.
+signing {
+  val inMemoryKey = providers.gradleProperty("signingInMemoryKey").orNull
+  val inMemoryKeyId = providers.gradleProperty("signingInMemoryKeyId").orNull
+  val inMemoryKeyPassword = providers.gradleProperty("signingInMemoryKeyPassword").orNull.orEmpty()
+
+  if (inMemoryKey.isNullOrBlank()) {
+    logger.info(
+      "No signing key available; the release publication will be unsigned. Maven Central rejects " +
+        "unsigned deployments, so a real release must set ORG_GRADLE_PROJECT_signingInMemoryKey.",
+    )
+  } else {
+    if (inMemoryKeyId.isNullOrBlank()) {
+      useInMemoryPgpKeys(inMemoryKey, inMemoryKeyPassword)
+    } else {
+      useInMemoryPgpKeys(inMemoryKeyId, inMemoryKey, inMemoryKeyPassword)
+    }
+    // Registered after the publishing block above so this callback runs after the one that creates
+    // the publication: `afterEvaluate` callbacks fire in registration order.
+    afterEvaluate { sign(publishing.publications["release"]) }
   }
 }

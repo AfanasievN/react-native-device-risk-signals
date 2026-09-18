@@ -158,9 +158,34 @@ example/android/gradlew -p sdks/android-active-probes :publishReleasePublication
 The result lands in `sdks/android-active-probes/build/local-maven` under ``io.github.afanasievn:android-active-probes-device-risk-signals``.
 Nothing is written to `~/.m2` and no credentials are involved. The javadoc jar is rendered from the
 KDoc rather than being an empty placeholder, so it satisfies Maven Central's requirement with real
-documentation. A real Maven Central release still needs signing, Sonatype namespace verification,
-the staging flow and a version other than `0.1.0-SNAPSHOT`; those live outside this repository and
-are tracked in [the migration checklist](../../docs/MIGRATION_ROADMAP.md).
+documentation.
+
+## Maven Central: what exists and what still needs keys
+
+The build is now wired for Maven Central, and none of that wiring changes the local flow above.
+
+Already in place:
+
+- The published version is declared once, in `gradle.properties` (`deviceRiskSignalsVersion`,
+  default `0.1.0-SNAPSHOT`). A release changes that one line; CI overrides it with
+  `-PdeviceRiskSignalsVersion=X.Y.Z` without editing a file.
+- The `signing` plugin is applied and configures itself **only when an in-memory key is present**
+  (`ORG_GRADLE_PROJECT_signingInMemoryKey`). With no key, no signing task is created and every
+  existing task behaves exactly as before; with a key, the AAR, sources jar, javadoc jar, POM and
+  module metadata each gain the detached `.asc` signature Maven Central requires.
+- The Central Portal repository is declared alongside `localBuild`, reading its credentials from
+  `ORG_GRADLE_PROJECT_centralPortalUsername` / `...Password`. It is only ever contacted by
+  `publishReleasePublicationToCentralPortalOssrhStagingRepository`, which fails immediately without
+  credentials. Nothing can reach a registry by accident.
+- `.github/workflows/publish-android.yml` performs the release: `workflow_dispatch` only, one
+  component per run, full verification ring before upload, refuses to start if any of the four
+  secrets is missing, and creates no git tag.
+
+Still blocked on credentials that do not exist yet: a Sonatype Central Portal account, the verified
+`io.github.afanasievn` namespace, a Portal user token, a GPG key, the four repository secrets, and
+the human decision of which version is the first real release. Those steps are written out in
+[`RELEASING.md`](../../RELEASING.md); the remaining release gates are tracked in
+[the migration checklist](../../docs/MIGRATION_ROADMAP.md).
 
 ## Build and test
 

@@ -156,10 +156,23 @@ for compatibility changes and the difference between queue cancellation and inte
   `org.jetbrains.dokka-javadoc` and attach a `-javadoc.jar` rendered from the KDoc - real
   documentation, not an empty placeholder - next to the AAR and sources jar in each local
   publication.
-- [ ] Complete the rest of the registry half: signing, Sonatype namespace verification, credentials,
-  the staging/release flow, a real version instead of `0.1.0-SNAPSHOT`, and component release
-  automation; verify installation from the intended registry in a clean native consumer. These
-  depend on a GPG key and registry accounts that do not exist in this repository.
+- [x] Build everything for the registry half that does not need a key. Each component's version is
+  declared once in its `gradle.properties` and overridable for a release build; the `signing` plugin
+  signs the publication only when an in-memory key is present, so every task stays green with no
+  secrets; the Central Portal repository sits beside the file repository, gated on credentials; and
+  `.github/workflows/publish-android.yml` is `workflow_dispatch` only, defaults to a dry run, fails
+  before checkout when a secret is missing, runs the full verification ring, asserts the `.asc`
+  signatures exist, and creates no git tag. `npm run verify:android-version` fails when the three
+  places that name a component version disagree - the two `gradle.properties` and the binding's
+  artifact-mode default - because a stale coordinate there resolves nothing and only the artifact
+  CI job would notice. Sonatype retired OSSRH on 2025-06-30 and documents no official Gradle plugin,
+  so the build publishes through the Central Portal's OSSRH Staging API compatibility endpoint with
+  plain `maven-publish` rather than taking on a community plugin. `RELEASING.md` carries the steps.
+- [ ] Do the part that needs credentials: register at central.sonatype.com with the `AfanasievN`
+  GitHub account so `io.github.afanasievn` is auto-verified, create a Portal user token, generate a
+  GPG key and publish its public half, add the four repository secrets, set the version to `0.1.0`,
+  run the workflow, and press Publish on the deployment. Then verify installation from Maven Central
+  in a clean native consumer outside this checkout.
 - [ ] Publish platform documentation and a tested binding-to-SDK compatibility range before marking
   Android `active`. A locally built AAR does not satisfy this gate.
 

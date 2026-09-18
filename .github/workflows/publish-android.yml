@@ -1,0 +1,164 @@
+name: Publish Android Component
+
+# Manual only. There is no `push`, `release` or `schedule` trigger on purpose: a Maven Central
+# deployment is irreversible for a given version, so it must never be a side effect of merging.
+#
+# This workflow deliberately creates NO git tag. docs/ECOSYSTEM_ARCHITECTURE.md ("Versioning and
+# releases") reserves the component-prefixed format `android-vX.Y.Z` / `web-vX.Y.Z` / ... for a
+# later, separate release-process migration that has to land together with updated workflows and
+# documentation, and states that those tags must not be created before then. Until that migration
+# happens, `vX.Y.Z` still means the npm package only, and this workflow tags nothing at all.
+on:
+  workflow_dispatch:
+    inputs:
+      component:
+        description: Which Android component to publish
+        required: true
+        type: choice
+        options:
+          - android
+          - android-active-probes
+      version:
+        description: Version to publish, for example 0.1.0 (no leading "v"). A -SNAPSHOT version goes to the Central Portal snapshot repository instead of a release deployment.
+        required: true
+        type: string
+      dry_run:
+        description: Run the full verification ring and build the signed artifacts, but stop before uploading anything.
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-publish-${{ inputs.component }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish ${{ inputs.component }} ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    env:
+      COMPONENT_DIR: sdks/${{ inputs.component }}
+      # Gradle reads these as project properties (`ORG_GRADLE_PROJECT_<name>`), which is what
+      # sdks/*/build.gradle.kts consumes for the version, the signing key and the repository
+      # credentials. Nothing is written to a file on the runner.
+      ORG_GRADLE_PROJECT_deviceRiskSignalsVersion: ${{ inputs.version }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      ORG_GRADLE_PROJECT_centralPortalUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_centralPortalPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    steps:
+      # Fail before checking anything out, so a run started without credentials costs seconds and
+      # says exactly what is missing instead of failing deep inside a Gradle upload task.
+      - name: Require publishing credentials
+        shell: bash
+        run: |
+          missing=()
+          [ -n "${ORG_GRADLE_PROJECT_centralPortalUsername}" ] || missing+=("MAVEN_CENTRAL_USERNAME")
+          [ -n "${ORG_GRADLE_PROJECT_centralPortalPassword}" ] || missing+=("MAVEN_CENTRAL_PASSWORD")
+          [ -n "${ORG_GRADLE_PROJECT_signingInMemoryKey}" ] || missing+=("MAVEN_GPG_PRIVATE_KEY")
+          [ -n "${ORG_GRADLE_PROJECT_signingInMemoryKeyPassword}" ] || missing+=("MAVEN_GPG_PASSPHRASE")
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "::error::Cannot publish to Maven Central: missing repository secret(s): ${missing[*]}."
+            echo "::error::See RELEASING.md, section 'Publishing the Android components'. The Sonatype Central Portal account, the verified io.github.afanasievn namespace and the GPG key are human steps; nothing in CI can create them."
+            exit 1
+          fi
+          echo "All four required secrets are present."
+
+      - name: Reject a version the build cannot publish
+        shell: bash
+        run: |
+          version='${{ inputs.version }}'
+          if [ "${version#v}" != "$version" ]; then
+            echo "::error::Pass the bare version (1.2.3), not a tag name (v1.2.3)."
+            exit 1
+          fi
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$version' is not a semantic version."
+            exit 1
+          fi
+
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.16.0"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            example/package-lock.json
+
+      - run: npm ci
+      - run: npm ci --prefix example
+
+      # The same ring CI runs, not a shortened one: a release must not be able to ship something a
+      # pull request would have rejected.
+      - name: Shared contract and package verification
+        run: npm run verify
+
+      - name: Test, lint and build the component
+        run: >-
+          example/android/gradlew -p "$COMPONENT_DIR"
+          :testDebugUnitTest :lintRelease :assembleRelease
+          :example:assembleDebug :example:lintRelease
+          :publishReleasePublicationToLocalBuildRepository
+          --no-daemon
+
+      - name: Compile the instrumented test sources
+        # Passive core only: the active-probes component has no androidTest source set.
+        if: inputs.component == 'android'
+        run: example/android/gradlew -p "$COMPONENT_DIR" :compileDebugAndroidTestKotlin --no-daemon
+
+      - name: Verify Android package contents
+        run: npm run verify:android-aar
+
+      - name: Confirm the artifacts were actually signed
+        shell: bash
+        run: |
+          signatures=$(find "$COMPONENT_DIR/build/local-maven" -name '*.asc' | wc -l)
+          if [ "$signatures" -lt 5 ]; then
+            echo "::error::Expected detached signatures for the AAR, sources jar, javadoc jar, POM and module metadata; found $signatures .asc files. Maven Central rejects unsigned deployments."
+            exit 1
+          fi
+          echo "Found $signatures detached signatures in the local staging repository."
+
+      - name: Stop before uploading (dry run)
+        if: inputs.dry_run
+        run: |
+          echo "::notice::Dry run: everything was built, signed and verified, and nothing was uploaded. Re-run with dry_run disabled to deploy."
+
+      - name: Upload to the Central Portal
+        if: ${{ !inputs.dry_run }}
+        # Sonatype OSSRH was retired on 2025-06-30. There is no official Gradle plugin for the
+        # Central Portal, so this uses the Portal's documented OSSRH Staging API compatibility
+        # endpoint with plain `maven-publish`; the repository URL lives in the component's
+        # build.gradle.kts. https://central.sonatype.org/publish/publish-portal-gradle/
+        run: >-
+          example/android/gradlew -p "$COMPONENT_DIR"
+          :publishReleasePublicationToCentralPortalOssrhStagingRepository
+          --no-daemon
+
+      - name: Make the deployment visible in the Central Portal
+        # Documented requirement of the OSSRH Staging API compatibility service: an upload only
+        # appears in the Portal after this call, which must come from the same IP as the upload -
+        # hence the same job. Snapshots are not staged, so this step is skipped for them.
+        # https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/
+        if: ${{ !inputs.dry_run && !contains(inputs.version, '-SNAPSHOT') }}
+        shell: bash
+        run: |
+          token=$(printf '%s:%s' "$ORG_GRADLE_PROJECT_centralPortalUsername" "$ORG_GRADLE_PROJECT_centralPortalPassword" | base64 -w0)
+          status=$(curl --silent --show-error --output /dev/stderr --write-out '%{http_code}' \
+            --request POST \
+            --header "Authorization: Bearer $token" \
+            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/io.github.afanasievn")
+          echo "Central Portal responded with HTTP $status."
+          [ "$status" -lt 400 ]
+
+      - name: What still needs a human
+        if: ${{ !inputs.dry_run }}
+        run: |
+          echo "::notice::Uploaded. Open https://central.sonatype.com/publishing/deployments, review the deployment and press Publish. This workflow intentionally created no git tag: component-prefixed tags (android-vX.Y.Z) are gated on the release-process migration in docs/ECOSYSTEM_ARCHITECTURE.md."

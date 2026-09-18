@@ -53,6 +53,14 @@ All notable public changes will be documented in this file.
   boolean. `npm run verify:ios-booleans` fails the build if the pattern returns.
 
 ### Added
+- Everything the Android components need for a Maven Central release that does not require a key is
+  in place: a single declared version per component, `signing` that activates only when an in-memory
+  key is present, the Central Portal repository gated on credentials, and a manual-dispatch release
+  workflow that dry-runs by default, refuses to start without its four secrets, verifies signatures
+  before uploading and creates no git tag. `npm run verify:android-version` guards the three places a
+  component version is named. `RELEASING.md` gained an Android section separating what works today
+  from what is blocked on a Sonatype account and a GPG key. Nothing publishes to a registry yet, and
+  `device-risk-signals.json` still reports both components unpublished.
 - Both Android demo modules are now linted at the same bar as the libraries they demonstrate
   (`warningsAsErrors`, `checkAllWarnings`), and CI runs `:example:lintRelease` for each. The findings
   it surfaced were fixed rather than exempted: the demos declare an application icon and state their
