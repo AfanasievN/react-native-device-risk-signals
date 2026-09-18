@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Narrow, per-file lint exemptions for the native-consumer demo.
+
+  Same rules as the component's own lint.xml: one issue id and one file per entry, a written
+  reason, and no generated baseline.
+-->
+<lint>
+
+  <!--
+    SetTextI18n: the demo builds its entire UI in code and ships no resource strings on purpose -
+    its job is to show that a native consumer needs nothing but the SDK's public API and system
+    Android classes. The flagged literals are developer-facing diagnostics ("Local SDK example...",
+    "Collection failed: ...") in an app that is never published or translated. Moving them into
+    res/values/strings.xml would add a resource tree that exists only to satisfy the check and
+    would make the demo less representative of the minimum a consumer needs.
+    This exemption covers presentation text only; it does not apply to any SDK source.
+  -->
+  <issue id="SetTextI18n">
+    <ignore
+      path="src/main/kotlin/io/github/afanasievn/devicerisksignals/example/MainActivity.kt" />
+  </issue>
+
+</lint>

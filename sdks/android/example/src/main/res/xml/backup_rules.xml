@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The Android 11 and below half of the same intent as data_extraction_rules.xml: back up nothing.
+  `android:allowBackup="false"` already prevents backup on these versions; this resource states the
+  exclusions explicitly so the two eras cannot drift apart, and so the policy survives anyone who
+  flips allowBackup while copying this demo.
+-->
+<full-backup-content>
+  <exclude domain="root" path="." />
+  <exclude domain="file" path="." />
+  <exclude domain="database" path="." />
+  <exclude domain="sharedpref" path="." />
+  <exclude domain="external" path="." />
+</full-backup-content>

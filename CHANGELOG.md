@@ -53,6 +53,14 @@ All notable public changes will be documented in this file.
   boolean. `npm run verify:ios-booleans` fails the build if the pattern returns.
 
 ### Added
+- Both Android demo modules are now linted at the same bar as the libraries they demonstrate
+  (`warningsAsErrors`, `checkAllWarnings`), and CI runs `:example:lintRelease` for each. The findings
+  it surfaced were fixed rather than exempted: the demos declare an application icon and state their
+  backup policy explicitly for both Android eras - `data_extraction_rules.xml` for 12 and above,
+  `backup_rules.xml` below it - excluding every domain, which matches an app that persists no
+  collected observation. The only exemption is `SetTextI18n` on the two demo activities, recorded per
+  file with its reason: the demos build their UI in code and ship no resource strings on purpose, so
+  that a native consumer can see it needs nothing but the SDK's public API and system Android classes.
 
 - The Android active-probes component declares its default explicitly.
   `DeviceRiskActiveProbes.FRIDA_SCAN_PROBE_ID` and `FRIDA_SCAN_ENABLED_BY_DEFAULT = true` state in

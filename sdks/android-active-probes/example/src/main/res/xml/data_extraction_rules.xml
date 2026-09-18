@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Back up nothing. The demo persists no collected observation - every result lives in the
+  TextView until the process ends - so there is nothing whose cloud backup or device-to-device
+  transfer would be correct to allow. `android:allowBackup="false"` says this for Android 11 and
+  below; from Android 12 it only governs cloud backup, so the same intent has to be stated here
+  for device transfers as well.
+-->
+<data-extraction-rules>
+  <cloud-backup>
+    <exclude domain="root" />
+    <exclude domain="file" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="external" />
+  </cloud-backup>
+  <device-transfer>
+    <exclude domain="root" />
+    <exclude domain="file" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="external" />
+  </device-transfer>
+</data-extraction-rules>

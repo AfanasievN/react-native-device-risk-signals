@@ -17,6 +17,19 @@ android {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
   }
+
+  lint {
+    // The demo is the native-consumer check, so it is held to the same bar as the library it
+    // demonstrates: a warning here means a consumer copying this code inherits it. Default severity
+    // would let exactly that class of finding through silently.
+    abortOnError = true
+    warningsAsErrors = true
+    checkAllWarnings = true
+    checkReleaseBuilds = true
+    explainIssues = true
+    textReport = true
+    lintConfig = file("lint.xml")
+  }
 }
 
 kotlin {

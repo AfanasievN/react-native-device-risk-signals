@@ -87,12 +87,22 @@ for compatibility changes and the difference between queue cancellation and inte
   retained stale-generation callback, the granted-permission registration path, the API 29/34/35 gates
   and a three-reader snapshot race across 40 attach/detach cycles. Fifteen tests, executed on an API 35
   arm64 emulator alongside the ten GPU tests; CI compiles the suite but has no device to run it.
-- [ ] Cover what that suite cannot reach: the API 24/28/29 low-side branches (the gate tests already
-  branch on `SDK_INT`, so they need only an older AVD, which was not created); the permission-denied
-  branch of `attach()`, which needs a second test APK because permissions are per-APK; a genuine
-  callback registration failure, which no emulator provokes - a destroyed Activity does not, so the
-  `safe {}` swallow path stays unproven; real obscured touches, which need a second app holding
-  `SYSTEM_ALERT_WINDOW`; and real screenshot/recording events firing.
+- [x] Run that suite across every gate branch, not only the top one. Twenty-five instrumented tests
+  pass on API 24, 28, 29, 34 and 35 arm64 emulators: below 29 the capture fields stay absent and
+  partial obscuration is omitted rather than synthesized to `false`; at 29 obscuration is read and
+  reported as an observed `false` while both capture gates stay closed; at 34 `DETECT_SCREEN_CAPTURE`
+  is really granted and registered while recording visibility stays absent, which is the only
+  configuration where the two capture gates disagree. No test needed changing for the low side. The
+  test APK requests the two capture permissions on every level; below 34/35 the platform records them
+  as requested and never grants them, which is exactly what the `SDK_INT` gate assumes, so no
+  `maxSdkVersion` scoping was added - adding one would hide a real regression if the grant ever failed
+  on 34/35. API 30-33 were not run; they share the 29..33 branch with 29, so that part is inference.
+- [ ] Cover what no emulator can reach: the permission-denied branch of `attach()`, which needs a
+  second test APK because permissions are per-APK; a genuine callback registration failure, which no
+  emulator provokes - a destroyed Activity does not, so the `safe {}` swallow path stays unproven;
+  real obscured touches, which need a second app holding `SYSTEM_ALERT_WINDOW`; and real
+  screenshot/recording events actually firing, so `recordScreenshot` and the recording-visibility
+  consumer are still only proven to be installed, never to be invoked by the platform.
 - [ ] Decide whether `attach()` should refuse a destroyed Activity. On API 35 neither
   `registerScreenCaptureCallback` nor `addScreenRecordingCallback` rejects one, so the session reports
   `screenshotObservationActive = true` for coverage it cannot have. The instrumented suite pins the
@@ -132,7 +142,9 @@ for compatibility changes and the difference between queue cancellation and inte
   `npm run verify:android-aar` rejects a permission or manifest component, React Native or other
   foreign framework classes, cross-component classes and unreviewed AAR payload. Lint exemptions are
   per file and per issue in `sdks/android/lint.xml` with written justification; there is no baseline.
-  The demo module under `sdks/android/example/` is still only checked at default lint severity.
+  Both demo modules now run `:example:lintRelease` at the same bar in CI, with their own per-file
+  `lint.xml`: the findings it surfaced were fixed rather than exempted, except the code-built UI
+  strings, since the demos deliberately ship no resource strings.
 - [ ] Validate on representative physical devices: stock/OEM builds, permission-denied cases,
   inaccessible procfs, activity recreation, and expensive-probe latency/cleanup.
 - [ ] Keep existing default/omission changes separate from mechanical extraction and document any
