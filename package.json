@@ -34,6 +34,7 @@
     "test": "jest --runInBand --watchman=false && node --test scripts/pages-seo-helpers.test.mjs",
     "typecheck": "tsc --noEmit",
     "verify:contract": "node scripts/verify-native-contract.mjs",
+    "verify:maven-pom": "node scripts/verify-maven-pom.mjs",
     "verify:android-version": "node scripts/verify-android-version.mjs",
     "verify:ecosystem": "node scripts/verify-ecosystem.mjs",
     "verify:package": "node scripts/verify-package.mjs",

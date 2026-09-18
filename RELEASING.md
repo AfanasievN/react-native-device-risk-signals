@@ -109,6 +109,12 @@ by the [Central Portal](https://central.sonatype.org/pages/ossrh-eol/). There is
 plugin for the Portal, so the build publishes with plain `maven-publish` against the Portal's
 [OSSRH Staging API compatibility endpoint](https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/).
 
+You can check the POM itself at any time without an account. `npm run verify:maven-pom` validates
+whatever the components last published to their local build repositories against the Central Portal's
+documented requirements — coordinates, name, description, project URL, licence, developer and SCM
+information, and the sources and javadoc artifacts a release needs. The Portal validates these only
+after a bundle is uploaded, so a failure there costs a dropped deployment; this costs a second.
+
 ### 1. Central Portal account and namespace — BLOCKED (user)
 
 1. Sign up at <https://central.sonatype.com> **using the `AfanasievN` GitHub account**. Signing up
@@ -213,7 +219,8 @@ Portal first) and is cleaned up after about 90 days.
 - [ ] That exact version does not already exist on Maven Central.
 - [ ] `CHANGELOG.md` records the release.
 - [ ] CI is green on the commit being released.
-- [ ] A `dry_run` run of `Publish Android Component` succeeded and reported five signatures.
+- [ ] A `dry_run` run of `Publish Android Component` succeeded, reported five signatures and
+      passed `npm run verify:maven-pom`.
 - [ ] No git tag is being created; component-prefixed tags stay blocked until the release-process
       migration in `docs/ECOSYSTEM_ARCHITECTURE.md` lands.
 

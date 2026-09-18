@@ -116,6 +116,12 @@ jobs:
       - name: Verify Android package contents
         run: npm run verify:android-aar
 
+      - name: Check the POM against the Central Portal requirements
+        # Central validates the POM only after the bundle is uploaded, so a missing field would
+        # surface as a deployment that has to be dropped and rebuilt. Same requirements, checked
+        # here against the POM this build just produced.
+        run: npm run verify:maven-pom
+
       - name: Confirm the artifacts were actually signed
         shell: bash
         run: |
