@@ -72,7 +72,7 @@ typed Kotlin models. Transaction collection now has a point-in-time snapshot and
 owned native observation session. GPU collection also uses the core, with worker-only execution
 and best-effort EGL restoration.
 A [native Android example](sdks/android/example/README.md)
-consumes this partial SDK without React Native; the Maven artifact is not published yet.
+consumes this SDK without React Native; version `0.1.0` is available from Maven Central.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.
 OS integrity includes existing process-local Frida evidence. The separate localhost Frida scan now
 lives in the `android-active-probes` component, the only component allowed loopback socket I/O; the
@@ -88,7 +88,7 @@ share the generated [raw-signal contract](contract/README.md).
 | --- | --- | --- |
 | React Native | `react-native-device-risk-signals` | Published npm package |
 | Flutter | `flutter-device-risk-signals` | Planned; intended pub.dev coordinate `flutter_device_risk_signals` |
-| Native Android | `android-device-risk-signals` | In development; Maven artifact unpublished. [API reference](docs/ANDROID_SDK_API.md) |
+| Native Android | `android-device-risk-signals` | Maven Central `0.1.0`; pre-stable. [API reference](docs/ANDROID_SDK_API.md) |
 | Native Android, active probes | `android-active-probes-device-risk-signals` | In development; optional loopback component, Maven artifact unpublished |
 | Native iOS | `ios-device-risk-signals` | In development; Swift Package unpublished |
 | Capacitor | `capacitor-device-risk-signals` | Planned npm package |

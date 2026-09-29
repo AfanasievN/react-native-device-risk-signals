@@ -222,14 +222,23 @@ Nothing is written to `~/.m2` and no credentials are involved. The javadoc jar i
 KDoc rather than being an empty placeholder, so it satisfies Maven Central's requirement with real
 documentation.
 
-## Maven Central: what exists and what still needs keys
+## Maven Central publication
+
+Version `0.1.0` is published on Maven Central. Add `mavenCentral()` to the host's repositories and:
+
+```kotlin
+implementation("io.github.afanasievn:android-device-risk-signals:0.1.0")
+```
+
+This is a pre-stable release; physical-device calibration and the remaining migration gates still
+apply. The optional active-probes component is distributed separately and remains unpublished.
 
 The build is now wired for Maven Central, and none of that wiring changes the local flow above.
 
 Already in place:
 
 - The published version is declared once, in `gradle.properties` (`deviceRiskSignalsVersion`,
-  default `0.1.0-SNAPSHOT`). A release changes that one line; CI overrides it with
+  currently `0.1.0`). A release changes that one line; CI overrides it with
   `-PdeviceRiskSignalsVersion=X.Y.Z` without editing a file.
 - The `signing` plugin is applied and configures itself **only when an in-memory key is present**
   (`ORG_GRADLE_PROJECT_signingInMemoryKey`). With no key, no signing task is created and every
@@ -243,16 +252,14 @@ Already in place:
   component per run, full verification ring before upload, refuses to start if any of the four
   secrets is missing, and creates no git tag.
 
-Still blocked on credentials that do not exist yet: a Sonatype Central Portal account, the verified
-`io.github.afanasievn` namespace, a Portal user token, a GPG key, the four repository secrets, and
-the human decision of which version is the first real release. Those steps are written out in
-[`RELEASING.md`](../../RELEASING.md); the remaining release gates are tracked in
+The namespace, Portal token and signing secrets were configured for the first release on
+2026-09-29. The publishing procedure is in [`RELEASING.md`](../../RELEASING.md);
+the remaining migration gates are tracked in
 [the migration checklist](../../docs/MIGRATION_ROADMAP.md).
 
 ## Development distribution
 
-The intended Maven coordinate is `io.github.afanasievn:android-device-risk-signals`. It is not
-published yet, so applications should not declare that coordinate until a release is announced.
+The published Maven coordinate is `io.github.afanasievn:android-device-risk-signals:0.1.0`.
 
 Run its independent unit tests and build both the library and native consumer from the repository
 root (the existing Gradle wrapper is reused):

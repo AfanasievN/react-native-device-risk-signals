@@ -29,7 +29,7 @@
       "distribution": {
         "registry": "maven-central",
         "name": "io.github.afanasievn:android-device-risk-signals",
-        "published": false
+        "published": true
       },
       "dependsOn": []
     },

@@ -189,9 +189,12 @@ versions are not forced to match across registries.
 
 Current transition rules:
 
-- `react-native-device-risk-signals` remains the only published component.
+- `react-native-device-risk-signals` is published on npm; the passive Android core `0.1.0` is
+  published on Maven Central as of 2026-09-29. Its lifecycle remains `in-development` while
+  physical-device QA and the remaining stability gates are outstanding.
 - Existing tags `vX.Y.Z` and the current GitHub Release workflow refer only to that npm package.
-- Planned/in-development components must not be presented as installable registry packages.
+- Planned/unpublished components must not be presented as installable registry packages. Published
+  pre-stable components may show verified coordinates while retaining their development status.
 - The passive core `io.github.afanasievn:android-device-risk-signals` is released first and alone, at
   `0.1.0`. It is deliberately not `1.0.0`: representative physical-device QA has not happened, so a
   version implying stability would misstate what the artifact is. Releasing it does not make the

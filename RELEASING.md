@@ -8,7 +8,8 @@ This repository releases two independent kinds of artifact, on separate tracks:
 | Android | `io.github.afanasievn:android-device-risk-signals`, `io.github.afanasievn:android-active-probes-device-risk-signals` | Maven Central | a manual `workflow_dispatch` run (`publish-android.yml`) |
 
 Component versions are independent (`docs/ECOSYSTEM_ARCHITECTURE.md`, "Versioning and releases").
-Neither Android component has been published yet, and neither track creates a component-prefixed git
+The passive Android core `0.1.0` was published on 2026-09-29; active probes remain unpublished.
+Neither track creates a component-prefixed git
 tag: `vX.Y.Z` still refers to the npm package alone.
 
 ## The npm package
@@ -99,10 +100,9 @@ installation. Codegen and native compilation happen when the consumer builds the
 
 Both standalone Android components (`sdks/android/`, `sdks/android-active-probes/`) build a release
 AAR, a sources jar, a Dokka-rendered javadoc jar and a complete POM, and both can be signed and
-uploaded to Maven Central by `.github/workflows/publish-android.yml`. **Nothing on this track works
-yet**: the Sonatype account, the verified namespace and the GPG key do not exist. Every step marked
-**BLOCKED** below needs a human with the project's GitHub identity; no part of it can be automated
-from inside this repository.
+uploaded to Maven Central by `.github/workflows/publish-android.yml`. The account, namespace, token
+and signing secrets are configured, and the passive core `0.1.0` is published. The setup instructions
+below are retained for credential rotation and future maintainers.
 
 Sonatype's OSSRH (`oss.sonatype.org`, `s01.oss.sonatype.org`) was retired on 2025-06-30 and replaced
 by the [Central Portal](https://central.sonatype.org/pages/ossrh-eol/). There is no official Gradle
@@ -115,7 +115,7 @@ documented requirements — coordinates, name, description, project URL, licence
 information, and the sources and javadoc artifacts a release needs. The Portal validates these only
 after a bundle is uploaded, so a failure there costs a dropped deployment; this costs a second.
 
-### 1. Central Portal account and namespace — BLOCKED (user)
+### 1. Central Portal account and namespace — configured
 
 1. Sign up at <https://central.sonatype.com> **using the `AfanasievN` GitHub account**. Signing up
    with GitHub auto-provisions the verified namespace `io.github.afanasievn`, which is exactly the
@@ -130,14 +130,14 @@ after a bundle is uploaded, so a failure there costs a dropped deployment; this 
    `groupId` in both `build.gradle.kts` files, in `device-risk-signals.json` and in the
    documentation changes with it — a breaking coordinate change, not a cleanup.
 
-### 2. Portal user token — BLOCKED (user)
+### 2. Portal user token — configured
 
 1. Go to <https://central.sonatype.com/usertoken> and press *Generate User Token*.
 2. Save both halves immediately; the Portal shows them once and cannot show them again.
 3. The two halves are the username and the password for the Maven repository. An old OSSRH token is
    not accepted and returns `401`.
 
-### 3. GPG key — BLOCKED (user)
+### 3. GPG key — configured
 
 Maven Central requires a detached PGP signature (`.asc`) for every deployed file. Generate the key
 on a trusted machine, not in CI:
@@ -154,7 +154,7 @@ password manager; the only copy CI ever sees is the GitHub secret. Nothing in th
 key material, and a signing key must never be committed, pasted into an issue, or written to a file
 on a runner.
 
-### 4. Repository secrets — BLOCKED (user)
+### 4. Repository secrets — configured
 
 Add these four under *Settings → Secrets and variables → Actions*. The workflow checks all four
 before it does anything else and fails with the missing names listed:
@@ -171,9 +171,9 @@ The workflow passes them to Gradle as `ORG_GRADLE_PROJECT_signingInMemoryKey`,
 `ORG_GRADLE_PROJECT_centralPortalPassword`. A key with several signing subkeys can select one with
 `ORG_GRADLE_PROJECT_signingInMemoryKeyId`; a single-key setup does not need it.
 
-### 5. Choose the first version — BLOCKED (user decision)
+### 5. Choose the first version — configured
 
-Both components default to `0.1.0-SNAPSHOT`, declared once each in
+The passive core declares `0.1.0`; active probes declare `0.1.0-SNAPSHOT`, each in
 `sdks/android/gradle.properties` and `sdks/android-active-probes/gradle.properties`. The build reads
 that property and hardcodes no version anywhere. Picking the first real version is a deliberate
 choice, not something the build assumes: `docs/ECOSYSTEM_ARCHITECTURE.md` ("Versioning and releases")
