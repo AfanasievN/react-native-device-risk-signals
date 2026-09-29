@@ -61,7 +61,8 @@
         "name": "ios-device-risk-signals",
         "productName": "IOSDeviceRiskSignals",
         "repository": "https://github.com/AfanasievN/ios-device-risk-signals",
-        "published": false
+        "version": "0.1.0",
+        "published": true
       },
       "dependsOn": []
     },

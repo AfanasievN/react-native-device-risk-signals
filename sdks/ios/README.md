@@ -17,15 +17,27 @@ project. It is under active extraction from the React Native binding's `ios/` di
   `systemName`/`systemVersion`/`userInterfaceIdiom`, and it is read behind a main-thread hop — see
   below.)
 
-## Status: in development, unpublished
+## Status: published 0.1.0, pre-stable
 
-**There is no installable coordinate for this package.** It is not on any Swift Package registry,
-it has no git tag, and it has no release. Do not add it to a `Package.swift` or an Xcode project as
-a dependency, and do not treat the names above as proof that an artifact exists — they are the
-intended identity recorded in [`device-risk-signals.json`](../../device-risk-signals.json), nothing
-more. Consumption is via the repository checkout only, and only for development on this repository.
-The remaining extraction and release gates are tracked in the
-[migration checklist](../../docs/MIGRATION_ROADMAP.md).
+In Xcode, choose **File → Add Package Dependencies**, enter
+`https://github.com/AfanasievN/ios-device-risk-signals.git`, select version **0.1.0** and product
+**IOSDeviceRiskSignals**. Installation from that public Git tag has been tested in a standalone
+Swift iOS app. It is distributed through Git, not a Swift Package registry server.
+
+```swift
+.package(url: "https://github.com/AfanasievN/ios-device-risk-signals.git", exact: "0.1.0")
+// Target dependency:
+.product(name: "IOSDeviceRiskSignals", package: "ios-device-risk-signals")
+```
+
+Nine collectors are available; this is not full React Native probe parity. Development status
+continues until physical-device calibration and the remaining
+[migration gates](../../docs/MIGRATION_ROADMAP.md) are complete. No provider runs automatically:
+the default-on/off notes below describe the React Native binding, not native SDK scheduling.
+
+All source changes and releases are managed here. The separate repository is an exported
+distribution mirror with independent version tags; see [release instructions](../../docs/IOS_RELEASE.md).
+React Native still compiles these same sources through CocoaPods; this release does not change it.
 
 ## What it collects
 
