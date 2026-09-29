@@ -64,7 +64,7 @@ logic after extraction is complete.
 | `sdks/android-active-probes/example/` | Development consumer | One-button native app demonstrating the active probe; declares host `INTERNET` itself |
 | `sdks/ios/example/` | Development consumer | Native iOS app consuming the Swift package without React Native |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
-| `sdks/ios/` | In development | Standalone iOS Swift Package with optional Mac Catalyst support; currently eleven collections: the shared statistics helper, runtime timing, numeric consistency, locale, application metadata, telephony, audio latency, network, GPU benchmark and device identity |
+| `sdks/ios/` | In development | Published 0.1.0: nine collectors. Unreleased source: sixteen methods via DeviceRiskSignals, including hardware/fonts, cached location, media, posture/transaction and socket-free integrity; iOS and Mac Catalyst |
 | `sdks/web/` | Planned | Browser SDK |
 | `bindings/react-native/` | Transitional placeholder | Future home of the existing npm binding |
 | `bindings/flutter/` | Planned | Dart/Flutter adapter |
@@ -84,8 +84,8 @@ directories intentionally contain no package manifests so they cannot be publish
 | Android identity, locale, timing, numeric vectors, audio, application, hardware, fonts, integrity, network, telephony, cached location, media/app audit, device posture, transaction observations and GPU | `sdks/android/` | `android-device-risk-signals` |
 | Android active loopback observation | `sdks/android-active-probes/` | `android-active-probes-device-risk-signals` |
 | Remaining Android providers | `android/` | `android-device-risk-signals` |
-| iOS runtime timing, numeric vectors and shared statistics | `sdks/ios/` | `ios-device-risk-signals` |
-| Remaining iOS providers | `ios/` | `ios-device-risk-signals` |
+| iOS sixteen socket-free collectors, facade and statistics | `sdks/ios/` | `ios-device-risk-signals` |
+| Legacy iOS active loopback and experimental fork, RN adapter | `ios/` | Optional active component still gated; see ADR-0008 |
 | React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
 | Web observations | Not implemented | `web-device-risk-signals` |
 
@@ -375,7 +375,8 @@ fields, permissions, or compatibility must update GitHub Pages manually in the s
   expose no socket I/O. No component declares `INTERNET`, but the active probe cannot open its socket
   unless the host application already declares it, and without that declaration every flag reads
   false; the component's own example declares it and says why. The iOS loopback port check in `ios/JailbreakDetector.m` is the same conflict
-  and stays open until iOS extraction begins.
+  and remains a legacy RN-only implementation. ADR-0008 extracts socket-free integrity into the
+  iOS core; standalone active publication remains gated.
 - Keep a small TurboModule adapter that converts SDK models to React Native maps. **Implemented:**
   the shared value converter is now the boundary for extracted probes.
 - Add native Android consumer tests before publishing the Maven artifact. **Started:**

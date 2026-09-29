@@ -1,4 +1,5 @@
 #import "SecurityPostureProvider.h"
+#import "CollectionThreadPolicy.h"
 #import <AVFoundation/AVFoundation.h>
 #import <LocalAuthentication/LocalAuthentication.h>
 #import <UIKit/UIKit.h>
@@ -7,6 +8,7 @@
 
 - (NSDictionary *)deviceSecurityPosture
 {
+  RNDIRequireMainThread();
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
   LAContext *context = [LAContext new];
   NSError *ownerError = nil;
@@ -34,12 +36,13 @@
   void (^work)(void) = ^{
     result[@"protectedDataAvailable"] = @([UIApplication sharedApplication].protectedDataAvailable);
   };
-  if ([NSThread isMainThread]) work(); else dispatch_sync(dispatch_get_main_queue(), work);
+  work();
   return result;
 }
 
 - (NSDictionary *)transactionSafetySignals
 {
+  RNDIRequireMainThread();
   // Android-only screenshot-event, screen-recording, and obscured-touch observation fields are
   // intentionally omitted here. iOS continues to expose its supported point-in-time UIKit state.
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -64,7 +67,7 @@
     result[@"accessibilityRunning"] = @((BOOL)(count > 0));
     result[@"accessibilityFeatureCount"] = @(count);
   };
-  if ([NSThread isMainThread]) work(); else dispatch_sync(dispatch_get_main_queue(), work);
+  work();
   return result;
 }
 

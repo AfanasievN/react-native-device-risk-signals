@@ -1,22 +1,19 @@
 #import "GeolocationInfoProvider.h"
+#import "CollectionThreadPolicy.h"
 #import <CoreLocation/CoreLocation.h>
 
 @implementation GeolocationInfoProvider
 
 - (NSDictionary *)geolocationSignals
 {
+  RNDIRequireMainThread();
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
 
-  // Core Location objects should be created/used on a thread with an active run loop. TurboModule
-  // methods run off the main thread, so do the read there (guarded against the already-on-main case).
+  // Core Location needs an active run loop. The caller supplies main-thread execution.
   void (^work)(void) = ^{
     [self collectInto:result];
   };
-  if ([NSThread isMainThread]) {
-    work();
-  } else {
-    dispatch_sync(dispatch_get_main_queue(), work);
-  }
+  work();
   return result;
 }
 

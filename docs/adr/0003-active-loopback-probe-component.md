@@ -1,5 +1,9 @@
 # ADR-0003: Active loopback observation lives in a separate optional component
 
+Update 2026-09-29: ADR-0008 extracts socket-free iOS integrity while retaining the legacy RN
+loopback/fork compositor outside the Swift Package. An optional standalone iOS active component
+remains unresolved; the historical migration notes below describe the original decision.
+
 - Status: accepted for the in-development components; publication, defaults and device QA remain gated
 - Date: 2026-09-09
 - Follows: [ADR-0002](0002-explicit-android-transaction-session.md)

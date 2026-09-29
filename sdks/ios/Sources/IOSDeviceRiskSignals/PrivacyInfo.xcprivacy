@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>NSPrivacyTracking</key><false/>
+  <key>NSPrivacyTrackingDomains</key><array/>
+  <key>NSPrivacyAccessedAPITypes</key><array/>
+  <!-- Local observations are not transmitted by this SDK. The host must disclose any data it
+       transmits/retains according to its actual use; this is not a host privacy declaration. -->
+  <key>NSPrivacyCollectedDataTypes</key><array/>
+</dict></plist>

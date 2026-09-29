@@ -51,7 +51,8 @@ let package = Package(
         // convention; implementation-only helpers stay `static` inside the `.m` files.
         .target(
             name: "IOSDeviceRiskSignals",
-            path: "Sources/IOSDeviceRiskSignals"
+            path: "Sources/IOSDeviceRiskSignals",
+            resources: [.copy("PrivacyInfo.xcprivacy")]
         ),
         .testTarget(
             name: "IOSDeviceRiskSignalsTests",

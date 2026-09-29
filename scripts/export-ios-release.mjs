@@ -20,6 +20,10 @@ try {
     .toString().trim().split('\n');
   if (!paths.includes(`${prefix}Package.swift`)) throw new Error('Committed iOS package is missing');
   const files = new Map(paths.map(path => [path.replace(/^sdks\/ios\//, ''), git('show', `${commit}:${path}`)]));
+  const expanded = files.has('Sources/IOSDeviceRiskSignals/include/DeviceRiskSignals.h');
+  const coverage = expanded
+    ? 'Sixteen collectors cover device identity, hardware, fonts, socket-free OS integrity, application, locale, network, telephony, cached geolocation, media/app observations, security posture, transaction snapshots, native timing, numeric consistency, audio latency and GPU benchmarking.'
+    : 'Nine collectors cover application metadata, locale, runtime timing, numeric consistency, telephony, network, audio latency, device identity and an optional GPU benchmark.';
   const source = `https://github.com/AfanasievN/react-native-device-risk-signals/tree/${commit}`;
   files.set('README.md', Buffer.from(`# ios-device-risk-signals
 
@@ -49,9 +53,9 @@ let locale = LocaleInfoProvider().localeSignals()
 let application = ApplicationInfoProvider().applicationSignals()
 \`\`\`
 
-Nine collectors cover application metadata, locale, runtime timing, numeric consistency,
-telephony, network, audio latency, device identity and an optional GPU benchmark.
-This is a **partial, pre-stable SDK**, not full React Native probe parity.
+${coverage}
+This is a **pre-stable SDK**, not full React Native probe parity. JS-specific and active checks are excluded.
+${expanded ? 'DeviceRiskSignals provides explicit collect methods. Hardware, integrity, geolocation, media, security posture and transaction methods require the main thread. Other existing provider APIs remain available.' : ''}
 No collector runs automatically. GPU collection must run off the main thread; it skips on Simulator.
 Never block the main thread waiting for a worker collecting device identity, which may hop to main.
 Telephony fields are commonly absent on modern iOS. Missing data is not evidence of fraud.
@@ -85,8 +89,7 @@ MIT licensed. See LICENSE.
 
 Standalone Swift Package for iOS 15.1+ and Mac Catalyst 15.1+, with no React Native dependency.
 
-- Nine raw-observation collectors: application, locale, runtime timing, numeric consistency,
-  telephony, network, audio latency, device identity and optional GPU benchmarking.
+- ${coverage}
 - Swift-importable Objective-C API, shared statistics helpers and native tests.
 - No automatic collection, network transport, permission prompts, persistent IDs or risk scoring.
 - Independent versioning and a reproducible, allowlisted export from the monorepo.

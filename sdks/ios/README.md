@@ -41,10 +41,24 @@ React Native still compiles these same sources through CocoaPods; this release d
 
 ## What it collects
 
+### Unreleased expansion in this checkout
+
+The source now has **16 explicit methods** through `DeviceRiskSignals`, adding hardware, fonts,
+socket-free OS integrity, cached geolocation, media/app observations, security posture and
+transaction snapshots. **The published 0.1.0 still has the nine collectors listed below.**
+See [the full native API/thread/privacy contract](../../docs/IOS_SDK_API.md).
+
+New UIKit-bound collectors require main-thread calls; the RN adapter owns dispatch. Fonts may run
+off-main, GPU must run off-main, and the existing identity provider retains its main-thread hop.
+Nothing collects on init. No socket/fork implementation is part of this package; the RN legacy
+compatibility compositor remains outside it. SwiftPM bundles PrivacyInfo.xcprivacy.
+CoreLocation and LocalAuthentication are now used by the extracted providers, without starting
+location updates, requesting permissions, or showing authentication UI.
+
 Raw observations only. Nothing here computes a risk score, returns a trusted/untrusted verdict, or
 makes a blocking decision; that stays with the calling application and its backend.
 
-Currently extracted:
+Published 0.1.0 collectors and helpers:
 
 | Symbol | Raw observation |
 | --- | --- |
@@ -245,10 +259,10 @@ sdks/ios/
     TelephonyInfoProviderTests.swift
 ```
 
-The implementation is Objective-C and was moved verbatim from `ios/`, not rewritten, so behaviour is
+The original nine-collector implementation is Objective-C and was moved verbatim from `ios/`, so behaviour is
 byte-for-byte identical to what the published binding shipped: the same sample counts, the same
-statistics, and the same emitted keys, value types and omission rules. The eleven headers in
-`include/` are the whole public surface; implementation details such as the percentile helper, the
+statistics, and the same emitted keys, value types and omission rules. Public headers in
+`include/` define the exported surface; implementation details such as the percentile helper, the
 sample-count constant and `NetworkInfoProvider`'s reachability, VPN and proxy helpers are `static` or
 undeclared inside the `.m` files and are not exported. Tests are Swift and exercise the package only
 through that public surface, with two documented exceptions:
@@ -256,7 +270,7 @@ through that public surface, with two documented exceptions:
 filter through the Objective-C runtime, and `NetworkInfoProviderTests` reaches
 `-vpnActiveInProxySettings:`, `-addProxyInfoFrom:to:` and `-reachabilityConnectionType` the same way,
 because widening either header purely to let a test see them would have changed the extracted
-source.
+source. The newer extraction and explicit threading contract are documented in ADR-0008.
 
 ## Building and testing
 
@@ -422,17 +436,16 @@ for the same reason — it appears only on a proxied host, so its boxing is pinn
 ## Native example app
 
 [`example/`](example/) is a development consumer that uses this package and nothing else — no React
-Native, no CocoaPods, no third-party dependency. It is a single UIKit app target with one button per
-provider it exercises (runtime timing, numeric consistency, locale, application, telephony, audio
-latency, network), printing each raw dictionary on screen as JSON. It has no button for
-`DeviceInfoProvider` or `GpuBenchmarkProvider` yet — adding them is an example-app change, not part
-of the extraction that moved them here. Collection happens only on an explicit
+Native, no CocoaPods, no third-party dependency. It is a single UIKit app target with sixteen
+buttons using the `DeviceRiskSignals` facade, printing each raw dictionary on screen as JSON.
+GPU, fonts, timing and numeric workloads run on a worker; UIKit-bound calls run on main.
+Collection happens only on an explicit
 press; nothing runs at launch, nothing is uploaded, and no score or verdict is derived.
 
 It exists to check the integration boundary from the outside: that the headers in `include/` are
 reachable from a plain Swift target through `import IOSDeviceRiskSignals`, with no bridging header
 and no build-setting help. The Xcode project is hand-written and checked in, because this repository
-has no project generator and a seven-button development app is not worth adding one for.
+has no project generator and the development app does not require one.
 
 ```sh
 xcodebuild build \

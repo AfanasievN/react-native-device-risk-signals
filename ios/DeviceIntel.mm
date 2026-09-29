@@ -22,6 +22,14 @@
 #import "TelephonyInfoProvider.h"
 #import <React/RCTBridgeModule.h>
 
+// The binding owns dispatch for the newly extracted main-thread collectors (ADR-0005).
+static NSDictionary *RNDICollectOnMain(NSDictionary *(^collect)(void)) {
+  if ([NSThread isMainThread]) return collect();
+  __block NSDictionary *result;
+  dispatch_sync(dispatch_get_main_queue(), ^{ result = collect(); });
+  return result;
+}
+
 @implementation DeviceIntel {
   dispatch_queue_t _probeQueue;
   DeviceInfoProvider *_deviceInfo;
@@ -106,7 +114,7 @@ RCT_EXPORT_MODULE(DeviceIntel)
 
 - (void)getHardwareSignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
-  resolve([_hardware hardwareSignals]);
+  resolve(RNDICollectOnMain(^{ return [_hardware hardwareSignals]; }));
 }
 
 - (void)getFontsFingerprint:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
@@ -153,12 +161,12 @@ RCT_EXPORT_MODULE(DeviceIntel)
 
 - (void)getGeolocationSignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
-  resolve([_geolocation geolocationSignals]);
+  resolve(RNDICollectOnMain(^{ return [_geolocation geolocationSignals]; }));
 }
 
 - (void)getMediaBluetoothAppsSignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
-  resolve([_mediaBluetoothApps mediaBluetoothAppsSignals]);
+  resolve(RNDICollectOnMain(^{ return [_mediaBluetoothApps mediaBluetoothAppsSignals]; }));
 }
 
 - (void)getGpuBenchmark:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
@@ -173,12 +181,12 @@ RCT_EXPORT_MODULE(DeviceIntel)
 
 - (void)getDeviceSecurityPosture:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
-  resolve([_securityPosture deviceSecurityPosture]);
+  resolve(RNDICollectOnMain(^{ return [_securityPosture deviceSecurityPosture]; }));
 }
 
 - (void)getTransactionSafetySignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
-  resolve([_securityPosture transactionSafetySignals]);
+  resolve(RNDICollectOnMain(^{ return [_securityPosture transactionSafetySignals]; }));
 }
 
 - (void)getRuntimeTimingSignals:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject

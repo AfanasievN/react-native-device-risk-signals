@@ -13,8 +13,8 @@ import {assertDefined} from "./testing/assertDefined";
 // host Info.plist and the path is app-specific. A consuming app should add its own test asserting
 // IOS_JAILBREAK_QUERY_SCHEMES and IOS_APP_AUDIT_SCHEMES (both exported for this purpose) are a
 // subset of its LSApplicationQueriesSchemes — mirroring the Android KnownAppLists.kt ⇔ manifest check.
-const JAILBREAK_DETECTOR_PATH = join(__dirname, "../ios/JailbreakDetector.m");
-const MEDIA_PROVIDER_PATH = join(__dirname, "../ios/MediaBluetoothAppsProvider.m");
+const JAILBREAK_DETECTOR_PATH = join(__dirname, "../sdks/ios/Sources/IOSDeviceRiskSignals/OsIntegrityProvider.m");
+const MEDIA_PROVIDER_PATH = join(__dirname, "../sdks/ios/Sources/IOSDeviceRiskSignals/MediaBluetoothAppsProvider.m");
 
 // Extract the @"..." entries from a `static NSString *const <anchor>[] = { ... }` array in a .m file.
 function schemesInNativeArray(source: string, anchor: string): Set<string> {

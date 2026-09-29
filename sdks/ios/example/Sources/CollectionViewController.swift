@@ -10,28 +10,32 @@ import IOSDeviceRiskSignals
 final class CollectionViewController: UIViewController {
     private struct Collection {
         let title: String
+        var worker: Bool = false
         let collect: () -> NSDictionary
     }
 
-    private let applicationInfo = ApplicationInfoProvider()
-    private let audioLatency = AudioLatencyProvider()
-    private let locale = LocaleInfoProvider()
-    private let network = NetworkInfoProvider()
-    private let numeric = NumericConsistencyProvider()
-    private let runtimeTiming = RuntimeTimingProvider()
-    private let telephony = TelephonyInfoProvider()
+    private let sdk = DeviceRiskSignals()
 
     private let output = UITextView()
 
     private var collections: [Collection] {
         [
-            Collection(title: "Runtime timing") { self.runtimeTiming.runtimeTimingSignals() as NSDictionary },
-            Collection(title: "Numeric consistency") { self.numeric.numericConsistencySignals() as NSDictionary },
-            Collection(title: "Locale") { self.locale.localeSignals() as NSDictionary },
-            Collection(title: "Application") { self.applicationInfo.applicationSignals() as NSDictionary },
-            Collection(title: "Telephony") { self.telephony.telephonySignals() as NSDictionary },
-            Collection(title: "Audio latency (ships disabled)") { self.audioLatency.audioLatency() as NSDictionary },
-            Collection(title: "Network (local observations)") { self.network.networkSignals() as NSDictionary },
+            Collection(title: "Device identity") { self.sdk.collectDeviceIdentity() as NSDictionary },
+            Collection(title: "Hardware") { self.sdk.collectHardware() as NSDictionary },
+            Collection(title: "Fonts (sensitive)", worker: true) { self.sdk.collectFonts() as NSDictionary },
+            Collection(title: "OS integrity (no sockets)") { self.sdk.collectOsIntegrity() as NSDictionary },
+            Collection(title: "Cached location (sensitive)") { self.sdk.collectGeolocation() as NSDictionary },
+            Collection(title: "Media / app visibility (sensitive)") { self.sdk.collectMediaBluetoothApps() as NSDictionary },
+            Collection(title: "Security posture") { self.sdk.collectDeviceSecurityPosture() as NSDictionary },
+            Collection(title: "Transaction snapshot (sensitive)") { self.sdk.collectTransactionSafety() as NSDictionary },
+            Collection(title: "Runtime timing", worker: true) { self.sdk.collectRuntimeTiming() as NSDictionary },
+            Collection(title: "Numeric consistency", worker: true) { self.sdk.collectNumericConsistency() as NSDictionary },
+            Collection(title: "Locale") { self.sdk.collectLocale() as NSDictionary },
+            Collection(title: "Application") { self.sdk.collectApplication() as NSDictionary },
+            Collection(title: "Telephony") { self.sdk.collectTelephony() as NSDictionary },
+            Collection(title: "Audio latency") { self.sdk.collectAudioLatency() as NSDictionary },
+            Collection(title: "Network (local observations)") { self.sdk.collectNetwork() as NSDictionary },
+            Collection(title: "GPU benchmark (explicit opt-in)", worker: true) { self.sdk.collectGpuBenchmark() as NSDictionary },
         ]
     }
 
@@ -46,7 +50,7 @@ final class CollectionViewController: UIViewController {
         header.text = """
             Local SDK example. Choose a collection; results stay on this screen.
             Nothing is collected on launch, nothing is uploaded, and there is no score or verdict.
-            Device identity is not available from the iOS package yet.
+            Sensitive measurements require an explicit tap. GPU/fonts run on a worker.
             """
 
         let buttons = UIStackView(arrangedSubviews: collections.enumerated().map { index, collection in
@@ -66,7 +70,18 @@ final class CollectionViewController: UIViewController {
         output.text = "No collection has run."
         output.accessibilityIdentifier = "output"
 
-        let column = UIStackView(arrangedSubviews: [header, buttons])
+        let scroll = UIScrollView()
+        buttons.translatesAutoresizingMaskIntoConstraints = false
+        scroll.addSubview(buttons)
+        NSLayoutConstraint.activate([
+            buttons.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor),
+            buttons.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor),
+            buttons.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
+            buttons.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor),
+            buttons.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor),
+            scroll.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.4),
+        ])
+        let column = UIStackView(arrangedSubviews: [header, scroll])
         column.axis = .vertical
         column.spacing = 12
         column.translatesAutoresizingMaskIntoConstraints = false
@@ -88,9 +103,18 @@ final class CollectionViewController: UIViewController {
 
     @objc private func run(_ sender: UIButton) {
         let collection = collections[sender.tag]
-        let raw = collection.collect()
-        output.text = "\(collection.title)\n\n\(Self.readableJSON(raw))"
-        output.setContentOffset(.zero, animated: false)
+        sender.isEnabled = false
+        let work = {
+            let raw = collection.collect()
+            let text = "\(collection.title)\n\n\(Self.readableJSON(raw))"
+            DispatchQueue.main.async {
+                self.output.text = text
+                self.output.setContentOffset(.zero, animated: false)
+                sender.isEnabled = true
+            }
+        }
+        if collection.worker { DispatchQueue.global(qos: .userInitiated).async(execute: work) }
+        else { work() }
     }
 
     private static func readableJSON(_ raw: NSDictionary) -> String {

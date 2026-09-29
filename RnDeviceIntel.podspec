@@ -15,8 +15,8 @@ Pod::Spec.new do |s|
 
   # Two roots: the thin React Native adapter in ios/, and the standalone IOSDeviceRiskSignals
   # package sources it delegates to. CocoaPods cannot consume a local Swift Package, so the pod
-  # compiles those sources directly - the same bridge android/build.gradle uses for the Android
-  # components. It goes away when the Swift Package is published and consumed as a dependency.
+  # compiles those sources directly. Android passive core already uses Maven; iOS keeps this source
+  # integration until an independently verified CocoaPods/SPM consumption migration.
   s.source_files = "ios/**/*.{h,m,mm,swift,cpp}", "sdks/ios/Sources/IOSDeviceRiskSignals/**/*.{h,m}"
   s.private_header_files = "ios/**/*.h", "sdks/ios/Sources/IOSDeviceRiskSignals/include/*.h"
 

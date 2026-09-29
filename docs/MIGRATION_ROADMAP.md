@@ -199,8 +199,10 @@ for compatibility changes and the difference between queue cancellation and inte
 - [ ] Fix the scan's remaining ambiguous false flags. Every handshake failure still collapses to
   `false`, indistinguishable from a listener that answered something other than `REJECT`. A
   REJECT-like response still does not authenticate a service.
-- [ ] Resolve the iOS loopback port check in `ios/JailbreakDetector.m` (`openReverseEngineeringPorts`,
-  ports 27042/4444/22/44) under the same component rule before extracting iOS integrity code.
+- [x] Extract socket-free iOS integrity into the core, keeping legacy loopback/fork in the RN
+  compatibility compositor (ADR-0008).
+- [ ] Resolve that legacy loopback check (ports 27042/4444/22/44) into an optional reviewed iOS
+  active component with bounded I/O and device QA before standalone active publication.
 - [ ] **Unavailable values:** audit legacy false/empty fallbacks separately. Preserve current behavior
   during moves; fixing a fallback requires tests, contract/privacy updates and compatibility notes.
 - [ ] **Timing compatibility:** four `NativeRuntimeTimingSignals` measurements became optional during
@@ -265,11 +267,12 @@ for compatibility changes and the difference between queue cancellation and inte
   source root, the same bridge the Android build uses. The component is now `in-development`.
 - [ ] Extend the package beyond pure computation: supported
   destinations, exported headers/types and a documented Objective-C/Swift consumption surface.
-- [ ] Move the remaining Foundation-compatible providers from `ios/` in small tested groups.
+- [x] Move the remaining socket-free providers from `ios/` in tested groups (unreleased source).
   Done so far: statistics, runtime timing, numeric consistency, locale, application metadata,
-  telephony, audio latency, network, GPU benchmark, device identity. Still in `ios/`: hardware and
-  fonts, geolocation, media, security posture and integrity - every one of those hops to the main
-  thread inside the provider, so the dispatch-ownership decision below gates them. The package no longer builds for macOS, because CoreTelephony
+  telephony, audio latency, network, GPU benchmark, device identity, hardware/fonts, geolocation,
+  media, posture/transaction and socket-free integrity. Newly extracted UI-bound providers require
+  main-thread calls; the RN adapter owns dispatch (ADR-0008). Legacy active/fork code stays outside
+  the package. The package no longer builds for macOS, because CoreTelephony
   is unavailable there; iOS Simulator, device and Mac Catalyst destinations carry the tests. Preserve
   absent values, cached location, system framework use and current platform gates.
 - [ ] Extract timing/statistics, hardware/application/identity, integrity and other providers;
@@ -302,10 +305,8 @@ for compatibility changes and the difference between queue cancellation and inte
 - [x] Add a native iOS consumer: `sdks/ios/example/` is a plain UIKit app that imports the package
   as a local Swift package and calls only its public API, with one button per available collection
   and nothing collected on launch. Verified on a simulator with real values, and built in CI.
-- [ ] Give the iOS package a facade comparable to Android's `DeviceRiskSignals`. Today a consumer
-  instantiates seven separate providers and fans out by hand, and each returns an untyped
-  `NSDictionary` rather than a typed model with `toRawMap()`. The native example makes that gap
-  concrete.
+- [x] Give the iOS package a `DeviceRiskSignals` facade with sixteen explicit methods and update
+  the native example. Raw dictionaries remain the API; typed models are separate future work.
 - [ ] Add tests and builds for the remaining supported destinations;
   perform physical-device QA and test clean package installation before activation.
 - [x] Establish a Swift Package export and independent release workflow in the monorepo.

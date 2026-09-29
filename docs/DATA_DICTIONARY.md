@@ -1,5 +1,16 @@
 # Device signal data dictionary
 
+## Standalone iOS coverage (unreleased source)
+
+`DeviceRiskSignals` exposes sixteen synchronous methods; the published 0.1.0 still has nine.
+The newly extracted `hardware`, `fonts`, `os_integrity`, `geolocation`, `media_bluetooth_apps`,
+`device_security_posture` and `transaction_safety` preserve existing iOS field meanings below.
+Each returns a raw dictionary, not the React Native event/outcome envelope. No collection runs
+automatically. UIKit-bound calls require main; GPU requires a worker; fonts may run on a worker.
+The socket-free core omits `openReverseEngineeringPorts` and has no fork-test API. Missing is
+not false. JS runtime fields and JS/native comparisons remain binding-specific. See
+[iOS API and privacy](IOS_SDK_API.md) and [ADR-0008](adr/0008-ios-passive-core-completion.md).
+
 This document describes what each probe can collect and why. The machine-readable source of truth is
 the exported `PROBE_CATALOG` constant, generated from `contract/source/probe-catalog.source.json`
 into `src/probeCatalog.ts`. Applications can use it to build

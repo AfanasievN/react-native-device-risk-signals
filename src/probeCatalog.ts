@@ -182,7 +182,7 @@ export const PROBE_CATALOG = [
       "suspiciousPathCount",
       "injectedLibraryCount",
     ],
-    notes: "Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation.",
+    notes: "Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation. Unreleased standalone iOS core requires main-thread collection and omits openReverseEngineeringPorts; legacy React Native iOS still composes that active loopback observation outside the core.",
   },
   {
     id: "os_integrity_frida_scan",
@@ -196,7 +196,7 @@ export const PROBE_CATALOG = [
     ],
     dataCategories: ["runtime_security"],
     fields: ["scanPerformed", "defaultPortOpen", "scannedPort", "fridaHandshakeReject"],
-    notes: "The only active probe: it connects to 127.0.0.1 and is collected by the optional Android active-probes component, never by the no-network core. Verified on a device: without host-declared INTERNET both flags read false even while a listener is up, which is indistinguishable from nothing listening. A REJECT-like reply is protocol evidence, not service identity.",
+    notes: "The Android active probe: it connects to 127.0.0.1 and is collected by the optional Android active-probes component, never by the no-network core. Verified on a device: without host-declared INTERNET both flags read false even while a listener is up, which is indistinguishable from nothing listening. A REJECT-like reply is protocol evidence, not service identity.",
   },
   {
     id: "os_integrity_fork_test",

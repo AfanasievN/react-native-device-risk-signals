@@ -2,20 +2,18 @@
 
 This development app consumes `ios-device-risk-signals` directly, as a local Swift package
 reference to `..`. It has no React Native dependency, no CocoaPods, and no third-party dependency at
-all. The SDK is partially extracted and unpublished; this example is a local integration reference,
-not an instruction to install a release. There is still no installable coordinate for the package —
-see the [package README](../README.md#status-in-development-unpublished).
+all. This example uses the unreleased sixteen-method source. Published 0.1.0 has nine collectors;
+see the [package README](../README.md) for the distinction.
 
-The app exposes seven collection buttons, one per provider the package currently ships: runtime
-timing, numeric consistency, locale, application metadata, telephony, audio latency and network.
+The app exposes sixteen collection buttons via DeviceRiskSignals, including the newly extracted
+hardware, fonts, socket-free integrity, geolocation, media, security and transaction methods.
 Collection starts only when a button is pressed; nothing runs on launch. Results are local raw
 observations printed on screen as JSON. The app does not upload them, store them, or calculate a
 risk score or verdict, and the screen says so.
 
-Device identity is deliberately absent: that provider has not been extracted to this package yet, so
-the Android example's first button has no counterpart here. Audio latency is labelled as shipping
-disabled because the React Native probe that wraps it defaults to off
-(`src/probes/audioLatencyProbe.ts`); the button exists so the provider can be exercised by hand.
+Fonts, GPU, native timing and numeric workloads run on a worker. UIKit-bound collectors run on
+main. Sensitive collection requires a separate explicit tap; no permission prompt or location
+update is requested. App visibility is limited by host Info.plist declarations (none are added).
 
 On a simulator two of these buttons are expected to look empty or degraded, and that is the
 documented behaviour rather than a fault:
@@ -29,7 +27,7 @@ documented behaviour rather than a fault:
 
 ## Using the SDK
 
-The providers are Objective-C. SwiftPM exports the eight headers in
+The providers are Objective-C. SwiftPM exports the public headers in
 `Sources/IOSDeviceRiskSignals/include/` as a clang module named after the SwiftPM target, so a Swift
 consumer needs exactly one import and no bridging header, no `module.modulemap` of its own, and no
 `-import-objc-header` flag:
@@ -41,9 +39,8 @@ let locale = LocaleInfoProvider().localeSignals()   // NSDictionary
 let timing = RuntimeTimingProvider().runtimeTimingSignals()
 ```
 
-Each provider is a plain `NSObject` with a single zero-argument method returning `NSDictionary`.
-There is no facade object equivalent to Android's `DeviceRiskSignals`, so a consumer instantiates
-the providers it needs. The calls are synchronous and cheap, and none of them adds a permission
+The DeviceRiskSignals facade and individual providers return raw dictionaries.
+Calls are synchronous; fonts and GPU are expensive and should stay off-main. None adds a permission
 prompt, a network request, or an automatic collection schedule. Missing observations are absent
 keys, never placeholder values — `AudioLatencyProvider` is the one that says so explicitly, with
 `measured`.
@@ -69,7 +66,7 @@ xcrun simctl launch booted io.github.afanasievn.devicerisksignals.example
 ```
 
 The Xcode project is **checked in and hand-written** rather than generated. Neither `xcodegen` nor
-`tuist` is a dependency of this repository, and adding a project generator to build a seven-button
+`tuist` is a dependency of this repository, and adding a project generator to build this
 development consumer would have been a new toolchain requirement for everyone. The project is kept
 as small as that decision allows: one application target, two Swift files, no asset catalog, no
 storyboard, no `Info.plist` (`GENERATE_INFOPLIST_FILE = YES`), and one

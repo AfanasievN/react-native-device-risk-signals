@@ -4,6 +4,14 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+- Standalone iOS source now exposes sixteen explicit collection methods through `DeviceRiskSignals`.
+  Hardware/fonts, cached geolocation, media/app observations, security and transaction posture,
+  and socket-free OS integrity move into the shared core. Published iOS 0.1.0 remains unchanged.
+- Newly extracted UIKit-bound providers require the main thread; React Native owns their dispatch.
+  Published provider APIs retain their behavior. No new JS fields/defaults or transport are added.
+- Legacy RN loopback/fork checks remain outside the Swift Package; passive integrity omits their
+  fields. SwiftPM bundles a privacy manifest. See ADR-0008 for limitations and release gates.
+
 ## [0.9.1] - 2026-09-29
 
 - React Native now resolves passive Android core `0.1.0` from Maven Central. Hosts must declare

@@ -1,4 +1,5 @@
 #import "MediaBluetoothAppsProvider.h"
+#import "CollectionThreadPolicy.h"
 #import <AVFoundation/AVFoundation.h>
 #import <UIKit/UIKit.h>
 
@@ -15,6 +16,7 @@ static NSString *const kAppAuditSchemes[] = {
 
 - (NSDictionary *)mediaBluetoothAppsSignals
 {
+  RNDIRequireMainThread();
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
 
   // Audio route — AVAudioSession is safe to read off the main thread.
@@ -25,8 +27,7 @@ static NSString *const kAppAuditSchemes[] = {
   }
   result[@"isOtherAudioPlaying"] = @(session.isOtherAudioPlaying);
 
-  // UIKit / UIApplication / UIAccessibility reads must happen on the main thread. TurboModule methods
-  // run off it, so hop over (guarded against the already-on-main case to avoid a dispatch_sync deadlock).
+  // The caller satisfies UIKit / UIApplication / UIAccessibility's main-thread requirement.
   void (^work)(void) = ^{
     result[@"isScreenCaptured"] = @(UIScreen.mainScreen.isCaptured);
     NSArray<UIScreen *> *screens = UIScreen.screens;
@@ -64,11 +65,7 @@ static NSString *const kAppAuditSchemes[] = {
     }
     result[@"openableFlaggedSchemes"] = openable;
   };
-  if ([NSThread isMainThread]) {
-    work();
-  } else {
-    dispatch_sync(dispatch_get_main_queue(), work);
-  }
+  work();
 
   return result;
 }

@@ -13,7 +13,8 @@
       "docs/adr/0004-neutral-contract-authoring.md",
       "docs/adr/0005-ios-threading-contract.md",
       "docs/adr/0006-react-native-maven-core.md",
-      "docs/adr/0007-ios-distribution-mirror.md"
+      "docs/adr/0007-ios-distribution-mirror.md",
+      "docs/adr/0008-ios-passive-core-completion.md"
     ],
     "versioning": "independent",
     "currentPublishedComponent": "react-native",

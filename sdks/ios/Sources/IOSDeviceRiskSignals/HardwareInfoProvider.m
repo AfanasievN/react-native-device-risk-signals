@@ -1,4 +1,5 @@
 #import "HardwareInfoProvider.h"
+#import "CollectionThreadPolicy.h"
 #import <CommonCrypto/CommonCrypto.h>
 #import <UIKit/UIKit.h>
 #import <mach/mach.h>
@@ -18,6 +19,7 @@ static os_unfair_lock sBatteryMonitoringLock = OS_UNFAIR_LOCK_INIT;
 
 - (NSDictionary *)hardwareSignals
 {
+  RNDIRequireMainThread();
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
 
   // CPU + total RAM — thread-safe, not a Required-Reason API.
@@ -35,7 +37,7 @@ static os_unfair_lock sBatteryMonitoringLock = OS_UNFAIR_LOCK_INIT;
   }
 
   // UIScreen and UIDevice are both NS_SWIFT_UI_ACTOR in the SDK, so they must be touched on the
-  // main thread; TurboModule methods run off it. UIFont is NS_SWIFT_SENDABLE and is read
+  // main thread; the caller owns dispatch. UIFont is NS_SWIFT_SENDABLE and is read
   // directly in fontsFingerprint below.
   void (^work)(void) = ^{
     UIScreen *screen = [UIScreen mainScreen];
@@ -67,11 +69,7 @@ static os_unfair_lock sBatteryMonitoringLock = OS_UNFAIR_LOCK_INIT;
     }
     result[@"batteryState"] = [self batteryStateString:state];
   };
-  if ([NSThread isMainThread]) {
-    work();
-  } else {
-    dispatch_sync(dispatch_get_main_queue(), work);
-  }
+  work();
 
   return result;
 }
