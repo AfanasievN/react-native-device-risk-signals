@@ -2,13 +2,12 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, writeFileSync} from 'node:fs';
 import {dirname, resolve, join} from 'node:path';
+import {releaseChannel} from './release-channel.mjs';
 
 // Export committed, allowlisted files only; never copy a checkout or its credentials/build output.
 const [version, destination] = process.argv.slice(2);
 try {
-  if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version ?? '')) {
-    throw new Error('Expected an independent iOS version, e.g. 0.1.0');
-  }
+  const experimental = releaseChannel(version, (version ?? '').includes('-')) === 'next';
   if (!destination) throw new Error('An absent destination directory is required');
   const output = resolve(destination);
   if (existsSync(output)) throw new Error('Refusing to overwrite an existing destination');
@@ -28,6 +27,7 @@ try {
   files.set('README.md', Buffer.from(`# ios-device-risk-signals
 
 Standalone iOS device and runtime observations for Swift and Objective-C apps.
+${experimental ? '\n**Experimental prerelease: physical-iPhone QA has NOT been completed. Evaluation only; not a production-readiness claim.**\n' : ''}
 Product: **IOSDeviceRiskSignals**. Requires **iOS 15.1+** or **Mac Catalyst 15.1+**; not macOS.
 
 ## Install
@@ -86,6 +86,8 @@ Run tests on an available iOS Simulator with
 MIT licensed. See LICENSE.
 `));
   files.set('RELEASE_NOTES.md', Buffer.from(`# iOS SDK ${version}
+
+${experimental ? '**Experimental prerelease. Physical-iPhone QA has NOT been completed; use for evaluation only.**' : ''}
 
 Standalone Swift Package for iOS 15.1+ and Mac Catalyst 15.1+, with no React Native dependency.
 

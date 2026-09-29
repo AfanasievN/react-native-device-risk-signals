@@ -77,5 +77,9 @@ jobs:
           git commit -m "Release iOS SDK $VERSION"
           git tag "$VERSION"
           git push --atomic origin HEAD:main "refs/tags/$VERSION"
+          release_flags=()
+          if [[ "$VERSION" == *-* ]]; then
+            release_flags+=(--prerelease --latest=false)
+          fi
           gh release create "$VERSION" --repo AfanasievN/ios-device-risk-signals --verify-tag \
-            --title "iOS Device Risk Signals $VERSION" --notes-file RELEASE_NOTES.md
+            --title "iOS Device Risk Signals $VERSION" --notes-file RELEASE_NOTES.md "${release_flags[@]}"

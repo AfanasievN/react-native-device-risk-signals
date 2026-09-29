@@ -4,6 +4,12 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.10.0-beta.1] - 2026-09-29
+
+Experimental evaluation release via npm `next`; physical-iPhone QA is pending. Stable `latest`
+remains 0.9.1. Standalone iOS is released independently as 0.2.0-beta.1. See
+[release notes](docs/releases/0.10.0-beta.1.md).
+
 - Standalone iOS source now exposes sixteen explicit collection methods through `DeviceRiskSignals`.
   Hardware/fonts, cached geolocation, media/app observations, security and transaction posture,
   and socket-free OS integrity move into the shared core. Published iOS 0.1.0 remains unchanged.

@@ -12,6 +12,14 @@ Settings → Secrets and variables → Actions as **IOS_DISTRIBUTION_TOKEN**.
 Do not paste the token into issues, chat, commands, source or release notes.
 The ordinary GITHUB_TOKEN cannot push to a different repository.
 
+## Experimental releases
+
+Versions such as `0.2.0-beta.1` are supported (also alpha/rc). The workflow marks them as GitHub
+prereleases and does not move the latest Release. Install the exact prerelease version in Xcode.
+The maintainer authorized the first beta without physical-iPhone QA; that limitation must remain
+prominent. Promotion to an ordinary release still requires device QA. For the React Native package,
+prerelease GitHub releases publish to npm `next`, never `latest`; version/flag mismatches fail closed.
+
 ## Publish
 
 1. Commit and push reviewed iOS changes to main; wait for CI.

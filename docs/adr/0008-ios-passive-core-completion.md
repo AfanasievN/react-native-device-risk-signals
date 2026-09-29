@@ -1,6 +1,6 @@
 # ADR-0008: Complete the socket-free iOS core without changing RN observations
 
-- Status: accepted, unreleased
+- Status: accepted; experimental release authorized, production gate unchanged
 - Date: 2026-09-29
 
 ## Decision
@@ -37,5 +37,8 @@ Socket-free does not mean side-effect-free: the existing sandbox write test atte
 file outside the container and removes it on success; hardware briefly enables battery monitoring
 and restores its previous state. These are inherited behaviors, not new signals.
 
-Published iOS 0.1.0 still has nine collectors. This work only ships in a future independently
-versioned release after native/RN compilation, tests, package verification and device QA.
+Published iOS 0.1.0 has nine collectors. On 2026-09-29 the maintainer explicitly authorized an
+experimental beta release without physical-iPhone QA. iOS 0.2.0-beta.1 and React Native
+0.10.0-beta.1 are evaluation releases, marked prerelease on GitHub; npm uses next, never latest.
+Native/RN compilation, tests and package verification remain required. Physical-device QA is
+still a gate for promotion to a non-prerelease version; it is not claimed or waived for production.

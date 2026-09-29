@@ -15,7 +15,7 @@ concurrency:
 jobs:
   publish:
     name: Publish to npm
-    if: github.event.release.prerelease == false && startsWith(github.event.release.tag_name, 'v')
+    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     steps:
       - name: Check out release
@@ -27,7 +27,17 @@ jobs:
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
       - name: Verify release version
-        run: node scripts/verify-release-version.mjs "${{ github.event.release.tag_name }}"
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: node scripts/verify-release-version.mjs "$RELEASE_TAG"
+      - name: Select safe publication channel
+        id: channel
+        env:
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag=$(node scripts/release-channel.mjs "$version" "$PRERELEASE")
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
       - run: npm ci
       - name: Check whether this version is already published
         id: npm_version
@@ -42,4 +52,6 @@ jobs:
           fi
       - name: Publish package
         if: steps.npm_version.outputs.published != 'true'
-        run: npm publish
+        env:
+          DIST_TAG: ${{ steps.channel.outputs.tag }}
+        run: npm publish --tag "$DIST_TAG"

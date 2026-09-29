@@ -1,6 +1,6 @@
 {
   "name": "react-native-device-risk-signals",
-  "version": "0.9.1",
+  "version": "0.10.0-beta.1",
   "description": "React Native binding for Device Risk Signals: raw root, jailbreak, emulator, tampering, Frida, VPN, and proxy observations",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -31,7 +31,7 @@
   "scripts": {
     "prebuild": "node scripts/clean.mjs",
     "build": "tsc -p tsconfig.build.json",
-    "test": "jest --runInBand --watchman=false && node --test scripts/pages-seo-helpers.test.mjs scripts/android-release.test.mjs scripts/ios-release.test.mjs scripts/ios-core-boundary.test.mjs",
+    "test": "jest --runInBand --watchman=false && node --test scripts/pages-seo-helpers.test.mjs scripts/android-release.test.mjs scripts/ios-release.test.mjs scripts/ios-core-boundary.test.mjs scripts/release-channel.test.mjs",
     "typecheck": "tsc --noEmit",
     "verify:contract": "node scripts/verify-native-contract.mjs",
     "verify:maven-pom": "node scripts/verify-maven-pom.mjs",

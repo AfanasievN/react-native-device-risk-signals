@@ -26,6 +26,10 @@ test('iOS export is standalone, traced to a commit, and refuses overwrite', () =
     assert.equal(provenance.version, '0.1.0');
     assert.match(provenance.sha256['Package.swift'], /^[a-f0-9]{64}$/);
     assert.equal(run('0.1.0').status, 1);
+    const beta = join(temp, 'beta');
+    const betaResult = run('0.2.0-beta.1', beta);
+    assert.equal(betaResult.status, 0, betaResult.stderr);
+    assert.match(readFileSync(join(beta, 'RELEASE_NOTES.md'), 'utf8'), /[Ee]xperimental/);
     assert.equal(readFileSync(join(output, 'Package.swift'), 'utf8').startsWith('// swift-tools-version:'), true);
   } finally {
     rmSync(temp, {recursive: true, force: true});
