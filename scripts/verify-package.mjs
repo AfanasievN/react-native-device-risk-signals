@@ -8,7 +8,6 @@ const requiredFiles = [
   packageJson.types,
   "src/NativeDeviceIntel.ts",
   "android/build.gradle",
-  "sdks/android/src/main/kotlin/io/github/afanasievn/devicerisksignals/DeviceRiskSignals.kt",
   "ios/DeviceIntel.mm",
   "RnDeviceIntel.podspec",
   "docs/DATA_DICTIONARY.md",

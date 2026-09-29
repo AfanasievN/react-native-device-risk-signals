@@ -20,6 +20,14 @@ const packageJsonPath = path.resolve(__dirname, "../package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as PackageJson;
 
 describe("npm package contract", () => {
+  it("consumes passive Android core from Maven and only packs active probe sources", () => {
+    const gradle = fs.readFileSync(path.resolve(__dirname, "../android/build.gradle"), "utf8");
+    expect(gradle).not.toContain('file("../sdks/android/src/main/kotlin")');
+    expect(packageJson.files).not.toContain("sdks/android/src/main");
+    expect(packageJson.files).toContain("sdks/android-active-probes/src/main");
+    expect(gradle).toMatch(/\n  implementation "io\.github\.afanasievn:android-device-risk-signals:\$\{coreVersion\}"/);
+    expect(gradle).not.toContain('file("../sdks/android/build/local-maven")');
+  });
   it("publishes the first public release with compiled entrypoints", () => {
     expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/);
     expect(packageJson.main).toBe("lib/index.js");

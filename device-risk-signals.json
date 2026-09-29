@@ -11,7 +11,8 @@
       "docs/adr/0002-explicit-android-transaction-session.md",
       "docs/adr/0003-active-loopback-probe-component.md",
       "docs/adr/0004-neutral-contract-authoring.md",
-      "docs/adr/0005-ios-threading-contract.md"
+      "docs/adr/0005-ios-threading-contract.md",
+      "docs/adr/0006-react-native-maven-core.md"
     ],
     "versioning": "independent",
     "currentPublishedComponent": "react-native",
@@ -88,8 +89,8 @@
         "registry": "npm",
         "name": "react-native-device-risk-signals"
       },
-      "dependsOn": [],
-      "targetDependsOn": ["android", "android-active-probes", "ios"]
+      "dependsOn": ["android"],
+      "targetDependsOn": ["android-active-probes", "ios"]
     },
     {
       "id": "flutter",

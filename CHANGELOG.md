@@ -4,6 +4,12 @@ All notable public changes will be documented in this file.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-09-29
+
+- React Native now resolves passive Android core `0.1.0` from Maven Central. Hosts must declare
+  `mavenCentral()`. Passive core sources are removed from the npm archive; active probes remain
+  bundled sources. JavaScript APIs are unchanged.
+
 ## [0.9.0] - 2026-09-29
 
 ### Breaking
@@ -484,7 +490,8 @@ overview.
 - Added the Signal Bench example app, screenshots, and a sanitized real response.
 - Added compiled npm entrypoints, package verification, CI, and trusted publishing automation.
 
-[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/AfanasievN/react-native-device-risk-signals/compare/v0.7.0...v0.8.0

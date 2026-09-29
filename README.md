@@ -73,6 +73,9 @@ owned native observation session. GPU collection also uses the core, with worker
 and best-effort EGL restoration.
 A [native Android example](sdks/android/example/README.md)
 consumes this SDK without React Native; version `0.1.0` is available from Maven Central.
+
+The React Native Android binding resolves this core from Maven Central. Ensure the host Gradle
+repositories include `mavenCentral()`. Active probes remain bundled in the npm package.
 Each collection is explicit; fonts remain an optional, expensive, high-entropy observation.
 OS integrity includes existing process-local Frida evidence. The separate localhost Frida scan now
 lives in the `android-active-probes` component, the only component allowed loopback socket I/O; the

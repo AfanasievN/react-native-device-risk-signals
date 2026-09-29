@@ -2,7 +2,7 @@
   "catalog_version": 2,
   "ecosystem": "device-risk-signals",
   "implementation_package": "react-native-device-risk-signals",
-  "sdk_version": "0.9.0",
+  "sdk_version": "0.9.1",
   "source": "contract/source/probe-catalog.source.json",
   "type_source": "contract/source/signal-types.source.json",
   "probes": [

@@ -89,13 +89,12 @@ directories intentionally contain no package manifests so they cannot be publish
 | React Native orchestration | Root `src/`, `android/`, `ios/` | `bindings/react-native/` |
 | Web observations | Not implemented | `web-device-risk-signals` |
 
-During extraction, the root React Native package compiles Android core sources directly. This is a
-temporary compatibility bridge, not the final dependency model. An opt-in mode already proves the
-target shape: `-PdeviceRiskSignalsUseArtifacts=true` builds the binding against the components'
-locally published AARs, which is also what makes their Kotlin `internal` declarations a real
-boundary rather than an honor system. It is a verification path only, because an autolinked library
-cannot add a repository to a consumer's build. Once the Maven and Swift packages are published and
-tested, the binding will consume their released artifacts by default instead.
+The React Native binding resolves passive Android core `0.1.0` from Maven Central in every build.
+Hosts must declare `mavenCentral()`; the binding adds no repository in its default configuration.
+Passive core Kotlin sources are no longer shipped in the npm archive. Active probes remain bundled
+sources until their independent publication. `-PdeviceRiskSignalsUseArtifacts=true` is a CI-only
+path for the locally published active-probes AAR; passive core still resolves from Maven Central.
+iOS sources remain bundled during extraction. This transition is recorded in ADR-0006.
 
 ## Library naming
 

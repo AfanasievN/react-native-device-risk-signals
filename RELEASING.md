@@ -91,10 +91,11 @@ short-lived OIDC credentials. Draft and prerelease GitHub Releases do not publis
 ### What consumers receive
 
 The npm archive contains compiled JavaScript and TypeScript declarations, the TurboModule spec, the
-Android and iOS native sources, the standalone Android component sources the binding compiles, and
+Android adapter and iOS native sources, the bundled Android active-probe sources, and
 the `contract/` authoring sources, fixtures and generated artifacts. `npm run verify:package` checks
 that every path the Android build needs is actually in the archive. React Native autolinking discovers the native package after
-installation. Codegen and native compilation happen when the consumer builds their application.
+installation. Passive Android core resolves from Maven Central at version `0.1.0`; the host must
+declare `mavenCentral()`. Codegen and adapter compilation happen when the consumer builds their application.
 
 ## Publishing the Android components
 
