@@ -1,7 +1,8 @@
-# Standalone iOS API — unreleased expanded source
+# Standalone iOS API — experimental 0.2.0-beta.1
 
-Published Swift Package 0.1.0 has nine collectors. The API below is in the monorepo only until a
-new independent iOS release is published. No new installable version is implied.
+Published Swift Package 0.1.0 has nine collectors. The sixteen-method API below is available in
+0.2.0-beta.1 from the same distribution repository. Select the exact prerelease version in Xcode.
+Physical-iPhone QA is pending: this is an evaluation release, not a production-readiness claim.
 
 ```swift
 import IOSDeviceRiskSignals

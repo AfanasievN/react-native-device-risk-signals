@@ -1,8 +1,9 @@
 # Device signal data dictionary
 
-## Standalone iOS coverage (unreleased source)
+## Standalone iOS coverage (experimental 0.2.0-beta.1)
 
-`DeviceRiskSignals` exposes sixteen synchronous methods; the published 0.1.0 still has nine.
+`DeviceRiskSignals` exposes sixteen synchronous methods in 0.2.0-beta.1; stable 0.1.0 still has nine.
+Physical-device QA is pending for the beta.
 The newly extracted `hardware`, `fonts`, `os_integrity`, `geolocation`, `media_bluetooth_apps`,
 `device_security_posture` and `transaction_safety` preserve existing iOS field meanings below.
 Each returns a raw dictionary, not the React Native event/outcome envelope. No collection runs

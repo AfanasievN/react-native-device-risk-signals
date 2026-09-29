@@ -41,11 +41,13 @@ React Native still compiles these same sources through CocoaPods; this release d
 
 ## What it collects
 
-### Unreleased expansion in this checkout
+### Experimental expansion: 0.2.0-beta.1
 
 The source now has **16 explicit methods** through `DeviceRiskSignals`, adding hardware, fonts,
 socket-free OS integrity, cached geolocation, media/app observations, security posture and
 transaction snapshots. **The published 0.1.0 still has the nine collectors listed below.**
+The expanded API is available in [0.2.0-beta.1](https://github.com/AfanasievN/ios-device-risk-signals/releases/tag/0.2.0-beta.1).
+Select that exact version in Xcode. Physical-iPhone QA is pending; evaluation only.
 See [the full native API/thread/privacy contract](../../docs/IOS_SDK_API.md).
 
 New UIKit-bound collectors require main-thread calls; the RN adapter owns dispatch. Fonts may run

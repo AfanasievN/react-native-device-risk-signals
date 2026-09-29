@@ -64,7 +64,7 @@ logic after extraction is complete.
 | `sdks/android-active-probes/example/` | Development consumer | One-button native app demonstrating the active probe; declares host `INTERNET` itself |
 | `sdks/ios/example/` | Development consumer | Native iOS app consuming the Swift package without React Native |
 | `sdks/android/example/` | Development consumer | Native Android app consuming the partial SDK without React Native |
-| `sdks/ios/` | In development | Published 0.1.0: nine collectors. Unreleased source: sixteen methods via DeviceRiskSignals, including hardware/fonts, cached location, media, posture/transaction and socket-free integrity; iOS and Mac Catalyst |
+| `sdks/ios/` | In development | Published 0.1.0: nine collectors. Experimental 0.2.0-beta.1: sixteen methods via DeviceRiskSignals, including hardware/fonts, cached location, media, posture/transaction and socket-free integrity; iOS and Mac Catalyst; physical-device QA pending |
 | `sdks/web/` | Planned | Browser SDK |
 | `bindings/react-native/` | Transitional placeholder | Future home of the existing npm binding |
 | `bindings/flutter/` | Planned | Dart/Flutter adapter |

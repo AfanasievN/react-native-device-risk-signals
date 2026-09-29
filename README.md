@@ -97,6 +97,13 @@ share the generated [raw-signal contract](contract/README.md).
 | Capacitor | `capacitor-device-risk-signals` | Planned npm package |
 | Browser | `web-device-risk-signals` | Planned npm package |
 
+Experimental iOS [0.2.0-beta.1](https://github.com/AfanasievN/ios-device-risk-signals/releases/tag/0.2.0-beta.1)
+adds the sixteen-method `DeviceRiskSignals` facade. Select that exact version in Xcode for evaluation;
+physical-iPhone QA is pending. The ordinary 0.1.0 release remains available.
+React Native [0.10.0-beta.1](https://github.com/AfanasievN/react-native-device-risk-signals/releases/tag/v0.10.0-beta.1)
+is available with `npm install react-native-device-risk-signals@next`. The stable npm `latest`
+channel remains 0.9.1. Both beta releases are for evaluation pending physical-device QA.
+
 Future libraries follow the same `<platform>-device-risk-signals` naming pattern. Flutter's
 underscore spelling is the registry coordinate, not a different product name. Planned names do
 not imply a published or reserved registry artifact.

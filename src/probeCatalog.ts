@@ -182,7 +182,7 @@ export const PROBE_CATALOG = [
       "suspiciousPathCount",
       "injectedLibraryCount",
     ],
-    notes: "Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation. Unreleased standalone iOS core requires main-thread collection and omits openReverseEngineeringPorts; legacy React Native iOS still composes that active loopback observation outside the core.",
+    notes: "Returns explainable raw evidence. Weak Android build markers and device-farm markers are reported but do not set isEmulator without a stronger emulator observation. Standalone iOS 0.2.0-beta.1 core requires main-thread collection and omits openReverseEngineeringPorts; legacy React Native iOS still composes that active loopback observation outside the core.",
   },
   {
     id: "os_integrity_frida_scan",

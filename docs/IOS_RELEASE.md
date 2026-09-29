@@ -12,6 +12,11 @@ Settings → Secrets and variables → Actions as **IOS_DISTRIBUTION_TOKEN**.
 Do not paste the token into issues, chat, commands, source or release notes.
 The ordinary GITHUB_TOKEN cannot push to a different repository.
 
+The first automated beta attempt on 2026-09-29 passed tests/builds but received HTTP 403 on push.
+The beta was subsequently published with the maintainer's local authorization. Before the next
+automated release, verify the token selects the distribution repository and grants Contents write;
+replace the Actions secret if necessary. Do not assume secret presence proves write access.
+
 ## Experimental releases
 
 Versions such as `0.2.0-beta.1` are supported (also alpha/rc). The workflow marks them as GitHub
