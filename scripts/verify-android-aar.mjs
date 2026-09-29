@@ -161,6 +161,19 @@ const androidComponents = (ecosystem.components ?? []).filter(
 
 const failures = [];
 
+const args = process.argv.slice(2);
+if (args.length !== 0 && (args.length !== 2 || args[0] !== "--component")) {
+  console.error("Usage: node scripts/verify-android-aar.mjs [--component <id>]");
+  process.exit(1);
+}
+const selectedComponents = args.length === 0
+  ? androidComponents
+  : androidComponents.filter((component) => component.id === args[1]);
+if (args.length > 0 && selectedComponents.length === 0) {
+  console.error(`Unknown Android component: ${args[1]}`);
+  process.exit(1);
+}
+
 if (androidComponents.length === 0) {
   failures.push(
     "device-risk-signals.json declares no Android SDK component under sdks/android; this gate would pass vacuously",
@@ -171,7 +184,7 @@ const namespaces = new Map(
   androidComponents.map((component) => [component.id, readNamespace(component.path)]),
 );
 
-for (const component of androidComponents) {
+for (const component of selectedComponents) {
   const artifactId = String(component.distribution?.name ?? "").split(":").pop();
   const namespace = namespaces.get(component.id);
   const label = `${component.id} (${component.path})`;
@@ -369,5 +382,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Verified ${androidComponents.length} Android AARs: no foreign framework, permission or cross-component content.`,
+  `Verified ${selectedComponents.length} Android AARs: no foreign framework, permission or cross-component content.`,
 );
