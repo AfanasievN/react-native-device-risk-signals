@@ -221,6 +221,12 @@ Current transition rules:
 
 Target tag format after per-component release workflows exist:
 
+iOS distribution is an explicit exception: [ADR-0007](adr/0007-ios-distribution-mirror.md) keeps
+authored code and the `publish-ios.yml` workflow in this monorepo, exporting a SwiftPM distribution
+mirror at `AfanasievN/ios-device-risk-signals` with plain `X.Y.Z` tags. This prevents SwiftPM from
+interpreting React Native versions as iOS SDK versions. It does not enable component-prefixed tags
+in this repository. See [iOS release instructions](IOS_RELEASE.md).
+
 ```text
 android-vX.Y.Z
 ios-vX.Y.Z

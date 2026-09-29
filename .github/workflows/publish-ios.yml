@@ -1,0 +1,81 @@
+name: Publish iOS Swift Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Independent iOS version (for example 0.1.0)
+        required: true
+        type: string
+      dry_run:
+        description: Validate and build without publishing
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-ios
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.16.0"
+          package-manager-cache: false
+      - name: Verify and export committed iOS package
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          node --test scripts/ios-release.test.mjs
+          node scripts/export-ios-release.mjs "$VERSION" "$RUNNER_TEMP/ios-package"
+      - name: Test exported package
+        working-directory: ${{ runner.temp }}/ios-package
+        run: |
+          device=$(xcrun simctl list devices available -j | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const d=Object.values(JSON.parse(s).devices).flat().find(d=>d.name.startsWith("iPhone"));if(!d)process.exit(1);console.log(d.udid)})')
+          xcodebuild test -scheme ios-device-risk-signals -destination "platform=iOS Simulator,id=$device" -quiet
+          xcodebuild build -scheme ios-device-risk-signals -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO -quiet
+          xcodebuild build -scheme ios-device-risk-signals -destination 'platform=macOS,variant=Mac Catalyst' CODE_SIGNING_ALLOWED=NO -quiet
+          rm -rf .build .swiftpm
+      - name: Require distribution credential
+        if: ${{ !inputs.dry_run }}
+        env:
+          TOKEN: ${{ secrets.IOS_DISTRIBUTION_TOKEN }}
+        run: test -n "$TOKEN" || { echo 'Set IOS_DISTRIBUTION_TOKEN with Contents write on the iOS distribution repository.'; exit 1; }
+      - name: Check out distribution repository
+        if: ${{ !inputs.dry_run }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          repository: AfanasievN/ios-device-risk-signals
+          token: ${{ secrets.IOS_DISTRIBUTION_TOKEN }}
+          path: ios-distribution
+          fetch-depth: 0
+      - name: Publish immutable version
+        if: ${{ !inputs.dry_run }}
+        working-directory: ios-distribution
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ secrets.IOS_DISTRIBUTION_TOKEN }}
+        run: |
+          if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo 'Version already exists; refusing to overwrite it.'
+            exit 1
+          fi
+          git rm -r --ignore-unmatch .
+          cp -R "$RUNNER_TEMP/ios-package/." .
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "Release iOS SDK $VERSION"
+          git tag "$VERSION"
+          git push --atomic origin HEAD:main "refs/tags/$VERSION"
+          gh release create "$VERSION" --repo AfanasievN/ios-device-risk-signals --verify-tag \
+            --title "iOS Device Risk Signals $VERSION" --notes-file RELEASE_NOTES.md

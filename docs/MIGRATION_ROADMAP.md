@@ -308,8 +308,9 @@ for compatibility changes and the difference between queue cancellation and inte
   concrete.
 - [ ] Add tests and builds for the remaining supported destinations;
   perform physical-device QA and test clean package installation before activation.
-- [ ] Establish a tested Swift Package distribution layout and independent release workflow before
-  advertising an install URL. The current `sdks/ios/` directory is only a placeholder.
+- [x] Establish a Swift Package export and independent release workflow in the monorepo.
+  ADR-0007 defines the distribution-only mirror and independent SwiftPM tags; see IOS_RELEASE.md.
+  Registry installation must still be confirmed for each publication.
 
 ## 5. Complete the React Native binding migration
 

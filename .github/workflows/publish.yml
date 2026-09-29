@@ -15,7 +15,7 @@ concurrency:
 jobs:
   publish:
     name: Publish to npm
-    if: github.event.release.prerelease == false
+    if: github.event.release.prerelease == false && startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     steps:
       - name: Check out release
